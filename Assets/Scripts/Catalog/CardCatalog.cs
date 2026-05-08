@@ -10,6 +10,21 @@ namespace BannerOfBones.CardGame
     /// </summary>
     public static class CardCatalog
     {
+        /// <summary>
+        /// Returns a balanced 10-card starter deck suitable for a first run.
+        /// Composition: 3× Iron Shield · 3× Swift Slash · 2× Bone Ward · 1× Twin Fangs · 1× Lucky Reroll
+        /// </summary>
+        public static List<CardData> CreateStarterDeck()
+        {
+            var deck = new List<CardData>();
+            for (int i = 0; i < 3; i++) deck.Add(CreateIronShield());
+            for (int i = 0; i < 3; i++) deck.Add(CreateSwiftSlash());
+            for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
+            deck.Add(CreateTwinFangs());
+            deck.Add(CreateLuckyReroll());
+            return deck;
+        }
+
         public static List<CardData> CreateAllCards()
         {
             return new List<CardData>

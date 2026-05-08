@@ -100,23 +100,26 @@ namespace BannerOfBones.CardGame
 
             // ── Player section (45%–72%) ──────────────────────────────────────────
             var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.45f, 1f, 0.72f);
-            _playerHpText     = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f,   0.72f, 0.5f, 1f);
-            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f),  TextAnchor.UpperLeft, 0f,   0.44f, 0.5f, 0.72f);
-            _playerBlockText  = MkText(pp, 14, C(0.50f, 0.8f, 1f),  TextAnchor.UpperLeft, 0f,   0.16f, 0.5f, 0.44f);
-            _playerDiceText   = MkText(pp, 13, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0.5f, 0.5f,  1f,   1f);
-            _stateText        = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.5f, 0f,    1f,   0.5f);
+            _playerHpText     = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.72f, 0.5f, 1f);
+            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f),  TextAnchor.UpperLeft, 0f, 0.44f, 0.5f, 0.72f);
+            _playerBlockText  = MkText(pp, 14, C(0.50f, 0.8f, 1f),  TextAnchor.UpperLeft, 0f, 0.16f, 0.5f, 0.44f);
+            _stateText        = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.5f, 0f, 1f, 1f);
+
+            // ── Player dice: bottom-center, just above the hand cards ─────────────
+            MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.2f, 0.43f, 0.8f, 0.47f);
+            _playerDiceText = MkText(root, 14, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.2f, 0.43f, 0.8f, 0.47f);
 
             // ── Hand section (24%–45%) ────────────────────────────────────────────
-            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.24f, 1f, 0.45f);
+            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.24f, 1f, 0.43f);
 
-            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.43f, 1f, 0.45f);
+            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.41f, 1f, 0.43f);
             handLabel.text = "— H A N D —";
 
             var hc = new GameObject("HandCards");
             hc.transform.SetParent(root, false);
             var hcRT = hc.AddComponent<RectTransform>();
             hcRT.anchorMin = new Vector2(0f, 0.24f);
-            hcRT.anchorMax = new Vector2(1f, 0.43f);
+            hcRT.anchorMax = new Vector2(1f, 0.41f);
             hcRT.offsetMin = new Vector2(4f, 2f);
             hcRT.offsetMax = new Vector2(-4f, -2f);
             _handContainer = hcRT;

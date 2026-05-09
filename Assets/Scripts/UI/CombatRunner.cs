@@ -393,7 +393,7 @@ namespace BannerOfBones.CardGame
 
                 var button = go.AddComponent<Button>();
                 button.interactable = interactable;
-                button.onClick.AddListener(() => OnDieClicked(target, dieIndex, -1));
+                button.onClick.AddListener(() => OnDieClicked(target, dieIndex));
 
                 // Die type label (small, top of button)
                 bool showType = die.Sides != DiceManager.DefaultDieSides || die.IsTemporary;
@@ -507,9 +507,9 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
-        private void OnDieClicked(ECardTarget target, int dieIndex, int enemyIndex)
+        private void OnDieClicked(ECardTarget target, int dieIndex)
         {
-            if (_combat.TogglePendingDieSelection(target, dieIndex, enemyIndex))
+            if (_combat.TogglePendingDieSelection(target, dieIndex))
                 RefreshUI();
         }
 

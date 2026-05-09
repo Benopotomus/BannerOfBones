@@ -112,7 +112,7 @@ namespace BannerOfBones.CardGame
                    && _enemies[enemyIndex].IsAlive;
         }
 
-        public bool CanSelectDie(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool CanSelectDie(ECardTarget target, int dieIndex)
         {
             if (!IsAwaitingDiceSelection || target != _pendingDiceTarget)
                 return false;
@@ -121,7 +121,7 @@ namespace BannerOfBones.CardGame
             return dieIndex >= 0 && dieIndex < dieCount;
         }
 
-        public bool IsDieSelected(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool IsDieSelected(ECardTarget target, int dieIndex)
         {
             if (target != _pendingDiceTarget)
                 return false;
@@ -307,9 +307,9 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
-        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex)
         {
-            if (!CanSelectDie(target, dieIndex, enemyIndex)) return false;
+            if (!CanSelectDie(target, dieIndex)) return false;
 
             if (_selectedDiceIndices.Contains(dieIndex))
             {
@@ -610,8 +610,7 @@ namespace BannerOfBones.CardGame
             PendingPrompt = prompt;
         }
 
-        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver,
-            int enemyIndex = -1)
+        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver)
         {
             _selectedDiceIndices.Clear();
             _pendingDiceTarget = target;

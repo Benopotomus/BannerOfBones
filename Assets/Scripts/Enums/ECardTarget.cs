@@ -6,6 +6,5 @@
     public enum ECardTarget
     {
         PlayerDice,
-        EnemyDice,
     }
 }

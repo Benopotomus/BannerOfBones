@@ -35,7 +35,6 @@ namespace BannerOfBones.CardGame
         private Button _braceButton;
         private Button _scoutButton;
         private Button _tuneButton;
-        private Button _sunderButton;
         private Button _cancelButton;
         private Button _confirmDiceButton;
         private Button _endTurnButton;
@@ -113,8 +112,7 @@ namespace BannerOfBones.CardGame
             _braceButton = MkButton(root, "Brace", new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
             _scoutButton = MkButton(root, "Scout", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
             _tuneButton = MkButton(root, "Tune", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), C(0.18f, 0.38f, 0.14f), OnTuneClicked);
-            _sunderButton = MkButton(root, "Sunder", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.18f, 0.38f, 0.14f), OnSunderClicked);
-            _cancelButton = MkButton(root, "Cancel", new Vector2(0.72f, 0.04f), new Vector2(0.79f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
+            _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
@@ -123,7 +121,6 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
             AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
             AttachHoverTooltip(_tuneButton, $"Tune: Spend {CombatManager.TuneEnergyCost} energy to raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1.");
-            AttachHoverTooltip(_sunderButton, $"Sunder: Spend {CombatManager.SunderEnergyCost} energy to lower up to {CombatManager.SunderMaxDiceTargets} enemy dice by 1.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
@@ -270,14 +267,7 @@ namespace BannerOfBones.CardGame
                     ? $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}   Block {enemy.Block}"
                     : $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
 
-                var diceText = MkText(panel, 10, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.46f, 1f, 0.60f);
-                string enemyHandLabel = BuildDiceHandLabel(enemy.Dice.CurrentRoll);
-                diceText.text = string.IsNullOrEmpty(enemyHandLabel) ? "Dice" : $"Dice  — {enemyHandLabel}";
-
-                var diceContainer = MkContainer(panel, $"EnemyDice{i}", 0f, 0.26f, 1f, 0.46f, 2f, 0f, -2f, 0f);
-                RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
-
-                var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
+                var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.58f);
                 passivesText.supportRichText = true;
                 passivesText.text = BuildEnemyActionText(enemy);
             }
@@ -306,7 +296,6 @@ namespace BannerOfBones.CardGame
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
             _tuneButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.TuneEnergyCost);
-            _sunderButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.SunderEnergyCost) && CountAliveEnemies() > 0;
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
             _cancelButton.interactable = _combat.HasPendingCardPlay;
@@ -404,7 +393,7 @@ namespace BannerOfBones.CardGame
 
                 var button = go.AddComponent<Button>();
                 button.interactable = interactable;
-                button.onClick.AddListener(() => OnDieClicked(target, dieIndex, -1));
+                button.onClick.AddListener(() => OnDieClicked(target, dieIndex));
 
                 // Die type label (small, top of button)
                 bool showType = die.Sides != DiceManager.DefaultDieSides || die.IsTemporary;
@@ -436,46 +425,6 @@ namespace BannerOfBones.CardGame
         private static Color TintColor(Color c, float factor) =>
             new Color(c.r * factor, c.g * factor, c.b * factor, c.a);
 
-        private void RefreshDiceButtons(RectTransform container, int[] roll, ECardTarget target, Color baseColor, int enemyIndex = -1)
-        {
-            ClearContainer(container);
-            if (roll == null || roll.Length == 0) return;
-
-            // Sort display by value ascending so matching dice appear together
-            int[] sortedIndices = new int[roll.Length];
-            for (int i = 0; i < roll.Length; i++) sortedIndices[i] = i;
-            System.Array.Sort(sortedIndices, (a, b) => roll[a].CompareTo(roll[b]));
-
-            float width = 1f / Mathf.Max(1, roll.Length);
-            for (int slot = 0; slot < roll.Length; slot++)
-            {
-                int originalIndex = sortedIndices[slot];
-                bool interactable = _combat.CanSelectDie(target, originalIndex, enemyIndex);
-                bool selected = _combat.IsDieSelected(target, originalIndex, enemyIndex);
-
-                var go = new GameObject($"Die{originalIndex}");
-                go.transform.SetParent(container, false);
-                var rt = go.AddComponent<RectTransform>();
-                rt.anchorMin = new Vector2(slot * width + 0.01f, 0.05f);
-                rt.anchorMax = new Vector2((slot + 1) * width - 0.01f, 0.95f);
-                rt.offsetMin = rt.offsetMax = Vector2.zero;
-
-                var image = go.AddComponent<Image>();
-                image.color = selected
-                    ? C(0.85f, 0.72f, 0.20f)
-                    : interactable
-                        ? C(baseColor.r + 0.05f, baseColor.g + 0.05f, baseColor.b + 0.05f)
-                        : baseColor;
-
-                var button = go.AddComponent<Button>();
-                button.interactable = interactable;
-                button.onClick.AddListener(() => OnDieClicked(target, originalIndex, enemyIndex));
-
-                var txt = MkText(rt, 16, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
-                txt.text = roll[originalIndex].ToString();
-            }
-        }
-
         private void RefreshLog()
         {
             _logText.text = string.Join("\n", _log);
@@ -491,7 +440,7 @@ namespace BannerOfBones.CardGame
         {
             Log($"── Round: Player {FormatDicePool(_combat.Player.Dice.Pool)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}  {enemy.GetIntentSummary()}");
+                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  {enemy.GetIntentSummary()}");
             RefreshUI();
         }
 
@@ -532,12 +481,6 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
-        private void OnSunderClicked()
-        {
-            if (_combat.TryUseSunder())
-                RefreshUI();
-        }
-
         private void OnCancelClicked()
         {
             if (_combat.CancelPendingCardPlay())
@@ -564,9 +507,9 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
-        private void OnDieClicked(ECardTarget target, int dieIndex, int enemyIndex)
+        private void OnDieClicked(ECardTarget target, int dieIndex)
         {
-            if (_combat.TogglePendingDieSelection(target, dieIndex, enemyIndex))
+            if (_combat.TogglePendingDieSelection(target, dieIndex))
                 RefreshUI();
         }
 
@@ -666,25 +609,7 @@ namespace BannerOfBones.CardGame
                     case EEffectType.DealDamage:
                     case EEffectType.ConditionalDamage:
                     {
-                        if (effect.diceTarget == ECardTarget.PlayerDice)
-                        {
-                            total += EvaluateDamageForRoll(effect, _combat.Player.Dice.CurrentRoll);
-                        }
-                        else if (card.targetsAllEnemies)
-                        {
-                            foreach (var enemy in _combat.Enemies)
-                            {
-                                if (!enemy.IsAlive) continue;
-                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
-                            }
-                        }
-                        else
-                        {
-                            var enemy = _combat.Enemy;
-                            if (enemy != null && enemy.IsAlive)
-                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
-                        }
-
+                        total += EvaluateDamageForRoll(effect, _combat.Player.Dice.CurrentRoll);
                         break;
                     }
                 }
@@ -745,10 +670,7 @@ namespace BannerOfBones.CardGame
                 return sb.ToString().TrimEnd();
             }
 
-            var passiveText = new StringBuilder();
-            foreach (var passive in enemy.Data.passiveEffects)
-                passiveText.AppendLine($"• {passive.description}");
-            return passiveText.ToString().TrimEnd();
+            return "No action.";
         }
 
         private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, bool includeCurrentDamage)
@@ -762,21 +684,12 @@ namespace BannerOfBones.CardGame
                     int damage = amount;
                     return $"⚔ {intent.intentName} ({damage} dmg)";
                 }
-                case EEnemyIntentType.AttackFromHighestDie:
-                {
-                    int damage = includeCurrentDamage ? enemy.CalculateIntentDamage() : 0;
-                    return includeCurrentDamage
-                        ? $"⚔ {intent.intentName} ({amount}×die = {damage} dmg)"
-                        : $"⚔ {intent.intentName} ({amount}×highest die)";
-                }
                 case EEnemyIntentType.Guard:
                     return $"🛡 {intent.intentName} (+{amount} block)";
                 case EEnemyIntentType.RerollPlayerDice:
                     return $"🎲 {intent.intentName} (reroll {count} low dice)";
                 case EEnemyIntentType.WeakenPlayerDice:
                     return $"☠ {intent.intentName} (-{amount} to {count} high dice)";
-                case EEnemyIntentType.UpgradeSelfDice:
-                    return $"⬆ {intent.intentName} (upgrade {count} die)";
                 default:
                     return $"→ {intent.intentName}";
             }

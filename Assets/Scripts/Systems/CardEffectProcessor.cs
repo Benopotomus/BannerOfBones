@@ -107,7 +107,7 @@ namespace BannerOfBones.CardGame
                 case EEffectType.RemoveDie:
                 case EEffectType.UpgradeDie:
                 case EEffectType.DowngradeDie:
-                    return effect.diceTarget == ECardTarget.EnemyDice;
+                    return false;
 
                 default:
                     return false;
@@ -117,72 +117,32 @@ namespace BannerOfBones.CardGame
         private static void ResolveDamage(CardEffectData effect, PlayerCombatant player, IReadOnlyList<EnemyCombatant> enemies,
             int targetEnemyIndex, bool targetsAllEnemies)
         {
-            if (effect.diceTarget == ECardTarget.PlayerDice)
-            {
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                int damage = triggers * effect.magnitude;
-
-                foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
-                    enemy.TakeDamage(damage);
-
-                return;
-            }
+            int triggers = PokerEvaluator.EvaluateTriggerCount(
+                effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+            int damage = triggers * effect.magnitude;
 
             foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
-            {
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                enemy.TakeDamage(triggers * effect.magnitude);
-            }
+                enemy.TakeDamage(damage);
         }
 
         private static void ResolveConditionalDamage(CardEffectData effect, PlayerCombatant player,
             IReadOnlyList<EnemyCombatant> enemies, int targetEnemyIndex, bool targetsAllEnemies)
         {
-            if (effect.diceTarget == ECardTarget.PlayerDice)
+            int triggers = PokerEvaluator.EvaluateTriggerCount(
+                effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+            if (triggers > 0)
             {
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                if (triggers > 0)
-                {
-                    foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
-                        enemy.TakeDamage(effect.magnitude);
-                }
-                else
-                {
-                    player.TakeDamage(effect.altMagnitude);
-                }
-
-                return;
+                foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
+                    enemy.TakeDamage(effect.magnitude);
             }
-
-            bool anyTriggered = false;
-            foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
-            {
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                if (triggers <= 0) continue;
-
-                anyTriggered = true;
-                enemy.TakeDamage(effect.magnitude);
-            }
-
-            if (!anyTriggered)
+            else
                 player.TakeDamage(effect.altMagnitude);
         }
 
         private static void ResolveDiceEffect(CardEffectData effect, PlayerCombatant player, IReadOnlyList<EnemyCombatant> enemies,
             int targetEnemyIndex, bool targetsAllEnemies, Action<DiceManager> resolver)
         {
-            if (effect.diceTarget == ECardTarget.PlayerDice)
-            {
-                resolver(player.Dice);
-                return;
-            }
-
-            foreach (var enemy in GetEnemyTargets(enemies, targetEnemyIndex, targetsAllEnemies))
-                resolver(enemy.Dice);
+            resolver(player.Dice);
         }
 
         private static IEnumerable<EnemyCombatant> GetEnemyTargets(IReadOnlyList<EnemyCombatant> enemies,

@@ -12,8 +12,6 @@ namespace BannerOfBones.CardGame
     {
         public const int TuneEnergyCost = 1;
         public const int TuneMaxDiceTargets = 2;
-        public const int SunderEnergyCost = 1;
-        public const int SunderMaxDiceTargets = 2;
 
         private enum PendingHandAction
         {
@@ -58,7 +56,6 @@ namespace BannerOfBones.CardGame
         private Action<int[]> _pendingDiceResolver;
         private Action _pendingConfirmResolver;
         private ECardTarget _pendingDiceTarget;
-        private int _pendingEnemyDiceTargetIndex = -1;
         private int _pendingDiceSelectionLimit;
         private int _pendingDrawCount;
         private CardData _pendingCardToPlay;
@@ -115,38 +112,18 @@ namespace BannerOfBones.CardGame
                    && _enemies[enemyIndex].IsAlive;
         }
 
-        public bool CanSelectDie(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool CanSelectDie(ECardTarget target, int dieIndex)
         {
             if (!IsAwaitingDiceSelection || target != _pendingDiceTarget)
                 return false;
 
-            int dieCount;
-            if (target == ECardTarget.PlayerDice)
-            {
-                dieCount = Player.Dice.DiceCount;
-            }
-            else
-            {
-                if (enemyIndex != _pendingEnemyDiceTargetIndex
-                    || enemyIndex < 0
-                    || enemyIndex >= _enemies.Count
-                    || !_enemies[enemyIndex].IsAlive)
-                {
-                    return false;
-                }
-
-                dieCount = _enemies[enemyIndex].Dice.DiceCount;
-            }
-
+            int dieCount = Player.Dice.DiceCount;
             return dieIndex >= 0 && dieIndex < dieCount;
         }
 
-        public bool IsDieSelected(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool IsDieSelected(ECardTarget target, int dieIndex)
         {
             if (target != _pendingDiceTarget)
-                return false;
-
-            if (target == ECardTarget.EnemyDice && enemyIndex != _pendingEnemyDiceTargetIndex)
                 return false;
 
             return _selectedDiceIndices.Contains(dieIndex);
@@ -302,28 +279,6 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
-        public bool TryUseSunder()
-        {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(SunderEnergyCost))
-                return false;
-
-            int singleEnemyIndex = GetSingleAliveEnemyIndex();
-            if (singleEnemyIndex >= 0)
-            {
-                QueueSunderDiceSelection(singleEnemyIndex);
-                NotifyStateChanged();
-                return true;
-            }
-
-            QueueEnemySelection("Choose an enemy for Sunder.", enemyIndex =>
-            {
-                QueueSunderDiceSelection(enemyIndex);
-                NotifyStateChanged();
-            });
-            NotifyStateChanged();
-            return true;
-        }
-
         public bool ToggleRetainSelection()
         {
             if (State != ECombatState.PlayerTurn
@@ -352,9 +307,9 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
-        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex)
         {
-            if (!CanSelectDie(target, dieIndex, enemyIndex)) return false;
+            if (!CanSelectDie(target, dieIndex)) return false;
 
             if (_selectedDiceIndices.Contains(dieIndex))
             {
@@ -415,9 +370,6 @@ namespace BannerOfBones.CardGame
             foreach (var enemy in _enemies.Where(enemy => enemy.IsAlive))
                 enemy.StartRound();
 
-            foreach (var enemy in _enemies.Where(enemy => enemy.IsAlive))
-                enemy.ApplyPreRoundEffects();
-
             ApplyPersistentCardEffects();
             if (CheckForCombatEnd()) return;
 
@@ -459,42 +411,22 @@ namespace BannerOfBones.CardGame
 
             foreach (var wager in wagers)
             {
-                if (wager.DiceTarget == ECardTarget.PlayerDice)
+                var targets = new List<EnemyCombatant>(GetEnemyTargets(wager.TargetEnemyIndex, wager.TargetsAllEnemies));
+                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                    wager.TriggerOn, Player.Dice.CurrentRoll, wager.DieValue, wager.ValueThreshold);
+
+                if (triggers > 0 && targets.Count > 0)
                 {
-                    var targets = new List<EnemyCombatant>(GetEnemyTargets(wager.TargetEnemyIndex, wager.TargetsAllEnemies));
-                    int triggers = PokerEvaluator.EvaluateTriggerCount(
-                        wager.TriggerOn, Player.Dice.CurrentRoll, wager.DieValue, wager.ValueThreshold);
+                    int damage = wager.Magnitude;
+                    foreach (var enemy in targets)
+                        enemy.TakeDamage(damage);
 
-                    if (triggers > 0 && targets.Count > 0)
-                    {
-                        int damage = wager.Magnitude;
-                        foreach (var enemy in targets)
-                            enemy.TakeDamage(damage);
-
-                        Log($"{wager.SourceName} pays off for {damage} damage.");
-                    }
-                    else
-                    {
-                        Log($"{wager.SourceName} whiffs this round.");
-                    }
-
-                    continue;
+                    Log($"{wager.SourceName} pays off for {damage} damage.");
                 }
-
-                bool anyTriggered = false;
-                foreach (var enemy in GetEnemyTargets(wager.TargetEnemyIndex, wager.TargetsAllEnemies))
+                else
                 {
-                    int triggers = PokerEvaluator.EvaluateTriggerCount(
-                        wager.TriggerOn, enemy.Dice.CurrentRoll, wager.DieValue, wager.ValueThreshold);
-
-                    if (triggers <= 0) continue;
-                    anyTriggered = true;
-                    enemy.TakeDamage(wager.Magnitude);
+                    Log($"{wager.SourceName} whiffs this round.");
                 }
-
-                Log(anyTriggered
-                    ? $"{wager.SourceName} pays off for {wager.Magnitude} damage."
-                    : $"{wager.SourceName} whiffs this round.");
             }
         }
 
@@ -578,18 +510,12 @@ namespace BannerOfBones.CardGame
             if (effect.effectType == EEffectType.UpgradeDie || effect.effectType == EEffectType.DowngradeDie)
             {
                 bool isUpgrade = effect.effectType == EEffectType.UpgradeDie;
-                int enemyIndex = effect.diceTarget == ECardTarget.EnemyDice ? _resolvingTargetEnemyIndex : -1;
-
-                int dieCount = effect.diceTarget == ECardTarget.PlayerDice
-                    ? Player.Dice.DiceCount
-                    : GetEnemyAt(enemyIndex)?.Dice.DiceCount ?? 0;
+                int dieCount = Player.Dice.DiceCount;
 
                 if (dieCount == 0) return false;
 
                 string verb = isUpgrade ? "upgrade" : "downgrade";
-                string targetName = effect.diceTarget == ECardTarget.PlayerDice
-                    ? "player"
-                    : GetEnemyName(enemyIndex);
+                string targetName = "player";
                 string sourceName = _resolvingSourceName;
 
                 QueueDiceSelection(
@@ -598,36 +524,17 @@ namespace BannerOfBones.CardGame
                     $"Choose 1 {targetName} die to {verb}.",
                     indices =>
                     {
-                        if (effect.diceTarget == ECardTarget.PlayerDice)
-                        {
-                            if (isUpgrade) Player.Dice.UpgradeDie(indices[0]);
-                            else Player.Dice.DowngradeDie(indices[0]);
-                        }
-                        else
-                        {
-                            var enemy = GetEnemyAt(enemyIndex);
-                            if (enemy != null)
-                            {
-                                if (isUpgrade) enemy.Dice.UpgradeDie(indices[0]);
-                                else enemy.Dice.DowngradeDie(indices[0]);
-                            }
-                        }
+                        if (isUpgrade) Player.Dice.UpgradeDie(indices[0]);
+                        else Player.Dice.DowngradeDie(indices[0]);
                         Log($"{sourceName} {verb}d 1 {targetName} die.");
-                    },
-                    enemyIndex);
+                    });
 
                 return true;
             }
 
             if (effect.effectType == EEffectType.RerollDice)
             {
-                if (effect.diceTarget == ECardTarget.EnemyDice && _resolvingTargetsAllEnemies)
-                    return false;
-
-                int enemyIndex = effect.diceTarget == ECardTarget.EnemyDice ? _resolvingTargetEnemyIndex : -1;
-                int dieCount = effect.diceTarget == ECardTarget.PlayerDice
-                    ? Player.Dice.DiceCount
-                    : GetEnemyAt(enemyIndex)?.Dice.DiceCount ?? 0;
+                int dieCount = Player.Dice.DiceCount;
 
                 int selectionLimit = Math.Min(effect.count, dieCount);
                 if (selectionLimit <= 0) return false;
@@ -635,24 +542,12 @@ namespace BannerOfBones.CardGame
                 QueueDiceSelection(
                     effect.diceTarget,
                     selectionLimit,
-                    effect.diceTarget == ECardTarget.PlayerDice
-                        ? $"Choose up to {selectionLimit} player dice to reroll."
-                        : $"Choose up to {selectionLimit} dice on {GetEnemyName(enemyIndex)} to reroll.",
+                    $"Choose up to {selectionLimit} player dice to reroll.",
                     indices =>
                     {
-                        if (effect.diceTarget == ECardTarget.PlayerDice)
-                        {
-                            Player.Dice.RerollAtIndices(indices);
-                            Log($"Rerolled {indices.Length} player dice.");
-                        }
-                        else
-                        {
-                            var enemy = GetEnemyAt(enemyIndex);
-                            enemy?.Dice.RerollAtIndices(indices);
-                            Log($"Rerolled {indices.Length} dice on {GetEnemyName(enemyIndex)}.");
-                        }
-                    },
-                    enemyIndex);
+                        Player.Dice.RerollAtIndices(indices);
+                        Log($"Rerolled {indices.Length} player dice.");
+                    });
 
                 return true;
             }
@@ -715,12 +610,10 @@ namespace BannerOfBones.CardGame
             PendingPrompt = prompt;
         }
 
-        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver,
-            int enemyIndex = -1)
+        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver)
         {
             _selectedDiceIndices.Clear();
             _pendingDiceTarget = target;
-            _pendingEnemyDiceTargetIndex = target == ECardTarget.EnemyDice ? enemyIndex : -1;
             _pendingDiceSelectionLimit = maxSelections;
             _pendingDiceResolver = resolver;
             PendingPrompt = prompt;
@@ -739,29 +632,6 @@ namespace BannerOfBones.CardGame
             PendingPrompt = prompt;
         }
 
-        private void QueueSunderDiceSelection(int enemyIndex)
-        {
-            var enemy = GetEnemyAt(enemyIndex);
-            if (enemy == null || !enemy.IsAlive) return;
-
-            int selectionLimit = Math.Min(SunderMaxDiceTargets, enemy.Dice.DiceCount);
-            if (selectionLimit <= 0) return;
-
-            QueueDiceSelection(
-                ECardTarget.EnemyDice,
-                selectionLimit,
-                $"Sunder: choose up to {selectionLimit} dice on {enemy.Data.enemyName} to lower by 1.",
-                indices =>
-                {
-                    var selectedEnemy = GetEnemyAt(enemyIndex);
-                    if (selectedEnemy == null) return;
-                    foreach (int index in indices)
-                        selectedEnemy.Dice.AdjustDieValue(index, -1);
-                    Log($"Sunder lowered {indices.Length} dice on {selectedEnemy.Data.enemyName}.");
-                },
-                enemyIndex);
-        }
-
         private void ClearPendingEnemySelection()
         {
             _pendingEnemyResolver = null;
@@ -773,7 +643,6 @@ namespace BannerOfBones.CardGame
             _selectedDiceIndices.Clear();
             _pendingDiceResolver = null;
             _pendingDiceSelectionLimit = 0;
-            _pendingEnemyDiceTargetIndex = -1;
             PendingPrompt = null;
         }
 

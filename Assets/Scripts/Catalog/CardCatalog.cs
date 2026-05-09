@@ -16,15 +16,13 @@ namespace BannerOfBones.CardGame
         public static List<CardData> CreateStarterDeck()
         {
             var deck = new List<CardData>();
+            for (int i = 0; i < 4; i++) deck.Add(CreateStrike());
             for (int i = 0; i < 2; i++) deck.Add(CreateIronShield());
-            for (int i = 0; i < 2; i++) deck.Add(CreateSwiftSlash());
             for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
             deck.Add(CreateTwinFangs());
             deck.Add(CreateLuckyReroll());
             deck.Add(CreateTacticalPivot());
-            deck.Add(CreateLoadedBet());
-            deck.Add(CreateLastStand());
-            deck.Add(CreateAceHigh());
+            deck.Add(CreateScatterShot());
             return deck;
         }
 
@@ -33,6 +31,7 @@ namespace BannerOfBones.CardGame
             return new List<CardData>
             {
                 // ── Damage ────────────────────────────────────────────────────────
+                CreateStrike(),
                 CreateIronShield(),
                 CreateSwiftSlash(),
                 CreateFocusedStrike(),
@@ -71,6 +70,29 @@ namespace BannerOfBones.CardGame
 
         // ── Card 01 ───────────────────────────────────────────────────────────────
 
+        private static CardData CreateStrike()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Strike";
+            card.description = "Deal 1 damage for every die showing 5 or 6.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.PerHighDie,
+                    valueThreshold = 5,
+                    magnitude = 1,
+                },
+            };
+            return card;
+        }
+
+        // ── Card 02 ───────────────────────────────────────────────────────────────
+
         private static CardData CreateIronShield()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
@@ -92,7 +114,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 02 ───────────────────────────────────────────────────────────────
+        // ── Card 03 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateSwiftSlash()
         {
@@ -115,13 +137,13 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 03 ───────────────────────────────────────────────────────────────
+        // ── Card 04 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateFocusedStrike()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Focused Strike";
-            card.description = "Deal 3 damage for each triple rolled.";
+            card.description = "Deal 4 damage for each triple rolled.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -131,19 +153,19 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.DealDamage,
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn  = EPokerHandType.PerTriple,
-                    magnitude  = 3,
+                    magnitude  = 4,
                 },
             };
             return card;
         }
 
-        // ── Card 04 ───────────────────────────────────────────────────────────────
+        // ── Card 05 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateGamblersBlade()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Gambler's Blade";
-            card.description = "If you have a straight, deal 5 damage. Otherwise deal 1 damage.";
+            card.description = "If you have a straight, deal 5 damage. Otherwise, take 1 damage.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -160,7 +182,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 05 ───────────────────────────────────────────────────────────────
+        // ── Card 06 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateDragonsRoar()
         {
@@ -182,15 +204,16 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 06 ───────────────────────────────────────────────────────────────
+        // ── Card 07 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateScatterShot()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Scatter Shot";
-            card.description = "Deal 1 damage for each unique die value showing.";
+            card.description = "Deal 1 damage to all enemies for each unique die value showing.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
+            card.targetsAllEnemies = true;
             card.effects = new List<CardEffectData>
             {
                 new CardEffectData
@@ -204,14 +227,36 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 07 ───────────────────────────────────────────────────────────────
+        // ── Card 08 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateSpiritStrike()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Spirit Strike";
-            card.description = "Deal 2 damage for each pair rolled.";
+            card.description = "Deal 3 damage for each pair rolled.";
             card.energyCost  = 2;
+            card.duration    = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn  = EPokerHandType.PerPair,
+                    magnitude  = 3,
+                },
+            };
+            return card;
+        }
+
+        // ── Card 09 ───────────────────────────────────────────────────────────────
+
+        private static CardData CreateTwinFangs()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Twin Fangs";
+            card.description = "Deal 2 damage for each pair rolled.";
+            card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -226,29 +271,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 08 ───────────────────────────────────────────────────────────────
-
-        private static CardData CreateTwinFangs()
-        {
-            var card = ScriptableObject.CreateInstance<CardData>();
-            card.name = card.cardName = "Twin Fangs";
-            card.description = "Deal 1 damage for each pair rolled.";
-            card.energyCost  = 1;
-            card.duration    = ECardDuration.Instant;
-            card.effects = new List<CardEffectData>
-            {
-                new CardEffectData
-                {
-                    effectType = EEffectType.DealDamage,
-                    diceTarget = ECardTarget.PlayerDice,
-                    triggerOn  = EPokerHandType.PerPair,
-                    magnitude  = 1,
-                },
-            };
-            return card;
-        }
-
-        // ── Card 09 ───────────────────────────────────────────────────────────────
+        // ── Card 10 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateCrushingBlow()
         {
@@ -270,7 +293,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 10 ───────────────────────────────────────────────────────────────
+        // ── Card 11 ───────────────────────────────────────────────────────────────
 
         private static CardData CreatePrecisionStrike()
         {
@@ -292,7 +315,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 11 ───────────────────────────────────────────────────────────────
+        // ── Card 12 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateAceHigh()
         {
@@ -315,7 +338,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 12 ───────────────────────────────────────────────────────────────
+        // ── Card 13 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateLowSweep()
         {
@@ -338,7 +361,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 13 ───────────────────────────────────────────────────────────────
+        // ── Card 14 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateBerserkersRage()
         {
@@ -360,15 +383,16 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 14 ───────────────────────────────────────────────────────────────
+        // ── Card 15 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateChainLightning()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Chain Lightning";
-            card.description = "Deal 2 damage for each pair found in the enemy's dice.";
-            card.energyCost  = 3;
+            card.description = "Deal 2 damage to every enemy for each pair found in their dice.";
+            card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
+            card.targetsAllEnemies = true;
             card.effects = new List<CardEffectData>
             {
                 new CardEffectData
@@ -382,7 +406,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 15 ───────────────────────────────────────────────────────────────
+        // ── Card 16 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateDeathsGamble()
         {
@@ -405,7 +429,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 16 ───────────────────────────────────────────────────────────────
+        // ── Card 17 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateBoneWard()
         {
@@ -427,7 +451,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 17 ───────────────────────────────────────────────────────────────
+        // ── Card 18 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateTowerShield()
         {
@@ -450,7 +474,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 18 ───────────────────────────────────────────────────────────────
+        // ── Card 19 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateRuneShield()
         {
@@ -473,7 +497,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 19 ───────────────────────────────────────────────────────────────
+        // ── Card 20 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateLuckyReroll()
         {
@@ -494,7 +518,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 20 ───────────────────────────────────────────────────────────────
+        // ── Card 21 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateFullSend()
         {
@@ -514,13 +538,13 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 21 ───────────────────────────────────────────────────────────────
+        // ── Card 22 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateHexCurse()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Hex Curse";
-            card.description = "Choose up to 2 enemy dice to reroll.";
+            card.description = "Choose an enemy. Reroll up to 2 of their dice.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -535,15 +559,16 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 22 ───────────────────────────────────────────────────────────────
+        // ── Card 23 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateCursedDice()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Cursed Dice";
-            card.description = "Force the enemy to reroll all of their dice.";
+            card.description = "Force all enemies to reroll all of their dice.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
+            card.targetsAllEnemies = true;
             card.effects = new List<CardEffectData>
             {
                 new CardEffectData
@@ -555,15 +580,16 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 23 ───────────────────────────────────────────────────────────────
+        // ── Card 24 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateWarDrums()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "War Drums";
-            card.description = "Reroll all enemy dice. Then deal 1 damage per unique value in their new roll.";
+            card.description = "Reroll all enemy dice. Then deal 1 damage to each enemy for every unique value in their new roll.";
             card.energyCost  = 3;
             card.duration    = ECardDuration.Instant;
+            card.targetsAllEnemies = true;
             card.effects = new List<CardEffectData>
             {
                 new CardEffectData
@@ -582,13 +608,13 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 24 ───────────────────────────────────────────────────────────────
+        // ── Card 25 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateCursedAura()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Cursed Aura";
-            card.description = "At the start of each enemy turn, force the enemy to reroll 1 of their dice.";
+            card.description = "At the start of each round, force the chosen enemy to reroll 1 of their dice.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Persistent;
             card.effects = new List<CardEffectData>
@@ -603,7 +629,7 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 25 ───────────────────────────────────────────────────────────────
+        // ── Card 26 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateLuckyCharm()
         {
@@ -646,7 +672,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Loaded Bet";
-            card.description = "Next round, if you roll a pair, deal 6 damage.";
+            card.description = "Next round, if you roll a pair, deal 6 damage to the chosen enemy.";
             card.energyCost = 1;
             card.duration = ECardDuration.Instant;
             card.effects = new List<CardEffectData>

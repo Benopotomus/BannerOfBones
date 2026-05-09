@@ -11,8 +11,10 @@ namespace BannerOfBones.CardGame
         public int DieValue { get; }
         public int ValueThreshold { get; }
         public int Magnitude { get; }
+        public int TargetEnemyIndex { get; }
+        public bool TargetsAllEnemies { get; }
 
-        public WagerData(string sourceName, CardEffectData effect)
+        public WagerData(string sourceName, CardEffectData effect, int targetEnemyIndex, bool targetsAllEnemies)
         {
             SourceName = sourceName;
             TriggerOn = effect.triggerOn;
@@ -20,6 +22,8 @@ namespace BannerOfBones.CardGame
             DieValue = effect.dieValue;
             ValueThreshold = effect.valueThreshold;
             Magnitude = effect.magnitude;
+            TargetEnemyIndex = targetEnemyIndex;
+            TargetsAllEnemies = targetsAllEnemies;
         }
     }
 }

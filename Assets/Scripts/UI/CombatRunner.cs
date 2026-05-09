@@ -22,17 +22,13 @@ namespace BannerOfBones.CardGame
 
         private CombatManager _combat;
 
-        private Text _enemyNameText;
-        private Text _enemyHpText;
-        private Text _enemyDiceText;
-        private Text _enemyPassivesText;
+        private RectTransform _enemyGroupContainer;
         private Text _playerHpText;
         private Text _playerEnergyText;
         private Text _playerBlockText;
         private Text _playerDiceText;
         private Text _stateText;
         private Text _logText;
-        private RectTransform _enemyDiceButtonsContainer;
         private RectTransform _playerDiceButtonsContainer;
         private RectTransform _handContainer;
         private Button _focusButton;
@@ -50,8 +46,7 @@ namespace BannerOfBones.CardGame
 
         private void Start()
         {
-            var enemies = EnemyCatalog.CreateAllEnemies();
-            var enemy = enemies[Random.Range(0, enemies.Count)];
+            var enemies = EnemyCatalog.CreateEncounterGroup();
             var deck = CardCatalog.CreateStarterDeck();
 
             _combat = new CombatManager();
@@ -62,10 +57,12 @@ namespace BannerOfBones.CardGame
 
             BuildUI();
 
-            _combat.StartCombat(enemy, deck, playerHealth, playerEnergy);
+            _combat.StartCombat(enemies, deck, playerHealth, playerEnergy);
 
-            Log($"=== {enemy.enemyName} appears! ===");
-            Log(enemy.description);
+            Log($"=== {enemies.Count} enemies appear! ===");
+            foreach (var enemy in enemies)
+                Log($"• {enemy.enemyName}: {enemy.description}");
+
             RefreshUI();
         }
 
@@ -86,40 +83,38 @@ namespace BannerOfBones.CardGame
 
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            var ep = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0f, 0.69f, 1f, 1f);
-            _enemyNameText = MkText(ep, 20, C(1f, 0.40f, 0.40f), TextAnchor.UpperLeft, 0f, 0.77f, 1f, 1f);
-            _enemyHpText = MkText(ep, 14, Color.white, TextAnchor.UpperLeft, 0f, 0.58f, 0.45f, 0.77f);
-            _enemyDiceText = MkText(ep, 12, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.43f, 0.5f, 0.58f);
-            _enemyDiceButtonsContainer = MkContainer(ep, "EnemyDiceButtons", 0f, 0.26f, 0.68f, 0.43f);
-            _enemyPassivesText = MkText(ep, 10, C(0.8f, 0.6f, 0.6f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.26f);
+            var ep = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0f, 0.66f, 1f, 1f);
+            var enemyLabel = MkText(ep, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.84f, 1f, 1f);
+            enemyLabel.text = "— E N E M I E S —";
+            _enemyGroupContainer = MkContainer(ep, "EnemyGroup", 0f, 0f, 1f, 0.84f, 8f, 6f, -8f, -6f);
 
-            var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.44f, 1f, 0.69f);
+            var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.41f, 1f, 0.66f);
             _playerHpText = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.68f, 0.35f, 1f);
             _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.42f, 0.35f, 0.68f);
             _playerBlockText = MkText(pp, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0f, 0.16f, 0.35f, 0.42f);
             _stateText = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.35f, 0f, 1f, 1f);
 
-            MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.12f, 0.38f, 0.88f, 0.44f);
-            _playerDiceText = MkText(root, 12, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.12f, 0.415f, 0.88f, 0.44f);
-            _playerDiceButtonsContainer = MkContainer(root, "PlayerDiceButtons", 0.18f, 0.385f, 0.82f, 0.415f);
+            MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.12f, 0.35f, 0.88f, 0.41f);
+            _playerDiceText = MkText(root, 12, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.12f, 0.385f, 0.88f, 0.41f);
+            _playerDiceButtonsContainer = MkContainer(root, "PlayerDiceButtons", 0.18f, 0.355f, 0.82f, 0.385f);
 
-            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.20f, 1f, 0.38f);
-            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.36f, 1f, 0.38f);
+            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.17f, 1f, 0.35f);
+            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.33f, 1f, 0.35f);
             handLabel.text = "— H A N D —";
-            _handContainer = MkContainer(root, "HandCards", 0f, 0.20f, 1f, 0.36f, 4f, 2f, -4f, -2f);
+            _handContainer = MkContainer(root, "HandCards", 0f, 0.17f, 1f, 0.33f, 4f, 2f, -4f, -2f);
 
-            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0f, 0.10f, 1f, 0.20f);
-            MkButton(root, "View Deck", new Vector2(0.03f, 0.155f), new Vector2(0.18f, 0.19f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
-            MkButton(root, "View Discard", new Vector2(0.20f, 0.155f), new Vector2(0.35f, 0.19f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
-            _focusButton = MkButton(root, "Focus", new Vector2(0.37f, 0.155f), new Vector2(0.50f, 0.19f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
-            _braceButton = MkButton(root, "Brace", new Vector2(0.52f, 0.155f), new Vector2(0.65f, 0.19f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
-            _scoutButton = MkButton(root, "Scout", new Vector2(0.67f, 0.155f), new Vector2(0.80f, 0.19f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
-            _retainButton = MkButton(root, "Retain", new Vector2(0.18f, 0.11f), new Vector2(0.38f, 0.145f), C(0.45f, 0.34f, 0.10f), OnRetainClicked);
-            _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.40f, 0.11f), new Vector2(0.60f, 0.145f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
-            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.62f, 0.11f), new Vector2(0.82f, 0.145f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0f, 0.08f, 1f, 0.17f);
+            MkButton(root, "View Deck", new Vector2(0.03f, 0.13f), new Vector2(0.18f, 0.165f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
+            MkButton(root, "View Discard", new Vector2(0.20f, 0.13f), new Vector2(0.35f, 0.165f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
+            _focusButton = MkButton(root, "Focus", new Vector2(0.37f, 0.13f), new Vector2(0.50f, 0.165f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
+            _braceButton = MkButton(root, "Brace", new Vector2(0.52f, 0.13f), new Vector2(0.65f, 0.165f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
+            _scoutButton = MkButton(root, "Scout", new Vector2(0.67f, 0.13f), new Vector2(0.80f, 0.165f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
+            _retainButton = MkButton(root, "Retain", new Vector2(0.18f, 0.085f), new Vector2(0.38f, 0.12f), C(0.45f, 0.34f, 0.10f), OnRetainClicked);
+            _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.40f, 0.085f), new Vector2(0.60f, 0.12f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
+            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.62f, 0.085f), new Vector2(0.82f, 0.12f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
 
-            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.10f);
-            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.10f);
+            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.08f);
+            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.08f);
 
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);
@@ -220,27 +215,59 @@ namespace BannerOfBones.CardGame
         private void RefreshUI()
         {
             if (_combat == null) return;
-            RefreshEnemy();
+            RefreshEnemies();
             RefreshPlayer();
             RefreshHand();
             RefreshLog();
         }
 
-        private void RefreshEnemy()
+        private void RefreshEnemies()
         {
-            var e = _combat.Enemy;
-            if (e == null) return;
+            ClearContainer(_enemyGroupContainer);
 
-            _enemyNameText.text = $"Enemy:  {e.Data.enemyName}";
-            _enemyHpText.text = $"HP  {e.CurrentHealth} / {e.Data.maxHealth}";
-            _enemyDiceText.text = "Enemy Dice";
+            var enemies = _combat.Enemies;
+            if (enemies == null || enemies.Count == 0) return;
 
-            var sb = new StringBuilder();
-            foreach (var p in e.Data.passiveEffects)
-                sb.Append($"· {p.description}   ");
-            _enemyPassivesText.text = sb.ToString();
+            float width = 1f / Mathf.Max(1, enemies.Count);
+            for (int i = 0; i < enemies.Count; i++)
+            {
+                int enemyIndex = i;
+                var enemy = enemies[i];
+                bool selectable = _combat.CanSelectEnemy(i);
 
-            RefreshDiceButtons(_enemyDiceButtonsContainer, e.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f));
+                var panel = MkPanel(_enemyGroupContainer, $"Enemy{i}",
+                    enemy.IsAlive
+                        ? selectable ? C(0.48f, 0.23f, 0.13f) : C(0.28f, 0.12f, 0.12f)
+                        : C(0.14f, 0.10f, 0.10f),
+                    i * width + 0.01f, 0.02f, (i + 1) * width - 0.01f, 0.98f);
+
+                if (selectable)
+                {
+                    var button = panel.gameObject.AddComponent<Button>();
+                    button.onClick.AddListener(() => OnEnemyClicked(enemyIndex));
+                }
+
+                var nameText = MkText(panel, 14, Color.white, TextAnchor.UpperLeft, 0f, 0.72f, 1f, 1f);
+                nameText.text = enemy.IsAlive
+                    ? enemy.Data.enemyName
+                    : $"{enemy.Data.enemyName} (Defeated)";
+
+                var hpText = MkText(panel, 12, enemy.IsAlive ? C(1f, 0.80f, 0.80f) : C(0.65f, 0.65f, 0.65f),
+                    TextAnchor.UpperLeft, 0f, 0.58f, 1f, 0.74f);
+                hpText.text = $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
+
+                var diceText = MkText(panel, 10, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.46f, 1f, 0.60f);
+                diceText.text = "Dice";
+
+                var diceContainer = MkContainer(panel, $"EnemyDice{i}", 0f, 0.26f, 1f, 0.46f, 2f, 0f, -2f, 0f);
+                RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
+
+                var passivesText = MkText(panel, 9, C(0.86f, 0.72f, 0.72f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
+                var sb = new StringBuilder();
+                foreach (var passive in enemy.Data.passiveEffects)
+                    sb.AppendLine($"• {passive.description}");
+                passivesText.text = sb.ToString().TrimEnd();
+            }
         }
 
         private void RefreshPlayer()
@@ -256,7 +283,7 @@ namespace BannerOfBones.CardGame
             _playerBlockText.text = $"Block   {p.Block}";
             _playerDiceText.text = "Player Dice";
             _stateText.text =
-                $"[{_combat.State}]  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}\n" +
+                $"[{_combat.State}]  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}\n" +
                 $"Retain: {retained}  |  Wagers: {p.ActiveWagers.Count}\n" +
                 $"{prompt}";
 
@@ -264,7 +291,11 @@ namespace BannerOfBones.CardGame
             _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
-            _retainButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.IsAwaitingDiceSelection && !_combat.IsAwaitingHandSelection && p.Deck.Hand.Count > 0;
+            _retainButton.interactable = _combat.State == ECombatState.PlayerTurn
+                                         && !_combat.IsAwaitingEnemySelection
+                                         && !_combat.IsAwaitingDiceSelection
+                                         && !_combat.IsAwaitingHandSelection
+                                         && p.Deck.Hand.Count > 0;
             _confirmDiceButton.gameObject.SetActive(_combat.IsAwaitingDiceSelection);
             _confirmDiceButton.interactable = _combat.SelectedDiceCount > 0 && _combat.PendingDiceSelectionLimit > 1;
             _endTurnButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.HasPendingChoice;
@@ -320,7 +351,7 @@ namespace BannerOfBones.CardGame
             }
         }
 
-        private void RefreshDiceButtons(RectTransform container, int[] roll, ECardTarget target, Color baseColor)
+        private void RefreshDiceButtons(RectTransform container, int[] roll, ECardTarget target, Color baseColor, int enemyIndex = -1)
         {
             ClearContainer(container);
             if (roll == null || roll.Length == 0) return;
@@ -329,8 +360,8 @@ namespace BannerOfBones.CardGame
             for (int i = 0; i < roll.Length; i++)
             {
                 int dieIndex = i;
-                bool interactable = _combat.CanSelectDie(target, i);
-                bool selected = _combat.IsDieSelected(target, i);
+                bool interactable = _combat.CanSelectDie(target, i, enemyIndex);
+                bool selected = _combat.IsDieSelected(target, i, enemyIndex);
 
                 var go = new GameObject($"Die{i}");
                 go.transform.SetParent(container, false);
@@ -348,7 +379,7 @@ namespace BannerOfBones.CardGame
 
                 var button = go.AddComponent<Button>();
                 button.interactable = interactable;
-                button.onClick.AddListener(() => OnDieClicked(target, dieIndex));
+                button.onClick.AddListener(() => OnDieClicked(target, dieIndex, enemyIndex));
 
                 var txt = MkText(rt, 16, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
                 txt.text = roll[i].ToString();
@@ -368,9 +399,9 @@ namespace BannerOfBones.CardGame
 
         private void OnRoundStarted()
         {
-            var deck = _combat.Player.Deck;
-            Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}  vs  Enemy {FormatDice(_combat.Enemy.Dice.CurrentRoll)}");
-            Log($"   Draw {deck.DrawPile.Count}  |  Discard {deck.DiscardPile.Count}  |  Exhaust {deck.ExhaustPile.Count}");
+            Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}");
+            foreach (var enemy in _combat.Enemies)
+                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}");
             RefreshUI();
         }
 
@@ -432,9 +463,15 @@ namespace BannerOfBones.CardGame
             RefreshUI();
         }
 
-        private void OnDieClicked(ECardTarget target, int dieIndex)
+        private void OnEnemyClicked(int enemyIndex)
         {
-            if (_combat.TogglePendingDieSelection(target, dieIndex))
+            if (_combat.TrySelectEnemy(enemyIndex))
+                RefreshUI();
+        }
+
+        private void OnDieClicked(ECardTarget target, int dieIndex, int enemyIndex)
+        {
+            if (_combat.TogglePendingDieSelection(target, dieIndex, enemyIndex))
                 RefreshUI();
         }
 
@@ -476,6 +513,18 @@ namespace BannerOfBones.CardGame
             var label = button.GetComponentInChildren<Text>();
             if (label != null)
                 label.text = text;
+        }
+
+        private int CountAliveEnemies()
+        {
+            int alive = 0;
+            foreach (var enemy in _combat.Enemies)
+            {
+                if (enemy.IsAlive)
+                    alive++;
+            }
+
+            return alive;
         }
 
         private static string FormatDice(int[] roll)

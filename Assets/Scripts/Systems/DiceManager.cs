@@ -12,8 +12,11 @@ namespace BannerOfBones.CardGame
     /// </summary>
     public class DiceManager
     {
+        /// <summary>Number of sides on the default (starting) die type.</summary>
+        public const int DefaultDieSides = 6;
+
         /// <summary>Standard die-type tiers in ascending order of power.</summary>
-        public static readonly int[] DieTiers = { 4, 6, 8, 10, 12, 20 };
+        public static readonly int[] DieTiers = { 4, DefaultDieSides, 8, 10, 12, 20 };
 
         private readonly List<Die> _dice = new List<Die>();
 
@@ -110,15 +113,14 @@ namespace BannerOfBones.CardGame
             _dice.RemoveAt(GetIndicesSortedAscendingByValue()[0]);
         }
 
-        /// <summary>
-        /// Removes all temporary dice from the pool before a new round begins.
+        /// <summary>Removes all temporary dice from the pool before a new round begins.
         /// Guarantees at least 1 permanent die remains.
         /// </summary>
         public void RemoveTemporaryDice()
         {
             _dice.RemoveAll(d => d.IsTemporary);
             if (_dice.Count == 0)
-                _dice.Add(new Die(6));
+                _dice.Add(new Die(DefaultDieSides));
         }
 
         // ── Die Upgrades / Downgrades ─────────────────────────────────────────────

@@ -406,7 +406,7 @@ namespace BannerOfBones.CardGame
                 button.onClick.AddListener(() => OnDieClicked(target, dieIndex, -1));
 
                 // Die type label (small, top of button)
-                bool showType = die.Sides != 6 || die.IsTemporary;
+                bool showType = die.Sides != DiceManager.DefaultDieSides || die.IsTemporary;
                 if (showType)
                 {
                     var typeTxt = MkText(rt, 8, C(1f, 1f, 0.60f), TextAnchor.UpperCenter, 0f, 0.55f, 1f, 1f);
@@ -769,7 +769,7 @@ namespace BannerOfBones.CardGame
             {
                 var d = pool[i];
                 sb.Append('[');
-                if (d.Sides != 6 || d.IsTemporary)
+                if (d.Sides != DiceManager.DefaultDieSides || d.IsTemporary)
                     sb.Append($"{d.TypeLabel}:{d.Value}");
                 else
                     sb.Append(d.Value);

@@ -80,7 +80,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Strike";
-            card.description = "Deal 1 damage for every die showing 5 or 6.";
+            card.description = "Deal 1 damage for every die showing 5+.";
             card.energyCost = 1;
             card.duration = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -195,7 +195,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Dragon's Roar";
             card.description = "Deal 6 damage for each five-of-a-kind rolled.";
-            card.energyCost  = 3;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {

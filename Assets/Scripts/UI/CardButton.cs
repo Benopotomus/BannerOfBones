@@ -24,7 +24,7 @@ namespace BannerOfBones.CardGame
         /// <param name="total">Total number of cards in the hand.</param>
         /// <param name="onClick">Callback invoked when the button is clicked.</param>
         public void Setup(CardData card, bool interactable, int index, int total, Action<CardData> onClick,
-            bool retained = false, bool highlighted = false)
+            bool retained = false, bool highlighted = false, string descriptionText = null, string targetLabel = null)
         {
             Card = card;
 
@@ -71,8 +71,9 @@ namespace BannerOfBones.CardGame
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             string durationText = card.duration == ECardDuration.Instant ? string.Empty : $" | {card.duration}";
             string retainedText = retained ? "\n<color=#F8E27A>Retained</color>" : string.Empty;
-            string targetText = card.targetsAllEnemies ? "\n<color=#F8E27A>All Enemies</color>" : string.Empty;
-            txt.text = $"<b>{card.cardName}</b>\n{card.description}\n[{card.energyCost}E{durationText}]{targetText}{retainedText}";
+            string targetText = string.IsNullOrEmpty(targetLabel) ? string.Empty : $"\n<color=#F8E27A>{targetLabel}</color>";
+            string renderedDescription = string.IsNullOrWhiteSpace(descriptionText) ? card.description : descriptionText;
+            txt.text = $"<b>{card.cardName}</b>\n{renderedDescription}\n[{card.energyCost}E{durationText}]{targetText}{retainedText}";
         }
     }
 }

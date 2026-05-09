@@ -195,7 +195,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Dragon's Roar";
             card.description = "Deal 6 damage for each five-of-a-kind rolled.";
-            card.energyCost  = 0;
+            card.energyCost  = 3;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -284,7 +284,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
             card.description = "Deal 4 damage per full house (triple + pair) rolled.";
-            card.energyCost  = 3;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {

@@ -230,9 +230,7 @@ namespace BannerOfBones.CardGame
             int targetEnemyIndex = _pendingCardTargetEnemyIndex;
             bool targetsAllEnemies = _pendingCardTargetsAllEnemies;
 
-            ClearPendingEnemySelection();
-            ClearPendingConfirmation();
-            ClearPendingCardPlay();
+            ClearPendingCardChoiceState();
 
             return ResolveCardPlay(card, targetEnemyIndex, targetsAllEnemies);
         }
@@ -242,9 +240,7 @@ namespace BannerOfBones.CardGame
             if (!HasPendingCardPlay)
                 return false;
 
-            ClearPendingEnemySelection();
-            ClearPendingConfirmation();
-            ClearPendingCardPlay();
+            ClearPendingCardChoiceState();
             NotifyStateChanged();
             return true;
         }
@@ -671,6 +667,13 @@ namespace BannerOfBones.CardGame
         {
             _pendingConfirmResolver = null;
             PendingPrompt = null;
+        }
+
+        private void ClearPendingCardChoiceState()
+        {
+            ClearPendingEnemySelection();
+            ClearPendingConfirmation();
+            ClearPendingCardPlay();
         }
 
         private void ClearAllPrompts()

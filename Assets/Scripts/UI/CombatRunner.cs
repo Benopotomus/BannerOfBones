@@ -297,14 +297,13 @@ namespace BannerOfBones.CardGame
             _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
-            _retainButton.interactable = _combat.State == ECombatState.PlayerTurn
-                                         && !_combat.IsAwaitingEnemySelection
-                                         && !_combat.IsAwaitingDiceSelection
-                                         && !_combat.IsAwaitingHandSelection
-                                         && !_combat.IsAwaitingCardConfirmation
-                                         && p.Deck.Hand.Count > 0;
-            if (_combat.HasPendingCardPlay)
-                _retainButton.interactable = true;
+            bool canRetainSelect = _combat.State == ECombatState.PlayerTurn
+                                   && !_combat.IsAwaitingEnemySelection
+                                   && !_combat.IsAwaitingDiceSelection
+                                   && !_combat.IsAwaitingHandSelection
+                                   && !_combat.IsAwaitingCardConfirmation
+                                   && p.Deck.Hand.Count > 0;
+            _retainButton.interactable = _combat.HasPendingCardPlay || canRetainSelect;
 
             bool showConfirmButton = _combat.IsAwaitingDiceSelection || _combat.IsAwaitingCardConfirmation;
             _confirmDiceButton.gameObject.SetActive(showConfirmButton);
@@ -602,29 +601,21 @@ namespace BannerOfBones.CardGame
                     {
                         if (effect.diceTarget == ECardTarget.PlayerDice)
                         {
-                            int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                effect.triggerOn, _combat.Player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                            total += triggers * effect.magnitude;
+                            total += EvaluateDamageForRoll(effect, _combat.Player.Dice.CurrentRoll);
                         }
                         else if (card.targetsAllEnemies)
                         {
                             foreach (var enemy in _combat.Enemies)
                             {
                                 if (!enemy.IsAlive) continue;
-                                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                                total += triggers * effect.magnitude;
+                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
                             }
                         }
                         else
                         {
                             var enemy = _combat.Enemy;
                             if (enemy != null && enemy.IsAlive)
-                            {
-                                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                                total += triggers * effect.magnitude;
-                            }
+                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
                         }
 
                         break;
@@ -633,32 +624,21 @@ namespace BannerOfBones.CardGame
                     {
                         if (effect.diceTarget == ECardTarget.PlayerDice)
                         {
-                            int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                effect.triggerOn, _combat.Player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                            if (triggers > 0)
-                                total += effect.magnitude;
+                            total += EvaluateDamageForRoll(effect, _combat.Player.Dice.CurrentRoll);
                         }
                         else if (card.targetsAllEnemies)
                         {
                             foreach (var enemy in _combat.Enemies)
                             {
                                 if (!enemy.IsAlive) continue;
-                                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                                if (triggers > 0)
-                                    total += effect.magnitude;
+                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
                             }
                         }
                         else
                         {
                             var enemy = _combat.Enemy;
                             if (enemy != null && enemy.IsAlive)
-                            {
-                                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
-                                if (triggers > 0)
-                                    total += effect.magnitude;
-                            }
+                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
                         }
 
                         break;
@@ -667,6 +647,16 @@ namespace BannerOfBones.CardGame
             }
 
             return total;
+        }
+
+        private static int EvaluateDamageForRoll(CardEffectData effect, int[] diceRoll)
+        {
+            int triggers = PokerEvaluator.EvaluateTriggerCount(
+                effect.triggerOn, diceRoll, effect.dieValue, effect.valueThreshold);
+
+            return effect.effectType == EEffectType.ConditionalDamage
+                ? triggers > 0 ? effect.magnitude : 0
+                : triggers * effect.magnitude;
         }
 
         private int EstimateCardBlock(CardData card)

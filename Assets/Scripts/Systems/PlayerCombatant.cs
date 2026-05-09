@@ -53,11 +53,12 @@ namespace BannerOfBones.CardGame
         }
 
         /// <summary>
-        /// Called at the start of each round: clears block, resets energy,
+        /// Called at the start of each round: removes temporary dice, clears block, resets energy,
         /// discards the previous hand, draws a new hand, and rolls all dice.
         /// </summary>
         public void StartRound()
         {
+            Dice.RemoveTemporaryDice();
             ClearBlock();
             Energy.ResetEnergy();
             Deck.DiscardHandExceptRetained();

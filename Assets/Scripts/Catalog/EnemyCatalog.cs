@@ -61,27 +61,23 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Goblin Scout";
-            enemy.description = "A quick skirmisher that chips in with 2s and lucky doubles.";
+            enemy.description = "A quick skirmisher with a simple two-step attack pattern.";
             enemy.maxHealth = 8;
             enemy.diceCount = 2;
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>
+            enemy.roundIntents = new List<EnemyIntentData>
             {
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each [2] rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerDieValue,
-                    dieValue = 2,
-                    magnitude = 1,
+                    intentName = "Feint",
+                    damage = 1,
                 },
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each pair rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerPair,
-                    magnitude = 1,
+                    intentName = "Stab",
+                    damage = 2,
                 },
             };
+            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -89,26 +85,23 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Orc Warrior";
-            enemy.description = "A sturdy bruiser that leans on odd rolls and matching dice.";
+            enemy.description = "A bruiser that alternates between a heavy hit and a follow-up swing.";
             enemy.maxHealth = 12;
             enemy.diceCount = 2;
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>
+            enemy.roundIntents = new List<EnemyIntentData>
             {
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each odd die rolled ([1], [3], [5]).",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerOddDie,
-                    magnitude = 1,
+                    intentName = "Cleave",
+                    damage = 3,
                 },
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each pair rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerPair,
-                    magnitude = 1,
+                    intentName = "Backhand",
+                    damage = 2,
                 },
             };
+            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -116,27 +109,23 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Shadow Wraith";
-            enemy.description = "A fragile predator that punishes low and odd results.";
+            enemy.description = "A fragile predator that alternates chip damage with a sharper strike.";
             enemy.maxHealth = 10;
             enemy.diceCount = 3;
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>
+            enemy.roundIntents = new List<EnemyIntentData>
             {
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each odd die rolled ([1], [3], [5]).",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerOddDie,
-                    magnitude = 1,
+                    intentName = "Drain",
+                    damage = 2,
                 },
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each [1] rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerDieValue,
-                    dieValue = 1,
-                    magnitude = 1,
+                    intentName = "Ambush",
+                    damage = 3,
                 },
             };
+            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -144,32 +133,23 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Stone Golem";
-            enemy.description = "A slow elite that smooths weak rolls and crushes with even numbers.";
+            enemy.description = "A slow elite that telegraphs a steady slam pattern.";
             enemy.maxHealth = 16;
             enemy.diceCount = 3;
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>
+            enemy.roundIntents = new List<EnemyIntentData>
             {
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Rerolls all dice showing [1] at the start of each round.",
-                    effectType = EEffectType.RerollByValue,
-                    dieValue = 1,
+                    intentName = "Wind Up",
+                    damage = 2,
                 },
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each even die rolled ([2], [4], [6]).",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerEvenDie,
-                    magnitude = 1,
-                },
-                new EnemyPassiveEffectData
-                {
-                    description = "Deal 2 damage for each triple rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerTriple,
-                    magnitude = 2,
+                    intentName = "Crush",
+                    damage = 4,
                 },
             };
+            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -177,27 +157,23 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Death Knight";
-            enemy.description = "An elite threat that spikes hard on pairs and high rolls.";
+            enemy.description = "An elite threat with a very clear spike-damage cadence.";
             enemy.maxHealth = 18;
             enemy.diceCount = 4;
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>
+            enemy.roundIntents = new List<EnemyIntentData>
             {
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 1 damage for each die showing 5 or 6.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerHighDie,
-                    valueThreshold = 5,
-                    magnitude = 1,
+                    intentName = "Harry",
+                    damage = 3,
                 },
-                new EnemyPassiveEffectData
+                new EnemyIntentData
                 {
-                    description = "Deal 2 damage for each pair rolled.",
-                    effectType = EEffectType.DealDamage,
-                    triggerOn = EPokerHandType.PerPair,
-                    magnitude = 2,
+                    intentName = "Executioner Swing",
+                    damage = 5,
                 },
             };
+            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
     }

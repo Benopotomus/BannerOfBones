@@ -65,6 +65,12 @@ namespace BannerOfBones.CardGame
                 CreateLoadedBet(),
                 CreateLastStand(),
                 CreateSacrifice(),
+
+                // ── Die Type Manipulation ─────────────────────────────────────────
+                CreateRuneForge(),
+                CreateCorrosiveTouch(),
+                CreateBorrowedDie(),
+                CreateCrystalConduit(),
             };
         }
 
@@ -728,6 +734,82 @@ namespace BannerOfBones.CardGame
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn = EPokerHandType.Always,
                     magnitude = 10,
+                },
+            };
+            return card;
+        }
+
+        // ── Die Type Manipulation Cards ────────────────────────────────────────────
+
+        private static CardData CreateRuneForge()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Rune Forge";
+            card.description = "Upgrade one of your dice to the next tier (d6→d8→d10→d12).";
+            card.energyCost = 2;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.UpgradeDie,
+                    diceTarget = ECardTarget.PlayerDice,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateCorrosiveTouch()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Corrosive Touch";
+            card.description = "Downgrade one enemy die to the previous tier.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DowngradeDie,
+                    diceTarget = ECardTarget.EnemyDice,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateBorrowedDie()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Borrowed Die";
+            card.description = "Add a temporary d8 to your pool. It is removed at the start of the next round.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.AddTemporaryDie,
+                    diceTarget = ECardTarget.PlayerDice,
+                    dieSides = 8,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateCrystalConduit()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Crystal Conduit";
+            card.description = "Persistent. At the start of each round, add a temporary d10 to your pool.";
+            card.energyCost = 3;
+            card.duration = ECardDuration.Persistent;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.AddTemporaryDie,
+                    diceTarget = ECardTarget.PlayerDice,
+                    dieSides = 10,
                 },
             };
             return card;

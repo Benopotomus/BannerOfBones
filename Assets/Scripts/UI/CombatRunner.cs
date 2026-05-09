@@ -270,10 +270,7 @@ namespace BannerOfBones.CardGame
                 RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
 
                 var passivesText = MkText(panel, 9, C(0.86f, 0.72f, 0.72f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
-                var sb = new StringBuilder();
-                foreach (var passive in enemy.Data.passiveEffects)
-                    sb.AppendLine($"• {passive.description}");
-                passivesText.text = sb.ToString().TrimEnd();
+                passivesText.text = BuildEnemyActionText(enemy);
             }
         }
 
@@ -318,7 +315,7 @@ namespace BannerOfBones.CardGame
             SetButtonLabel(_retainButton, _combat.HasPendingCardPlay ? "Cancel Card" : _combat.IsSelectingRetain ? "Cancel Retain" : "Retain");
             SetButtonLabel(_confirmDiceButton, _combat.IsAwaitingCardConfirmation ? "Confirm Card" : "Confirm Dice");
 
-            RefreshDiceButtons(_playerDiceButtonsContainer, p.Dice.CurrentRoll, ECardTarget.PlayerDice, C(0.15f, 0.25f, 0.45f));
+            RefreshPlayerDiceButtons(_playerDiceButtonsContainer, p.Dice.Pool, ECardTarget.PlayerDice);
         }
 
         private void RefreshHand()
@@ -377,6 +374,71 @@ namespace BannerOfBones.CardGame
             }
         }
 
+        private void RefreshPlayerDiceButtons(RectTransform container, IReadOnlyList<Die> pool, ECardTarget target)
+        {
+            ClearContainer(container);
+            if (pool == null || pool.Count == 0) return;
+
+            float width = 1f / Mathf.Max(1, pool.Count);
+            for (int i = 0; i < pool.Count; i++)
+            {
+                int dieIndex = i;
+                var die = pool[i];
+                bool interactable = _combat.CanSelectDie(target, i);
+                bool selected = _combat.IsDieSelected(target, i);
+
+                var go = new GameObject($"Die{i}");
+                go.transform.SetParent(container, false);
+                var rt = go.AddComponent<RectTransform>();
+                rt.anchorMin = new Vector2(i * width + 0.01f, 0.05f);
+                rt.anchorMax = new Vector2((i + 1) * width - 0.01f, 0.95f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+                Color baseColor = die.IsTemporary
+                    ? TintColor(DieTypeColor(die.Sides), 0.75f)
+                    : DieTypeColor(die.Sides);
+
+                var image = go.AddComponent<Image>();
+                image.color = selected
+                    ? C(0.85f, 0.72f, 0.20f)
+                    : interactable
+                        ? C(baseColor.r + 0.05f, baseColor.g + 0.05f, baseColor.b + 0.05f)
+                        : baseColor;
+
+                var button = go.AddComponent<Button>();
+                button.interactable = interactable;
+                button.onClick.AddListener(() => OnDieClicked(target, dieIndex, -1));
+
+                // Die type label (small, top of button)
+                bool showType = die.Sides != DiceManager.DefaultDieSides || die.IsTemporary;
+                if (showType)
+                {
+                    var typeTxt = MkText(rt, 8, C(1f, 1f, 0.60f), TextAnchor.UpperCenter, 0f, 0.55f, 1f, 1f);
+                    typeTxt.text = die.TypeLabel;
+                }
+
+                // Die value (large, centred)
+                var valTxt = MkText(rt, 16, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, showType ? 0.60f : 1f);
+                valTxt.text = die.Value.ToString();
+            }
+        }
+
+        private static Color DieTypeColor(int sides)
+        {
+            switch (sides)
+            {
+                case 4:  return C(0.20f, 0.42f, 0.20f); // green  — weaker die
+                case 6:  return C(0.15f, 0.25f, 0.45f); // blue   — standard
+                case 8:  return C(0.18f, 0.30f, 0.52f); // lighter blue
+                case 10: return C(0.28f, 0.28f, 0.48f); // silver-blue
+                case 12: return C(0.35f, 0.18f, 0.52f); // purple — strongest die
+                default: return C(0.15f, 0.25f, 0.45f);
+            }
+        }
+
+        private static Color TintColor(Color c, float factor) =>
+            new Color(c.r * factor, c.g * factor, c.b * factor, c.a);
+
         private void RefreshDiceButtons(RectTransform container, int[] roll, ECardTarget target, Color baseColor, int enemyIndex = -1)
         {
             ClearContainer(container);
@@ -430,9 +492,9 @@ namespace BannerOfBones.CardGame
 
         private void OnRoundStarted()
         {
-            Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}");
+            Log($"── Round: Player {FormatDicePool(_combat.Player.Dice.Pool)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}");
+                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}  {enemy.GetIntentSummary()}");
             RefreshUI();
         }
 
@@ -674,6 +736,28 @@ namespace BannerOfBones.CardGame
             return alive;
         }
 
+        private static string BuildEnemyActionText(EnemyCombatant enemy)
+        {
+            if (enemy.CurrentIntent != null)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine($"Now: {enemy.CurrentIntent.intentName} ({enemy.CurrentIntent.damage})");
+
+                if (enemy.NextIntent != null)
+                    sb.AppendLine($"Next: {enemy.NextIntent.intentName} ({enemy.NextIntent.damage})");
+
+                if (!string.IsNullOrWhiteSpace(enemy.CurrentIntent.description))
+                    sb.Append(enemy.CurrentIntent.description);
+
+                return sb.ToString().TrimEnd();
+            }
+
+            var passiveText = new StringBuilder();
+            foreach (var passive in enemy.Data.passiveEffects)
+                passiveText.AppendLine($"• {passive.description}");
+            return passiveText.ToString().TrimEnd();
+        }
+
         private static string FormatDice(int[] roll)
         {
             if (roll == null || roll.Length == 0) return "(-)";
@@ -724,6 +808,28 @@ namespace BannerOfBones.CardGame
             for (int i = 6; i >= 1; i--)
                 if (freq[i] >= groupSize) return i;
             return 0;
+        }
+
+        /// <summary>
+        /// Formats a typed dice pool for the log, e.g. "[3][d8:7*][5]".
+        /// Standard d6 dice are shown as plain values; other types show the die label.
+        /// Temporary dice are marked with *.
+        /// </summary>
+        private static string FormatDicePool(IReadOnlyList<Die> pool)
+        {
+            if (pool == null || pool.Count == 0) return "(-)";
+            var sb = new StringBuilder();
+            for (int i = 0; i < pool.Count; i++)
+            {
+                var d = pool[i];
+                sb.Append('[');
+                if (d.Sides != DiceManager.DefaultDieSides || d.IsTemporary)
+                    sb.Append($"{d.TypeLabel}:{d.Value}");
+                else
+                    sb.Append(d.Value);
+                sb.Append(']');
+            }
+            return sb.ToString();
         }
     }
 }

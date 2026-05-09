@@ -60,7 +60,12 @@ namespace BannerOfBones.CardGame
 
                 case EEffectType.AddDie:
                     ResolveDiceEffect(effect, player, enemies, targetEnemyIndex, targetsAllEnemies,
-                        dice => dice.AddDie());
+                        dice => dice.AddDie(effect.dieSides > 0 ? effect.dieSides : 6));
+                    break;
+
+                case EEffectType.AddTemporaryDie:
+                    ResolveDiceEffect(effect, player, enemies, targetEnemyIndex, targetsAllEnemies,
+                        dice => dice.AddDie(effect.dieSides > 0 ? effect.dieSides : 6, temporary: true));
                     break;
 
                 case EEffectType.RemoveDie:
@@ -98,7 +103,10 @@ namespace BannerOfBones.CardGame
                 case EEffectType.RerollAllDice:
                 case EEffectType.RerollByValue:
                 case EEffectType.AddDie:
+                case EEffectType.AddTemporaryDie:
                 case EEffectType.RemoveDie:
+                case EEffectType.UpgradeDie:
+                case EEffectType.DowngradeDie:
                     return effect.diceTarget == ECardTarget.EnemyDice;
 
                 default:

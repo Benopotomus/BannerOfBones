@@ -32,5 +32,8 @@ namespace BannerOfBones.CardGame
 
         [Tooltip("Number of cards to draw for CycleHand effects.")]
         public int drawCount;
+
+        [Tooltip("Number of sides on the die to add (AddDie, AddTemporaryDie). Standard tiers: 4, 6, 8, 10, 12. Defaults to 6 when 0.")]
+        public int dieSides;
     }
 }

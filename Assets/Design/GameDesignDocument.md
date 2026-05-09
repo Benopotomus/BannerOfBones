@@ -2,16 +2,40 @@
 
 ## Overview
 
-A turn-based card game with poker-dice mechanics. The player builds a deck of action cards and fights small enemy groups through a series of combat encounters. Each round, the player and up to four enemies roll pools of six-sided dice. Cards are played to spend those dice results on damage, defense, and dice manipulation.
+A turn-based card game with poker-dice mechanics. The player builds a deck of action cards and fights small enemy groups through a series of combat encounters. Each round, the player and up to four enemies roll pools of dice. Cards are played to spend those dice results on damage, defense, and dice manipulation. Dice can be upgraded or downgraded between types, and temporary dice can be borrowed for a single round.
 
 ---
 
 ## Core Concepts
 
 ### Dice
-- **Player dice pool**: 5 six-sided dice (d6), rolled at the start of every round.
-- **Enemy dice pool**: each enemy rolls their own 2–4 six-sided dice at the start of every round.
-- Dice results are evaluated using **poker-dice style** rules: singles, pairs, triples, straights, full houses, four-of-a-kind, and five-of-a-kind (Yahtzee).
+
+#### Die Types
+Dice come in six standard tiers. Higher-tier dice produce larger values, which benefits cards that reward high rolls.
+
+| Die | Faces | Notes |
+|---|---|---|
+| d4 | 1–4 | Weakest; cannot be downgraded further |
+| d6 | 1–6 | Default starting die |
+| d8 | 1–8 | First upgrade tier |
+| d10 | 1–10 | |
+| d12 | 1–12 | Strongest; cannot be upgraded further |
+
+#### Pool Rules
+- **Player dice pool**: starts with 5 d6, rolled at the start of every round.
+- **Enemy dice pool**: each enemy rolls their own 2–4 d6 dice at the start of every round.
+- Dice results are evaluated using **poker-dice style** rules: pairs, triples, straights, full houses, four-of-a-kind, and five-of-a-kind.
+
+#### Upgrading and Downgrading
+- **Upgrade Die**: advances one die one tier up (e.g. d6 → d8). The change is permanent for the rest of combat.
+- **Downgrade Die**: drops one die one tier down. Can be applied to enemy dice to weaken them.
+- Both effects require the player to select which die to target.
+
+#### Temporary Dice
+- Some cards add a **temporary** die to the pool (shown with a `*` label in the UI, e.g. "d8*").
+- Temporary dice are rolled normally and contribute to poker hands for the round they were added.
+- At the **start of the next round**, all temporary dice are removed before rolling.
+- A persistent card that adds a temporary die will re-add it at the start of each subsequent round.
 
 ### Poker-Dice Hand Reference
 | Hand | Description | Example |
@@ -20,7 +44,7 @@ A turn-based card game with poker-dice mechanics. The player builds a deck of ac
 | Pair | Exactly two dice share a value | 3, 3 |
 | Two Pair | Two separate pairs | 2, 2, 5, 5 |
 | Triple | Exactly three dice share a value | 6, 6, 6 |
-| Straight | Five sequential values | 1-2-3-4-5 or 2-3-4-5-6 |
+| Straight | Five sequential values (d6 faces only) | 1-2-3-4-5 or 2-3-4-5-6 |
 | Full House | One triple + one pair | 4, 4, 4, 2, 2 |
 | Four of a Kind | Exactly four dice share a value | 1, 1, 1, 1 |
 | Five of a Kind | All dice show the same value | 5, 5, 5, 5, 5 |
@@ -80,7 +104,8 @@ Card effects resolve immediately in play order:
 The player ends their turn when they choose to pass or run out of playable cards.
 
 ### 4. Enemy Turn
-Each living enemy evaluates their passive effects against their own current dice pool.
+Each living enemy resolves a clearly shown **intent** at the end of the player's turn.
+Standard enemies follow a simple repeating action pattern, and the UI shows both the current and next intent.
 All enemy damage is totaled together, then reduced by any remaining player block.
 Excess damage is applied to the player's health.
 
@@ -102,11 +127,11 @@ Excess damage is applied to the player's health.
 
 ## Enemy Rules
 - Enemies do **not** have cards or a hand.
-- Each enemy has a set of **passive effects** defined at creation that fire every round automatically.
-- Passive effects are evaluated against the **enemy's own dice roll**, not the player's.
+- Standard enemies use a short repeating list of **intents** instead of stacked passive formulas.
+- The current and next intent are always visible to the player.
+- Enemy dice are still rolled because player cards and wagers can target enemy dice pools.
 - Encounters field **1–4 enemies** at once.
 - Enemies have **fixed dice counts** (2–4 dice), defined per enemy.
-- Some enemies have **pre-round effects** that modify their own dice before the player's turn (e.g., rerolling unfavorable faces).
 
 ---
 
@@ -121,8 +146,11 @@ Excess damage is applied to the player's health.
 | Reroll Dice | Reroll `count` dice from the target pool (lowest values rerolled first in automation) |
 | Reroll All Dice | Reroll all dice in the target pool |
 | Reroll By Value | Reroll all dice in target pool that show a specific value |
-| Add Die | Add one die to a pool (rolled immediately) |
+| Add Die | Add one permanent die (of the specified type) to a pool |
 | Remove Die | Remove one die from a pool |
+| Add Temporary Die | Add one die of the specified type that is removed at the start of the next round |
+| Upgrade Die | Player selects one die to advance one tier (d6→d8, d8→d10, etc.) |
+| Downgrade Die | Player selects one die to drop one tier; can target enemy dice |
 | Cycle Hand | Discard another card from hand, then draw cards |
 | Add Wager | Queue a one-shot payoff that resolves at the start of the next round |
 
@@ -165,6 +193,12 @@ Excess damage is applied to the player's health.
 - **Last Stand** (0 energy, Exhaust): Deal damage equal to 3× your highest die.
 - **Sacrifice** (1 energy, Exhaust): Remove 1 die from your pool, then deal 10 damage.
 
+### Die Type Manipulation
+- **Rune Forge** (2 energy): Choose one of your dice. Upgrade it to the next tier permanently (d6→d8, d8→d10, etc.).
+- **Corrosive Touch** (1 energy): Choose one enemy die. Downgrade it one tier permanently.
+- **Borrowed Die** (1 energy): Add a temporary d8 to your pool. It is removed at the start of the next round.
+- **Crystal Conduit** (3 energy, Persistent): At the start of each round, add a temporary d10 to your pool.
+
 ### High-Risk Cards
 - **Death's Gamble** (1 energy): If all 5 dice match, deal 8 damage. Otherwise, take 2 damage.
 
@@ -173,25 +207,24 @@ Excess damage is applied to the player's health.
 ## Example Enemies
 
 ### Goblin Scout (8 HP, 2 dice)
-- Deals 1 damage for each [2] rolled.
-- Deals 1 damage for each pair rolled.
+- Feint for 1 damage.
+- Stab for 2 damage.
 
 ### Orc Warrior (12 HP, 2 dice)
-- Deals 1 damage for each odd die rolled.
-- Deals 1 damage for each pair rolled.
+- Cleave for 3 damage.
+- Backhand for 2 damage.
 
 ### Shadow Wraith (10 HP, 3 dice)
-- Deals 1 damage for each odd die rolled.
-- Deals 1 damage for each [1] rolled.
+- Drain for 2 damage.
+- Ambush for 3 damage.
 
 ### Stone Golem (16 HP, 3 dice)
-- Rerolls all dice showing [1] at the start of each round.
-- Deals 1 damage for each even die rolled.
-- Deals 2 damage for each triple rolled.
+- Wind Up for 2 damage.
+- Crush for 4 damage.
 
 ### Death Knight (18 HP, 4 dice)
-- Deals 1 damage for each die showing 5 or 6.
-- Deals 2 damage for each pair rolled.
+- Harry for 3 damage.
+- Executioner Swing for 5 damage.
 
 ---
 
@@ -214,3 +247,5 @@ A balanced starter deck of 10–15 cards might include:
 | Energy | Resource spent to play cards; resets each round |
 | Block | Damage reduction that absorbs incoming enemy damage; cleared each round |
 | Discard | Cards played or unused at end of round enter the discard pile |
+| Die Tier | One step in the upgrade chain d4 → d6 → d8 → d10 → d12 |
+| Temporary Die | A die added mid-round that is removed before the next round's roll |

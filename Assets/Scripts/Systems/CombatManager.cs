@@ -392,6 +392,8 @@ namespace BannerOfBones.CardGame
                 {
                     if (effect.effectType == EEffectType.AddDie
                         || effect.effectType == EEffectType.RemoveDie
+                        || effect.effectType == EEffectType.UpgradeDie
+                        || effect.effectType == EEffectType.DowngradeDie
                         || effect.effectType == EEffectType.CycleHand
                         || effect.effectType == EEffectType.AddWager)
                     {
@@ -458,7 +460,13 @@ namespace BannerOfBones.CardGame
 
             int damage = 0;
             foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
-                damage += enemy.CalculateDamage();
+            {
+                int enemyDamage = enemy.CalculateDamage();
+                damage += enemyDamage;
+
+                if (enemy.CurrentIntent != null)
+                    Log($"{enemy.Data.enemyName} uses {enemy.CurrentIntent.intentName} for {enemyDamage} damage.");
+            }
 
             Player.TakeDamage(damage);
             Log($"Enemies deal {damage} damage.");
@@ -520,6 +528,50 @@ namespace BannerOfBones.CardGame
         {
             if (State != ECombatState.PlayerTurn)
                 return false;
+
+            if (effect.effectType == EEffectType.UpgradeDie || effect.effectType == EEffectType.DowngradeDie)
+            {
+                bool isUpgrade = effect.effectType == EEffectType.UpgradeDie;
+                int enemyIndex = effect.diceTarget == ECardTarget.EnemyDice ? _resolvingTargetEnemyIndex : -1;
+
+                int dieCount = effect.diceTarget == ECardTarget.PlayerDice
+                    ? Player.Dice.DiceCount
+                    : GetEnemyAt(enemyIndex)?.Dice.DiceCount ?? 0;
+
+                if (dieCount == 0) return false;
+
+                string verb = isUpgrade ? "upgrade" : "downgrade";
+                string targetName = effect.diceTarget == ECardTarget.PlayerDice
+                    ? "player"
+                    : GetEnemyName(enemyIndex);
+                string sourceName = _resolvingSourceName;
+
+                QueueDiceSelection(
+                    effect.diceTarget,
+                    1,
+                    $"Choose 1 {targetName} die to {verb}.",
+                    indices =>
+                    {
+                        if (effect.diceTarget == ECardTarget.PlayerDice)
+                        {
+                            if (isUpgrade) Player.Dice.UpgradeDie(indices[0]);
+                            else Player.Dice.DowngradeDie(indices[0]);
+                        }
+                        else
+                        {
+                            var enemy = GetEnemyAt(enemyIndex);
+                            if (enemy != null)
+                            {
+                                if (isUpgrade) enemy.Dice.UpgradeDie(indices[0]);
+                                else enemy.Dice.DowngradeDie(indices[0]);
+                            }
+                        }
+                        Log($"{sourceName} {verb}d 1 {targetName} die.");
+                    },
+                    enemyIndex);
+
+                return true;
+            }
 
             if (effect.effectType == EEffectType.RerollDice)
             {

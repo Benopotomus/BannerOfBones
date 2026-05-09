@@ -299,6 +299,7 @@ namespace BannerOfBones.CardGame
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
+            _cancelButton.interactable = _combat.HasPendingCardPlay;
 
             bool showConfirmButton = _combat.IsAwaitingDiceSelection || _combat.IsAwaitingCardConfirmation;
             _confirmDiceButton.gameObject.SetActive(showConfirmButton);

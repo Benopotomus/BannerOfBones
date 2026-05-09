@@ -29,5 +29,8 @@ namespace BannerOfBones.CardGame
 
         [Tooltip("Number of dice to reroll for RerollDice effects.")]
         public int count;
+
+        [Tooltip("Number of cards to draw for CycleHand effects.")]
+        public int drawCount;
     }
 }

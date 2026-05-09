@@ -31,5 +31,11 @@
 
         /// <summary>Remove one die from the target pool.</summary>
         RemoveDie,
+
+        /// <summary>Discard another card from hand, then draw additional cards.</summary>
+        CycleHand,
+
+        /// <summary>Queue a one-shot delayed payoff that resolves at the start of the next round.</summary>
+        AddWager,
     }
 }

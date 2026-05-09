@@ -36,7 +36,7 @@ namespace BannerOfBones.CardGame
         {
             int incoming = Math.Max(0, amount);
             int absorbed = Math.Min(Block, incoming);
-            Block -= absorbed;
+            Block = Math.Max(0, Block - absorbed);
             CurrentHealth -= incoming - absorbed;
             if (CurrentHealth < 0) CurrentHealth = 0;
         }

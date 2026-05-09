@@ -42,8 +42,6 @@ namespace BannerOfBones.CardGame
             deck.Add(CreateLuckyCharm());
             deck.Add(CreateLoadedBet());
             deck.Add(CreatePrecisionStrike());
-            deck.Add(CreateLoadedBet());
-            deck.Add(CreateHexCurse());
             deck.Add(CreateCursedAura());
             return deck;
         }

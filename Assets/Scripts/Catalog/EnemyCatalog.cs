@@ -63,7 +63,6 @@ namespace BannerOfBones.CardGame
             enemy.name = enemy.enemyName = "Goblin Scout";
             enemy.description = "A disruptive skirmisher that chips damage and scrambles your dice.";
             enemy.maxHealth = 8;
-            enemy.diceCount = 2;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
@@ -75,8 +74,8 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Stab",
-                    intentType = EEnemyIntentType.AttackFromHighestDie,
-                    magnitude = 1,
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 4,
                 },
                 new EnemyIntentData
                 {
@@ -86,7 +85,6 @@ namespace BannerOfBones.CardGame
                     count = 1,
                 },
             };
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -96,7 +94,6 @@ namespace BannerOfBones.CardGame
             enemy.name = enemy.enemyName = "Orc Warrior";
             enemy.description = "A bruiser that builds guard before punishing weak turns.";
             enemy.maxHealth = 12;
-            enemy.diceCount = 2;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
@@ -119,7 +116,6 @@ namespace BannerOfBones.CardGame
                     count = 2,
                 },
             };
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -129,7 +125,6 @@ namespace BannerOfBones.CardGame
             enemy.name = enemy.enemyName = "Shadow Wraith";
             enemy.description = "A trickster that repeatedly disrupts your setup before striking.";
             enemy.maxHealth = 10;
-            enemy.diceCount = 3;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
@@ -141,8 +136,8 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Ambush",
-                    intentType = EEnemyIntentType.AttackFromHighestDie,
-                    magnitude = 1,
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 5,
                 },
                 new EnemyIntentData
                 {
@@ -151,7 +146,6 @@ namespace BannerOfBones.CardGame
                     magnitude = 2,
                 },
             };
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -159,22 +153,21 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Stone Golem";
-            enemy.description = "A scaling elite that upgrades itself before crushing blows.";
+            enemy.description = "A slow elite that braces before crushing blows.";
             enemy.maxHealth = 16;
-            enemy.diceCount = 3;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
                     intentName = "Wind Up",
-                    intentType = EEnemyIntentType.UpgradeSelfDice,
-                    count = 1,
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 3,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Crush",
-                    intentType = EEnemyIntentType.AttackFromHighestDie,
-                    magnitude = 2,
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 8,
                 },
                 new EnemyIntentData
                 {
@@ -183,7 +176,6 @@ namespace BannerOfBones.CardGame
                     magnitude = 4,
                 },
             };
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
 
@@ -193,7 +185,6 @@ namespace BannerOfBones.CardGame
             enemy.name = enemy.enemyName = "Death Knight";
             enemy.description = "An elite controller that weakens your dice before execution hits.";
             enemy.maxHealth = 18;
-            enemy.diceCount = 4;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
@@ -206,8 +197,8 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Executioner Swing",
-                    intentType = EEnemyIntentType.AttackFromHighestDie,
-                    magnitude = 2,
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 9,
                 },
                 new EnemyIntentData
                 {
@@ -216,7 +207,6 @@ namespace BannerOfBones.CardGame
                     magnitude = 5,
                 },
             };
-            enemy.passiveEffects = new List<EnemyPassiveEffectData>();
             return enemy;
         }
     }

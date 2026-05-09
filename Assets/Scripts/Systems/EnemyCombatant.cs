@@ -4,7 +4,7 @@ namespace BannerOfBones.CardGame
 {
     /// <summary>
     /// Runtime state for an enemy during a combat encounter.
-    /// Enemies have no cards — they usually resolve simple repeating intents, with passive dice logic as fallback.
+    /// Enemies have no cards and resolve simple repeating intents.
     /// </summary>
     public class EnemyCombatant
     {
@@ -12,8 +12,6 @@ namespace BannerOfBones.CardGame
         public int       CurrentHealth { get; private set; }
         public int       Block         { get; private set; }
         public bool      IsAlive       => CurrentHealth > 0;
-
-        public DiceManager Dice { get; }
 
         public EnemyIntentData CurrentIntent
             => HasIntentPattern && _currentIntentIndex >= 0 ? Data.roundIntents[_currentIntentIndex] : null;
@@ -29,7 +27,6 @@ namespace BannerOfBones.CardGame
             Data          = data;
             CurrentHealth = data.maxHealth;
             Block         = 0;
-            Dice          = new DiceManager(data.diceCount);
         }
 
         public void TakeDamage(int amount)
@@ -59,10 +56,9 @@ namespace BannerOfBones.CardGame
             Block = 0;
         }
 
-        /// <summary>Rolls all dice at the start of a round.</summary>
+        /// <summary>Advances to the next intent at the start of a round.</summary>
         public void StartRound()
         {
-            Dice.RollAll();
             ClearBlock();
 
             if (!HasIntentPattern) return;
@@ -74,55 +70,13 @@ namespace BannerOfBones.CardGame
         }
 
         /// <summary>
-        /// Applies pre-round passive effects (e.g., rerolling specific die values).
-        /// Call this after StartRound and before the player turn begins.
-        /// </summary>
-        public void ApplyPreRoundEffects()
-        {
-            foreach (var passive in Data.passiveEffects)
-            {
-                switch (passive.effectType)
-                {
-                    case EEffectType.RerollDice:
-                        Dice.RerollCount(passive.count);
-                        break;
-                    case EEffectType.RerollAllDice:
-                        Dice.RerollAll();
-                        break;
-                    case EEffectType.RerollByValue:
-                        Dice.RerollDiceShowingValue(passive.dieValue);
-                        break;
-                }
-            }
-        }
-
-        /// <summary>
         /// Calculates damage this enemy intends to deal this round.
         /// </summary>
         public int CalculateIntentDamage()
         {
-            if (CurrentIntent != null)
-            {
-                switch (CurrentIntent.intentType)
-                {
-                    case EEnemyIntentType.AttackFlat:
-                        return Math.Max(0, CurrentIntent.magnitude);
-                    case EEnemyIntentType.AttackFromHighestDie:
-                        return Math.Max(0, CurrentIntent.magnitude) * PokerEvaluator.HighestDie(Dice.CurrentRoll);
-                    default:
-                        return 0;
-                }
-            }
-
-            int total = 0;
-            foreach (var passive in Data.passiveEffects)
-            {
-                if (passive.effectType != EEffectType.DealDamage) continue;
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    passive.triggerOn, Dice.CurrentRoll, passive.dieValue, passive.valueThreshold);
-                total += triggers * passive.magnitude;
-            }
-            return total;
+            return CurrentIntent?.intentType == EEnemyIntentType.AttackFlat
+                ? Math.Max(0, CurrentIntent.magnitude)
+                : 0;
         }
 
         public int ExecuteIntent(PlayerCombatant player)
@@ -136,7 +90,6 @@ namespace BannerOfBones.CardGame
             switch (CurrentIntent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
-                case EEnemyIntentType.AttackFromHighestDie:
                     return CalculateIntentDamage();
 
                 case EEnemyIntentType.Guard:
@@ -150,10 +103,6 @@ namespace BannerOfBones.CardGame
                 case EEnemyIntentType.WeakenPlayerDice:
                     player?.Dice.AdjustHighestDice(count, -amount);
                     return 0;
-
-                case EEnemyIntentType.UpgradeSelfDice:
-                    Dice.UpgradeHighestDice(count);
-                    return 0;
             }
 
             return 0;
@@ -162,7 +111,7 @@ namespace BannerOfBones.CardGame
         public string GetIntentSummary()
         {
             if (CurrentIntent == null)
-                return "Acts from dice passives.";
+                return "No action.";
 
             string fallback;
             int amount = Math.Max(0, CurrentIntent.magnitude);
@@ -172,9 +121,6 @@ namespace BannerOfBones.CardGame
                 case EEnemyIntentType.AttackFlat:
                     fallback = $"{CurrentIntent.intentName}: {amount} damage.";
                     break;
-                case EEnemyIntentType.AttackFromHighestDie:
-                    fallback = $"{CurrentIntent.intentName}: {amount}×highest die damage ({CalculateIntentDamage()} now).";
-                    break;
                 case EEnemyIntentType.Guard:
                     fallback = $"{CurrentIntent.intentName}: gain {amount} block.";
                     break;
@@ -183,9 +129,6 @@ namespace BannerOfBones.CardGame
                     break;
                 case EEnemyIntentType.WeakenPlayerDice:
                     fallback = $"{CurrentIntent.intentName}: reduce your {count} highest dice by {amount}.";
-                    break;
-                case EEnemyIntentType.UpgradeSelfDice:
-                    fallback = $"{CurrentIntent.intentName}: upgrade {count} of its highest dice.";
                     break;
                 default:
                     fallback = CurrentIntent.intentName;

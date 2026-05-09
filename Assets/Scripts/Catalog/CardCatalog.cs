@@ -4,9 +4,9 @@ using UnityEngine;
 namespace BannerOfBones.CardGame
 {
     /// <summary>
-    /// Programmatic catalog of the prototype player cards.
-    /// Call <see cref="CreateAllCards"/> to obtain a list of runtime <see cref="CardData"/> instances.
-    /// In the Unity Editor these instances can be saved as .asset files via the CardGame menu.
+    /// Runtime entry point for the prototype player cards.
+    /// Call <see cref="CreateAllCards"/> or <see cref="CreateStarterDeck"/> to obtain cloned runtime <see cref="CardData"/> instances.
+    /// When a CardDatabase asset exists in Resources, it is used instead of the built-in defaults.
     /// </summary>
     public static class CardCatalog
     {
@@ -14,6 +14,15 @@ namespace BannerOfBones.CardGame
         /// Returns a balanced starter deck that samples the expanded action set.
         /// </summary>
         public static List<CardData> CreateStarterDeck()
+        {
+            var database = LoadDatabase();
+            if (database != null && database.HasStarterDeck)
+                return database.CreateStarterDeckRuntime();
+
+            return CreateDefaultStarterDeck();
+        }
+
+        public static List<CardData> CreateDefaultStarterDeck()
         {
             var deck = new List<CardData>();
             for (int i = 0; i < 3; i++) deck.Add(CreateStrike());
@@ -47,6 +56,15 @@ namespace BannerOfBones.CardGame
         }
 
         public static List<CardData> CreateAllCards()
+        {
+            var database = LoadDatabase();
+            if (database != null && database.HasCards)
+                return database.CreateAllRuntimeCards();
+
+            return CreateDefaultCardLibrary();
+        }
+
+        public static List<CardData> CreateDefaultCardLibrary()
         {
             return new List<CardData>
             {
@@ -92,6 +110,12 @@ namespace BannerOfBones.CardGame
                 CreateBorrowedDie(),
                 CreateCrystalConduit(),
             };
+        }
+
+
+        private static CardDatabase LoadDatabase()
+        {
+            return Resources.Load<CardDatabase>(CardDatabase.ResourcesPath);
         }
 
         // ── Card 01 ───────────────────────────────────────────────────────────────

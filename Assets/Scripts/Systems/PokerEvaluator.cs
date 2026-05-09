@@ -43,15 +43,16 @@
         }
 
         /// <summary>
-        /// Returns the number of groups of exactly 2 matching dice.
-        /// A triple does NOT count as a pair.
+        /// Returns the total number of pairs across all die values.
+        /// Each group of N matching dice contributes N/2 pairs (integer division),
+        /// so a triple counts as 1 pair and a four-of-a-kind counts as 2 pairs.
         /// </summary>
         public static int CountPairs(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int pairs = 0;
             for (int i = 1; i <= 6; i++)
-                if (freq[i] == 2) pairs++;
+                pairs += freq[i] / 2;
             return pairs;
         }
 

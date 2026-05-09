@@ -16,6 +16,10 @@ namespace BannerOfBones.CardGame
         public int playerHealth = 30;
         public int playerEnergy = 3;
 
+        [Header("Run Settings")]
+        [Tooltip("Set a fixed seed for reproducible runs. Leave 0 to use a random seed.")]
+        public int seed = 0;
+
         [Header("Prefabs")]
         [Tooltip("Optional CardButton prefab. Assign for custom card styling; leave empty to use the built-in fallback.")]
         [SerializeField] private GameObject _cardButtonPrefab;
@@ -48,6 +52,11 @@ namespace BannerOfBones.CardGame
 
         private void Start()
         {
+            if (seed != 0)
+                BoBRandom.Init(seed);
+            else if (!BoBRandom.IsSeeded)
+                BoBRandom.InitRandom();
+
             var enemies = EnemyCatalog.CreateEncounterGroup();
             var deck = CardCatalog.CreateStarterDeck();
 

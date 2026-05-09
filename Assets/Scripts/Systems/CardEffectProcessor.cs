@@ -87,6 +87,10 @@
                     else
                         player.Dice.RemoveDie();
                     break;
+
+                case EEffectType.CycleHand:
+                case EEffectType.AddWager:
+                    break;
             }
         }
     }

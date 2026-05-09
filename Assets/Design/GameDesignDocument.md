@@ -40,6 +40,7 @@ A turn-based card game with poker-dice mechanics. The player builds a deck of ac
 #### Card Duration
 - **Instant**: Effect fires once when played, card goes to discard.
 - **Persistent**: Effect was applied once when played (e.g., add a die) AND recurring effects (block, reroll) apply again at the start of each subsequent round. Persistent cards remain in play for the rest of combat.
+- **Exhaust**: Effect fires once when played, then the card is removed from the deck for the rest of combat.
 
 #### Card Targets
 Cards specify which dice pool their effects evaluate:
@@ -60,10 +61,15 @@ Any persistent cards already in play apply their recurring effects:
 - The new enemy dice are used for the rest of the round.
 
 ### 3. Player Turn
-The player may play any number of cards from their hand as long as they can afford the energy cost.
+The player may spend energy on any number of cards or baseline actions during their turn:
+- **Play cards** from hand.
+- **Focus** (1 energy): Reroll 1 chosen player die.
+- **Brace** (1 energy): Gain 2 block.
+- **Scout** (2 energy): Discard 1 card, then draw 2 cards.
+- **Retain**: Mark 1 card in hand to keep for the next round instead of discarding it.
 
 Card effects resolve immediately in play order:
-- Rerolling dice changes the dice pool for subsequent card evaluations.
+- Rerolling dice lets the player choose which dice to reroll.
 - Damage dealt reduces the enemy's health immediately.
 - Block gained reduces incoming damage from the enemy this round.
 
@@ -76,7 +82,7 @@ Excess damage is applied to the player's health.
 
 ### 5. End of Round
 - Player block is cleared (only persistent block cards restore it next round).
-- The player's hand is discarded.
+- The player's hand is discarded except for 1 retained card, if chosen.
 - A new round begins (Step 1).
 
 ---
@@ -112,6 +118,8 @@ Excess damage is applied to the player's health.
 | Reroll By Value | Reroll all dice in target pool that show a specific value |
 | Add Die | Add one die to a pool (rolled immediately) |
 | Remove Die | Remove one die from a pool |
+| Cycle Hand | Discard another card from hand, then draw cards |
+| Add Wager | Queue a one-shot payoff that resolves at the start of the next round |
 
 ---
 
@@ -134,12 +142,20 @@ Excess damage is applied to the player's health.
 - **Rune Shield** (2 energy, Persistent): Each round, block 2 damage per [6] rolled.
 
 ### Dice Manipulation
-- **Lucky Reroll** (1 energy): Reroll up to 3 of your dice.
+- **Lucky Reroll** (1 energy): Choose up to 3 of your dice to reroll.
 - **Full Send** (2 energy): Reroll all of your dice.
-- **Hex Curse** (2 energy): Force the enemy to reroll 2 of their dice.
+- **Hex Curse** (2 energy): Choose up to 2 enemy dice to reroll.
 - **Cursed Dice** (2 energy): Force the enemy to reroll all of their dice.
 - **War Drums** (3 energy): Reroll all enemy dice, then deal 1 damage per unique value in their new roll.
 - **Lucky Charm** (3 energy, Persistent): Add 1 die to your pool for the rest of combat.
+
+### Hand Planning
+- **Tactical Pivot** (1 energy): Discard another card, then draw 2 cards.
+- **Loaded Bet** (1 energy): Next round, if you roll a pair, deal 6 damage.
+
+### Exhaust Cards
+- **Last Stand** (0 energy, Exhaust): Deal damage equal to 3× your highest die.
+- **Sacrifice** (1 energy, Exhaust): Remove 1 die from your pool, then deal 10 damage.
 
 ### High-Risk Cards
 - **Death's Gamble** (1 energy): If all 5 dice match, deal 8 damage. Otherwise, take 2 damage.

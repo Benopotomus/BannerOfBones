@@ -4,24 +4,27 @@ using UnityEngine;
 namespace BannerOfBones.CardGame
 {
     /// <summary>
-    /// Programmatic catalog of all 25 player cards.
+    /// Programmatic catalog of the prototype player cards.
     /// Call <see cref="CreateAllCards"/> to obtain a list of runtime <see cref="CardData"/> instances.
     /// In the Unity Editor these instances can be saved as .asset files via the CardGame menu.
     /// </summary>
     public static class CardCatalog
     {
         /// <summary>
-        /// Returns a balanced 10-card starter deck suitable for a first run.
-        /// Composition: 3× Iron Shield · 3× Swift Slash · 2× Bone Ward · 1× Twin Fangs · 1× Lucky Reroll
+        /// Returns a balanced starter deck that samples the expanded action set.
         /// </summary>
         public static List<CardData> CreateStarterDeck()
         {
             var deck = new List<CardData>();
-            for (int i = 0; i < 3; i++) deck.Add(CreateIronShield());
-            for (int i = 0; i < 3; i++) deck.Add(CreateSwiftSlash());
+            for (int i = 0; i < 2; i++) deck.Add(CreateIronShield());
+            for (int i = 0; i < 2; i++) deck.Add(CreateSwiftSlash());
             for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
             deck.Add(CreateTwinFangs());
             deck.Add(CreateLuckyReroll());
+            deck.Add(CreateTacticalPivot());
+            deck.Add(CreateLoadedBet());
+            deck.Add(CreateLastStand());
+            deck.Add(CreateAceHigh());
             return deck;
         }
 
@@ -59,6 +62,10 @@ namespace BannerOfBones.CardGame
                 CreateWarDrums(),
                 CreateCursedAura(),
                 CreateLuckyCharm(),
+                CreateTacticalPivot(),
+                CreateLoadedBet(),
+                CreateLastStand(),
+                CreateSacrifice(),
             };
         }
 
@@ -472,7 +479,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Lucky Reroll";
-            card.description = "Reroll up to 3 of your dice.";
+            card.description = "Choose up to 3 of your dice to reroll.";
             card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -513,7 +520,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Hex Curse";
-            card.description = "Force the enemy to reroll 2 of their dice.";
+            card.description = "Choose up to 2 enemy dice to reroll.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -612,6 +619,89 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.AddDie,
                     diceTarget = ECardTarget.PlayerDice,
                     count      = 1,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateTacticalPivot()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Tactical Pivot";
+            card.description = "Discard another card. Draw 2 cards.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.CycleHand,
+                    drawCount = 2,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateLoadedBet()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Loaded Bet";
+            card.description = "Next round, if you roll a pair, deal 6 damage.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.AddWager,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.PerPair,
+                    magnitude = 6,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateLastStand()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Last Stand";
+            card.description = "Exhaust. Deal damage equal to 3× your highest die.";
+            card.energyCost = 0;
+            card.duration = ECardDuration.Exhaust;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.HighestDieValue,
+                    magnitude = 3,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateSacrifice()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Sacrifice";
+            card.description = "Exhaust. Remove 1 die from your pool, then deal 10 damage.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Exhaust;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.RemoveDie,
+                    diceTarget = ECardTarget.PlayerDice,
+                },
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.Always,
+                    magnitude = 10,
                 },
             };
             return card;

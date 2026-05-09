@@ -19,11 +19,12 @@ namespace BannerOfBones.CardGame
         /// Positions this card within the hand container and wires up visuals + click.
         /// </summary>
         /// <param name="card">The card this button represents.</param>
-        /// <param name="playable">Whether the player can currently afford and play this card.</param>
+        /// <param name="interactable">Whether the player can click this card right now.</param>
         /// <param name="index">Zero-based position in the hand (left to right).</param>
         /// <param name="total">Total number of cards in the hand.</param>
         /// <param name="onClick">Callback invoked when the button is clicked.</param>
-        public void Setup(CardData card, bool playable, int index, int total, Action<CardData> onClick)
+        public void Setup(CardData card, bool interactable, int index, int total, Action<CardData> onClick,
+            bool retained = false, bool highlighted = false)
         {
             Card = card;
 
@@ -36,13 +37,18 @@ namespace BannerOfBones.CardGame
 
             // ── Background ────────────────────────────────────────────────────────
             var img = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
-            img.color = playable
-                ? new Color(0.18f, 0.38f, 0.14f)
-                : new Color(0.20f, 0.20f, 0.20f);
+            img.color = retained
+                ? new Color(0.45f, 0.36f, 0.10f)
+                : highlighted
+                    ? new Color(0.16f, 0.28f, 0.44f)
+                    : interactable
+                        ? new Color(0.18f, 0.38f, 0.14f)
+                        : new Color(0.20f, 0.20f, 0.20f);
 
             // ── Button ────────────────────────────────────────────────────────────
             var btn = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
-            btn.interactable = playable;
+            btn.interactable = interactable;
+            btn.onClick.RemoveAllListeners();
             var captured = card;
             btn.onClick.AddListener(() => onClick(captured));
 
@@ -58,12 +64,14 @@ namespace BannerOfBones.CardGame
             var txt = textGO.AddComponent<Text>();
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.fontSize = 11;
-            txt.color = playable ? Color.white : new Color(0.5f, 0.5f, 0.5f);
+            txt.color = interactable ? Color.white : new Color(0.5f, 0.5f, 0.5f);
             txt.alignment = TextAnchor.MiddleCenter;
             txt.supportRichText = true;
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
-            txt.text = $"<b>{card.cardName}</b>\n{card.description}\n[{card.energyCost}E]";
+            string durationText = card.duration == ECardDuration.Instant ? string.Empty : $" | {card.duration}";
+            string retainedText = retained ? "\n<color=#F8E27A>Retained</color>" : string.Empty;
+            txt.text = $"<b>{card.cardName}</b>\n{card.description}\n[{card.energyCost}E{durationText}]{retainedText}";
         }
     }
 }

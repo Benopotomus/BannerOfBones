@@ -19,6 +19,7 @@ namespace BannerOfBones.CardGame
 
         /// <summary>Cards with Persistent duration currently in play.</summary>
         public List<CardData> ActivePersistentCards { get; } = new List<CardData>();
+        public List<WagerData> ActiveWagers { get; } = new List<WagerData>();
 
         public PlayerCombatant(int maxHealth, int maxEnergy, List<CardData> deck, int diceCount = 5)
         {
@@ -59,7 +60,7 @@ namespace BannerOfBones.CardGame
         {
             ClearBlock();
             Energy.ResetEnergy();
-            Deck.DiscardHand();
+            Deck.DiscardHandExceptRetained();
             Deck.DrawCards();
             Dice.RollAll();
         }

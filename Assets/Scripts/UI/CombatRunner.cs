@@ -8,9 +8,7 @@ namespace BannerOfBones.CardGame
 {
     /// <summary>
     /// Drop this prefab (or component) into any scene and hit Play.
-    /// On Start it picks a random enemy from <see cref="EnemyCatalog"/>, deals the
-    /// starter deck from <see cref="CardCatalog"/>, starts <see cref="CombatManager"/>,
-    /// and builds a full UGUI combat screen at runtime — no additional scene setup needed.
+    /// It constructs a full runtime combat UI for the prototype encounter.
     /// </summary>
     public class CombatRunner : MonoBehaviour
     {
@@ -22,10 +20,8 @@ namespace BannerOfBones.CardGame
         [Tooltip("Optional CardButton prefab. Assign for custom card styling; leave empty to use the built-in fallback.")]
         [SerializeField] private GameObject _cardButtonPrefab;
 
-        // ── Runtime state ─────────────────────────────────────────────────────────
         private CombatManager _combat;
 
-        // ── UI labels ─────────────────────────────────────────────────────────────
         private Text _enemyNameText;
         private Text _enemyHpText;
         private Text _enemyDiceText;
@@ -36,36 +32,36 @@ namespace BannerOfBones.CardGame
         private Text _playerDiceText;
         private Text _stateText;
         private Text _logText;
+        private RectTransform _enemyDiceButtonsContainer;
+        private RectTransform _playerDiceButtonsContainer;
         private RectTransform _handContainer;
+        private Button _focusButton;
+        private Button _braceButton;
+        private Button _scoutButton;
+        private Button _retainButton;
+        private Button _confirmDiceButton;
         private Button _endTurnButton;
 
         private RectTransform _pileViewPanel;
         private Text _pileViewText;
 
         private readonly List<string> _log = new List<string>();
-        private const int MaxLogLines = 7;
-
-        // ── Unity lifecycle ───────────────────────────────────────────────────────
+        private const int MaxLogLines = 8;
 
         private void Start()
         {
-            // 1. Pick a random enemy
             var enemies = EnemyCatalog.CreateAllEnemies();
             var enemy = enemies[Random.Range(0, enemies.Count)];
-
-            // 2. Deal the starter deck
             var deck = CardCatalog.CreateStarterDeck();
 
-            // 3. Wire events
             _combat = new CombatManager();
             _combat.OnStateChanged += _ => RefreshUI();
             _combat.OnRoundStarted += OnRoundStarted;
-            _combat.OnCombatEnded  += OnCombatEnded;
+            _combat.OnCombatEnded += OnCombatEnded;
+            _combat.OnLogMessage += Log;
 
-            // 4. Build UI
             BuildUI();
 
-            // 5. Start combat
             _combat.StartCombat(enemy, deck, playerHealth, playerEnergy);
 
             Log($"=== {enemy.enemyName} appears! ===");
@@ -73,13 +69,10 @@ namespace BannerOfBones.CardGame
             RefreshUI();
         }
 
-        // ── UI construction ───────────────────────────────────────────────────────
-
         private void BuildUI()
         {
             EnsureEventSystem();
 
-            // Root canvas (Screen Space – Overlay, works without camera setup)
             var cgo = new GameObject("CombatCanvas");
             var canvas = cgo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -91,68 +84,48 @@ namespace BannerOfBones.CardGame
 
             var root = canvas.GetComponent<RectTransform>();
 
-            // Full-screen background
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            // ── Enemy section (top 28%) ───────────────────────────────────────────
-            var ep = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0f, 0.72f, 1f, 1f);
-            _enemyNameText     = MkText(ep, 20, C(1f, 0.40f, 0.40f), TextAnchor.UpperLeft,  0f, 0.73f, 1f, 1f);
-            _enemyHpText       = MkText(ep, 14, Color.white,           TextAnchor.UpperLeft,  0f, 0.48f, 0.5f, 0.73f);
-            _enemyDiceText     = MkText(ep, 13, C(1f, 0.90f, 0.30f),  TextAnchor.UpperLeft,  0f, 0.24f, 0.5f, 0.48f);
-            _enemyPassivesText = MkText(ep, 10, C(0.8f, 0.6f, 0.6f), TextAnchor.UpperLeft,  0f, 0f,    1f,   0.24f);
+            var ep = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0f, 0.69f, 1f, 1f);
+            _enemyNameText = MkText(ep, 20, C(1f, 0.40f, 0.40f), TextAnchor.UpperLeft, 0f, 0.77f, 1f, 1f);
+            _enemyHpText = MkText(ep, 14, Color.white, TextAnchor.UpperLeft, 0f, 0.58f, 0.45f, 0.77f);
+            _enemyDiceText = MkText(ep, 12, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.43f, 0.5f, 0.58f);
+            _enemyDiceButtonsContainer = MkContainer(ep, "EnemyDiceButtons", 0f, 0.26f, 0.68f, 0.43f);
+            _enemyPassivesText = MkText(ep, 10, C(0.8f, 0.6f, 0.6f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.26f);
 
-            // ── Player section (45%–72%) ──────────────────────────────────────────
-            var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.45f, 1f, 0.72f);
-            _playerHpText     = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.72f, 0.5f, 1f);
-            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f),  TextAnchor.UpperLeft, 0f, 0.44f, 0.5f, 0.72f);
-            _playerBlockText  = MkText(pp, 14, C(0.50f, 0.8f, 1f),  TextAnchor.UpperLeft, 0f, 0.16f, 0.5f, 0.44f);
-            _stateText        = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.5f, 0f, 1f, 1f);
+            var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.44f, 1f, 0.69f);
+            _playerHpText = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.68f, 0.35f, 1f);
+            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.42f, 0.35f, 0.68f);
+            _playerBlockText = MkText(pp, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0f, 0.16f, 0.35f, 0.42f);
+            _stateText = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.35f, 0f, 1f, 1f);
 
-            // ── Player dice: bottom-center, just above the hand cards ─────────────
-            MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.2f, 0.43f, 0.8f, 0.47f);
-            _playerDiceText = MkText(root, 14, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.2f, 0.43f, 0.8f, 0.47f);
+            MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.12f, 0.38f, 0.88f, 0.44f);
+            _playerDiceText = MkText(root, 12, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.12f, 0.415f, 0.88f, 0.44f);
+            _playerDiceButtonsContainer = MkContainer(root, "PlayerDiceButtons", 0.18f, 0.385f, 0.82f, 0.415f);
 
-            // ── Hand section (24%–45%) ────────────────────────────────────────────
-            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.24f, 1f, 0.43f);
-
-            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.41f, 1f, 0.43f);
+            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0f, 0.20f, 1f, 0.38f);
+            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0f, 0.36f, 1f, 0.38f);
             handLabel.text = "— H A N D —";
+            _handContainer = MkContainer(root, "HandCards", 0f, 0.20f, 1f, 0.36f, 4f, 2f, -4f, -2f);
 
-            var hc = new GameObject("HandCards");
-            hc.transform.SetParent(root, false);
-            var hcRT = hc.AddComponent<RectTransform>();
-            hcRT.anchorMin = new Vector2(0f, 0.24f);
-            hcRT.anchorMax = new Vector2(1f, 0.41f);
-            hcRT.offsetMin = new Vector2(4f, 2f);
-            hcRT.offsetMax = new Vector2(-4f, -2f);
-            _handContainer = hcRT;
+            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0f, 0.10f, 1f, 0.20f);
+            MkButton(root, "View Deck", new Vector2(0.03f, 0.155f), new Vector2(0.18f, 0.19f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
+            MkButton(root, "View Discard", new Vector2(0.20f, 0.155f), new Vector2(0.35f, 0.19f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
+            _focusButton = MkButton(root, "Focus", new Vector2(0.37f, 0.155f), new Vector2(0.50f, 0.19f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
+            _braceButton = MkButton(root, "Brace", new Vector2(0.52f, 0.155f), new Vector2(0.65f, 0.19f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
+            _scoutButton = MkButton(root, "Scout", new Vector2(0.67f, 0.155f), new Vector2(0.80f, 0.19f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
+            _retainButton = MkButton(root, "Retain", new Vector2(0.18f, 0.11f), new Vector2(0.38f, 0.145f), C(0.45f, 0.34f, 0.10f), OnRetainClicked);
+            _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.40f, 0.11f), new Vector2(0.60f, 0.145f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
+            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.62f, 0.11f), new Vector2(0.82f, 0.145f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
 
-            // ── Action bar (13%–24%) ──────────────────────────────────────────────
-            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0f, 0.13f, 1f, 0.24f);
-            _endTurnButton = MkButton(root, "End Turn",
-                new Vector2(0.38f, 0.145f), new Vector2(0.62f, 0.23f),
-                C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
-            MkButton(root, "View Deck",
-                new Vector2(0.05f, 0.145f), new Vector2(0.22f, 0.23f),
-                C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
-            MkButton(root, "View Discard",
-                new Vector2(0.24f, 0.145f), new Vector2(0.36f, 0.23f),
-                C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
+            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.10f);
+            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.10f);
 
-            // ── Log section (0%–13%) ──────────────────────────────────────────────
-            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.13f);
-            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.13f);
-
-            // ── Pile-view overlay (hidden by default) ─────────────────────────────
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);
             _pileViewText = MkText(_pileViewPanel, 13, Color.white, TextAnchor.UpperLeft, 0f, 0.06f, 1f, 1f);
-            MkButton(_pileViewPanel, "Close",
-                new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f),
-                C(0.50f, 0.15f, 0.10f), ClosePileView);
+            MkButton(_pileViewPanel, "Close", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f), C(0.50f, 0.15f, 0.10f), ClosePileView);
         }
-
-        // ── UI helpers ────────────────────────────────────────────────────────────
 
         private static void EnsureEventSystem()
         {
@@ -176,6 +149,20 @@ namespace BannerOfBones.CardGame
             rt.anchorMax = new Vector2(ax1, ay1);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
             go.AddComponent<Image>().color = bg;
+            return rt;
+        }
+
+        private static RectTransform MkContainer(RectTransform parent, string name,
+            float ax0, float ay0, float ax1, float ay1,
+            float offsetMinX = 0f, float offsetMinY = 0f, float offsetMaxX = 0f, float offsetMaxY = 0f)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(ax0, ay0);
+            rt.anchorMax = new Vector2(ax1, ay1);
+            rt.offsetMin = new Vector2(offsetMinX, offsetMinY);
+            rt.offsetMax = new Vector2(offsetMaxX, offsetMaxY);
             return rt;
         }
 
@@ -223,14 +210,12 @@ namespace BannerOfBones.CardGame
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.text = label;
             txt.alignment = TextAnchor.MiddleCenter;
-            txt.fontSize = 16;
+            txt.fontSize = 15;
             txt.color = Color.white;
             return btn;
         }
 
         private static Color C(float r, float g, float b) => new Color(r, g, b);
-
-        // ── UI refresh ────────────────────────────────────────────────────────────
 
         private void RefreshUI()
         {
@@ -245,43 +230,79 @@ namespace BannerOfBones.CardGame
         {
             var e = _combat.Enemy;
             if (e == null) return;
+
             _enemyNameText.text = $"Enemy:  {e.Data.enemyName}";
-            _enemyHpText.text   = $"HP  {e.CurrentHealth} / {e.Data.maxHealth}";
-            _enemyDiceText.text = "Dice  " + FormatDice(e.Dice.CurrentRoll);
+            _enemyHpText.text = $"HP  {e.CurrentHealth} / {e.Data.maxHealth}";
+            _enemyDiceText.text = "Enemy Dice";
 
             var sb = new StringBuilder();
             foreach (var p in e.Data.passiveEffects)
                 sb.Append($"· {p.description}   ");
             _enemyPassivesText.text = sb.ToString();
+
+            RefreshDiceButtons(_enemyDiceButtonsContainer, e.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f));
         }
 
         private void RefreshPlayer()
         {
             var p = _combat.Player;
             if (p == null) return;
-            _playerHpText.text     = $"HP      {p.CurrentHealth} / {p.MaxHealth}";
+
+            string retained = p.Deck.RetainedCard != null ? p.Deck.RetainedCard.cardName : "—";
+            string prompt = string.IsNullOrEmpty(_combat.PendingPrompt) ? "Choose a card or baseline action." : _combat.PendingPrompt;
+
+            _playerHpText.text = $"HP      {p.CurrentHealth} / {p.MaxHealth}";
             _playerEnergyText.text = $"Energy  {p.Energy.CurrentEnergy} / {p.Energy.MaxEnergy}";
-            _playerBlockText.text  = $"Block   {p.Block}";
-            _playerDiceText.text   = "Dice  " + FormatDice(p.Dice.CurrentRoll);
-            _stateText.text        = $"[{_combat.State}]  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}";
-            _endTurnButton.interactable = _combat.State == ECombatState.PlayerTurn;
+            _playerBlockText.text = $"Block   {p.Block}";
+            _playerDiceText.text = "Player Dice";
+            _stateText.text =
+                $"[{_combat.State}]  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}\n" +
+                $"Retain: {retained}  |  Wagers: {p.ActiveWagers.Count}\n" +
+                $"{prompt}";
+
+            bool canUseActions = _combat.CanUseBaselineActions();
+            _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
+            _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
+            _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
+            _retainButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.IsAwaitingDiceSelection && !_combat.IsAwaitingHandSelection && p.Deck.Hand.Count > 0;
+            _confirmDiceButton.gameObject.SetActive(_combat.IsAwaitingDiceSelection);
+            _confirmDiceButton.interactable = _combat.SelectedDiceCount > 0 && _combat.PendingDiceSelectionLimit > 1;
+            _endTurnButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.HasPendingChoice;
+            SetButtonLabel(_retainButton, _combat.IsSelectingRetain ? "Cancel Retain" : "Retain");
+
+            RefreshDiceButtons(_playerDiceButtonsContainer, p.Dice.CurrentRoll, ECardTarget.PlayerDice, C(0.15f, 0.25f, 0.45f));
         }
 
         private void RefreshHand()
         {
-            ClearHandContainer();
+            ClearContainer(_handContainer);
 
             var hand = _combat.Player.Deck.Hand;
             if (hand.Count == 0) return;
 
-            bool isPlayerTurn = _combat.State == ECombatState.PlayerTurn;
-
             for (int i = 0; i < hand.Count; i++)
             {
-                var card    = hand[i];
-                bool playable = isPlayerTurn && _combat.Player.Energy.CanAfford(card.energyCost);
+                var card = hand[i];
+                bool retained = _combat.Player.Deck.RetainedCard == card;
+                bool interactable;
+                bool highlighted;
 
-                // Instantiate from prefab or create from scratch
+                if (_combat.IsSelectingRetain)
+                {
+                    interactable = true;
+                    highlighted = retained;
+                }
+                else if (_combat.IsAwaitingHandSelection)
+                {
+                    interactable = _combat.CanSelectHandCard(card);
+                    highlighted = interactable;
+                }
+                else
+                {
+                    interactable = _combat.CanPlayCard(card);
+                    highlighted = false;
+                }
+
                 GameObject cardGO;
                 if (_cardButtonPrefab != null)
                 {
@@ -295,7 +316,42 @@ namespace BannerOfBones.CardGame
                     cardGO.AddComponent<CardButton>();
                 }
 
-                cardGO.GetComponent<CardButton>().Setup(card, playable, i, hand.Count, PlayCard);
+                cardGO.GetComponent<CardButton>().Setup(card, interactable, i, hand.Count, OnHandCardClicked, retained, highlighted);
+            }
+        }
+
+        private void RefreshDiceButtons(RectTransform container, int[] roll, ECardTarget target, Color baseColor)
+        {
+            ClearContainer(container);
+            if (roll == null || roll.Length == 0) return;
+
+            float width = 1f / Mathf.Max(1, roll.Length);
+            for (int i = 0; i < roll.Length; i++)
+            {
+                int dieIndex = i;
+                bool interactable = _combat.CanSelectDie(target, i);
+                bool selected = _combat.IsDieSelected(target, i);
+
+                var go = new GameObject($"Die{i}");
+                go.transform.SetParent(container, false);
+                var rt = go.AddComponent<RectTransform>();
+                rt.anchorMin = new Vector2(i * width + 0.01f, 0.05f);
+                rt.anchorMax = new Vector2((i + 1) * width - 0.01f, 0.95f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+                var image = go.AddComponent<Image>();
+                image.color = selected
+                    ? C(0.85f, 0.72f, 0.20f)
+                    : interactable
+                        ? C(baseColor.r + 0.05f, baseColor.g + 0.05f, baseColor.b + 0.05f)
+                        : baseColor;
+
+                var button = go.AddComponent<Button>();
+                button.interactable = interactable;
+                button.onClick.AddListener(() => OnDieClicked(target, dieIndex));
+
+                var txt = MkText(rt, 16, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
+                txt.text = roll[i].ToString();
             }
         }
 
@@ -304,43 +360,82 @@ namespace BannerOfBones.CardGame
             _logText.text = string.Join("\n", _log);
         }
 
-        private void ClearHandContainer()
+        private static void ClearContainer(RectTransform container)
         {
-            for (int i = _handContainer.childCount - 1; i >= 0; i--)
-                Destroy(_handContainer.GetChild(i).gameObject);
+            for (int i = container.childCount - 1; i >= 0; i--)
+                Destroy(container.GetChild(i).gameObject);
         }
-
-        // ── Combat event handlers ─────────────────────────────────────────────────
 
         private void OnRoundStarted()
         {
             var deck = _combat.Player.Deck;
-            Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}" +
-                $"  vs  Enemy {FormatDice(_combat.Enemy.Dice.CurrentRoll)}");
-            Log($"   Draw pile: {deck.DrawPile.Count}  |  Discard pile: {deck.DiscardPile.Count}");
+            Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}  vs  Enemy {FormatDice(_combat.Enemy.Dice.CurrentRoll)}");
+            Log($"   Draw {deck.DrawPile.Count}  |  Discard {deck.DiscardPile.Count}  |  Exhaust {deck.ExhaustPile.Count}");
             RefreshUI();
         }
 
         private void OnCombatEnded(bool playerWon)
         {
             Log(playerWon ? "★  VICTORY! ★" : "✕  DEFEATED");
-            ClearHandContainer();
-            _endTurnButton.interactable = false;
+            ClearContainer(_handContainer);
             RefreshLog();
         }
 
         private void OnEndTurnClicked()
         {
-            if (_combat.State != ECombatState.PlayerTurn) return;
-            Log("─ End Turn ─");
             _combat.EndPlayerTurn();
+            RefreshUI();
         }
 
-        private void PlayCard(CardData card)
+        private void OnFocusClicked()
         {
-            if (!_combat.TryPlayCard(card)) return;
-            Log($"Played  {card.cardName}  →  Enemy HP {_combat.Enemy.CurrentHealth}");
+            if (_combat.TryUseFocus())
+                RefreshUI();
+        }
+
+        private void OnBraceClicked()
+        {
+            if (_combat.TryUseBrace())
+                RefreshUI();
+        }
+
+        private void OnScoutClicked()
+        {
+            if (_combat.TryUseScout())
+                RefreshUI();
+        }
+
+        private void OnRetainClicked()
+        {
+            if (_combat.ToggleRetainSelection())
+                RefreshUI();
+        }
+
+        private void OnConfirmDiceClicked()
+        {
+            if (_combat.ConfirmPendingDiceSelection())
+                RefreshUI();
+        }
+
+        private void OnHandCardClicked(CardData card)
+        {
+            bool selectingRetain = _combat.IsSelectingRetain;
+            if (!_combat.TryHandleHandCardClick(card))
+                return;
+
+            if (selectingRetain)
+            {
+                var retained = _combat.Player.Deck.RetainedCard;
+                Log(retained == null ? "Retain cleared." : $"Retaining {retained.cardName} for next round.");
+            }
+
             RefreshUI();
+        }
+
+        private void OnDieClicked(ECardTarget target, int dieIndex)
+        {
+            if (_combat.TogglePendingDieSelection(target, dieIndex))
+                RefreshUI();
         }
 
         private void OnViewDeckClicked()
@@ -369,12 +464,18 @@ namespace BannerOfBones.CardGame
             _pileViewPanel.gameObject.SetActive(false);
         }
 
-        // ── Utility ───────────────────────────────────────────────────────────────
-
         private void Log(string line)
         {
             _log.Add(line);
-            if (_log.Count > MaxLogLines) _log.RemoveAt(0);
+            if (_log.Count > MaxLogLines)
+                _log.RemoveAt(0);
+        }
+
+        private static void SetButtonLabel(Button button, string text)
+        {
+            var label = button.GetComponentInChildren<Text>();
+            if (label != null)
+                label.text = text;
         }
 
         private static string FormatDice(int[] roll)

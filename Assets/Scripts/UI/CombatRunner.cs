@@ -37,6 +37,7 @@ namespace BannerOfBones.CardGame
         private Button _retainButton;
         private Button _confirmDiceButton;
         private Button _endTurnButton;
+        private Text _actionTooltipText;
 
         private RectTransform _pileViewPanel;
         private Text _pileViewText;
@@ -112,6 +113,11 @@ namespace BannerOfBones.CardGame
             _retainButton = MkButton(root, "Retain", new Vector2(0.18f, 0.085f), new Vector2(0.38f, 0.12f), C(0.45f, 0.34f, 0.10f), OnRetainClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.40f, 0.085f), new Vector2(0.60f, 0.12f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.62f, 0.085f), new Vector2(0.82f, 0.12f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.03f, 0.12f, 0.97f, 0.13f);
+            _actionTooltipText.text = string.Empty;
+            AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll 1 player die.");
+            AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
+            AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.08f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.08f);
@@ -295,11 +301,19 @@ namespace BannerOfBones.CardGame
                                          && !_combat.IsAwaitingEnemySelection
                                          && !_combat.IsAwaitingDiceSelection
                                          && !_combat.IsAwaitingHandSelection
+                                         && !_combat.IsAwaitingCardConfirmation
                                          && p.Deck.Hand.Count > 0;
-            _confirmDiceButton.gameObject.SetActive(_combat.IsAwaitingDiceSelection);
-            _confirmDiceButton.interactable = _combat.SelectedDiceCount > 0 && _combat.PendingDiceSelectionLimit > 1;
+            if (_combat.HasPendingCardPlay)
+                _retainButton.interactable = true;
+
+            bool showConfirmButton = _combat.IsAwaitingDiceSelection || _combat.IsAwaitingCardConfirmation;
+            _confirmDiceButton.gameObject.SetActive(showConfirmButton);
+            _confirmDiceButton.interactable = _combat.IsAwaitingDiceSelection
+                ? _combat.SelectedDiceCount > 0 && _combat.PendingDiceSelectionLimit > 1
+                : _combat.IsAwaitingCardConfirmation;
             _endTurnButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.HasPendingChoice;
-            SetButtonLabel(_retainButton, _combat.IsSelectingRetain ? "Cancel Retain" : "Retain");
+            SetButtonLabel(_retainButton, _combat.HasPendingCardPlay ? "Cancel Card" : _combat.IsSelectingRetain ? "Cancel Retain" : "Retain");
+            SetButtonLabel(_confirmDiceButton, _combat.IsAwaitingCardConfirmation ? "Confirm Card" : "Confirm Dice");
 
             RefreshDiceButtons(_playerDiceButtonsContainer, p.Dice.CurrentRoll, ECardTarget.PlayerDice, C(0.15f, 0.25f, 0.45f));
         }
@@ -347,7 +361,16 @@ namespace BannerOfBones.CardGame
                     cardGO.AddComponent<CardButton>();
                 }
 
-                cardGO.GetComponent<CardButton>().Setup(card, interactable, i, hand.Count, OnHandCardClicked, retained, highlighted);
+                cardGO.GetComponent<CardButton>().Setup(
+                    card,
+                    interactable,
+                    i,
+                    hand.Count,
+                    OnHandCardClicked,
+                    retained,
+                    highlighted,
+                    BuildCardDescriptionText(card),
+                    BuildCardTargetText(card));
             }
         }
 
@@ -438,13 +461,20 @@ namespace BannerOfBones.CardGame
 
         private void OnRetainClicked()
         {
+            if (_combat.HasPendingCardPlay)
+            {
+                if (_combat.CancelPendingCardPlay())
+                    RefreshUI();
+                return;
+            }
+
             if (_combat.ToggleRetainSelection())
                 RefreshUI();
         }
 
         private void OnConfirmDiceClicked()
         {
-            if (_combat.ConfirmPendingDiceSelection())
+            if (_combat.ConfirmPendingChoice())
                 RefreshUI();
         }
 
@@ -513,6 +543,146 @@ namespace BannerOfBones.CardGame
             var label = button.GetComponentInChildren<Text>();
             if (label != null)
                 label.text = text;
+        }
+
+        private void AttachHoverTooltip(Button button, string tooltipText)
+        {
+            if (button == null)
+                return;
+
+            var trigger = button.gameObject.GetComponent<EventTrigger>() ?? button.gameObject.AddComponent<EventTrigger>();
+            if (trigger.triggers == null)
+                trigger.triggers = new List<EventTrigger.Entry>();
+
+            var enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            enter.callback.AddListener(_ => _actionTooltipText.text = tooltipText);
+            trigger.triggers.Add(enter);
+
+            var exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            exit.callback.AddListener(_ => _actionTooltipText.text = string.Empty);
+            trigger.triggers.Add(exit);
+        }
+
+        private string BuildCardDescriptionText(CardData card)
+        {
+            var sb = new StringBuilder(card.description);
+
+            int totalDamage = EstimateCardDamage(card);
+            int totalBlock = EstimateCardBlock(card);
+
+            if (totalDamage > 0)
+                sb.Append($"\nDamage ({totalDamage})");
+
+            if (totalBlock > 0)
+                sb.Append($"\nBlock ({totalBlock})");
+
+            return sb.ToString();
+        }
+
+        private string BuildCardTargetText(CardData card)
+        {
+            bool requiresEnemyTarget = CardEffectProcessor.CardRequiresEnemyTarget(card);
+            if (requiresEnemyTarget && !card.targetsAllEnemies)
+                return "To one target";
+
+            if (requiresEnemyTarget && card.targetsAllEnemies)
+                return "All Enemies";
+
+            return string.Empty;
+        }
+
+        private int EstimateCardDamage(CardData card)
+        {
+            int total = 0;
+            foreach (var effect in card.effects)
+            {
+                switch (effect.effectType)
+                {
+                    case EEffectType.DealDamage:
+                    {
+                        if (effect.diceTarget == ECardTarget.PlayerDice)
+                        {
+                            int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                effect.triggerOn, _combat.Player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                            total += triggers * effect.magnitude;
+                        }
+                        else if (card.targetsAllEnemies)
+                        {
+                            foreach (var enemy in _combat.Enemies)
+                            {
+                                if (!enemy.IsAlive) continue;
+                                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                                total += triggers * effect.magnitude;
+                            }
+                        }
+                        else
+                        {
+                            var enemy = _combat.Enemy;
+                            if (enemy != null && enemy.IsAlive)
+                            {
+                                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                                total += triggers * effect.magnitude;
+                            }
+                        }
+
+                        break;
+                    }
+                    case EEffectType.ConditionalDamage:
+                    {
+                        if (effect.diceTarget == ECardTarget.PlayerDice)
+                        {
+                            int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                effect.triggerOn, _combat.Player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                            if (triggers > 0)
+                                total += effect.magnitude;
+                        }
+                        else if (card.targetsAllEnemies)
+                        {
+                            foreach (var enemy in _combat.Enemies)
+                            {
+                                if (!enemy.IsAlive) continue;
+                                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                                if (triggers > 0)
+                                    total += effect.magnitude;
+                            }
+                        }
+                        else
+                        {
+                            var enemy = _combat.Enemy;
+                            if (enemy != null && enemy.IsAlive)
+                            {
+                                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                                    effect.triggerOn, enemy.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                                if (triggers > 0)
+                                    total += effect.magnitude;
+                            }
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return total;
+        }
+
+        private int EstimateCardBlock(CardData card)
+        {
+            int total = 0;
+            foreach (var effect in card.effects)
+            {
+                if (effect.effectType != EEffectType.GainBlock)
+                    continue;
+
+                int triggers = PokerEvaluator.EvaluateTriggerCount(
+                    effect.triggerOn, _combat.Player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                total += triggers * effect.magnitude;
+            }
+
+            return total;
         }
 
         private int CountAliveEnemies()

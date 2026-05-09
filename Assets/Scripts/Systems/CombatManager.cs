@@ -25,8 +25,10 @@ namespace BannerOfBones.CardGame
         public bool IsAwaitingEnemySelection => _pendingEnemyResolver != null;
         public bool IsAwaitingDiceSelection => _pendingDiceResolver != null;
         public bool IsAwaitingHandSelection => _pendingHandAction != PendingHandAction.None;
+        public bool IsAwaitingCardConfirmation => _pendingConfirmResolver != null;
         public bool IsSelectingRetain { get; private set; }
-        public bool HasPendingChoice => IsAwaitingEnemySelection || IsAwaitingDiceSelection || IsAwaitingHandSelection || IsSelectingRetain;
+        public bool HasPendingCardPlay => _pendingCardToPlay != null;
+        public bool HasPendingChoice => IsAwaitingEnemySelection || IsAwaitingDiceSelection || IsAwaitingHandSelection || IsAwaitingCardConfirmation || IsSelectingRetain;
         public string PendingPrompt { get; private set; }
         public int SelectedDiceCount => _selectedDiceIndices.Count;
         public int PendingDiceSelectionLimit => _pendingDiceSelectionLimit;
@@ -49,10 +51,14 @@ namespace BannerOfBones.CardGame
         private PendingHandAction _pendingHandAction = PendingHandAction.None;
         private Action<int> _pendingEnemyResolver;
         private Action<int[]> _pendingDiceResolver;
+        private Action _pendingConfirmResolver;
         private ECardTarget _pendingDiceTarget;
         private int _pendingEnemyDiceTargetIndex = -1;
         private int _pendingDiceSelectionLimit;
         private int _pendingDrawCount;
+        private CardData _pendingCardToPlay;
+        private int _pendingCardTargetEnemyIndex = -1;
+        private bool _pendingCardTargetsAllEnemies;
         private int _resolvingEffectIndex;
         private int _resolvingTargetEnemyIndex = -1;
         private bool _resolvingTargetsAllEnemies;
@@ -147,7 +153,7 @@ namespace BannerOfBones.CardGame
         public bool TryHandleHandCardClick(CardData card)
         {
             if (State != ECombatState.PlayerTurn || card == null) return false;
-            if (IsAwaitingEnemySelection || IsAwaitingDiceSelection) return false;
+            if (IsAwaitingEnemySelection || IsAwaitingDiceSelection || IsAwaitingCardConfirmation) return false;
 
             if (IsAwaitingHandSelection)
                 return ResolvePendingHandSelection(card);
@@ -168,41 +174,78 @@ namespace BannerOfBones.CardGame
         public bool TryPlayCard(CardData card)
         {
             if (!CanPlayCard(card)) return false;
-            if (!Player.Energy.TrySpendEnergy(card.energyCost)) return false;
-
-            switch (card.duration)
-            {
-                case ECardDuration.Exhaust:
-                    Player.Deck.ExhaustCard(card);
-                    break;
-                default:
-                    Player.Deck.PlayCard(card);
-                    break;
-            }
 
             bool requiresEnemyTarget = CardEffectProcessor.CardRequiresEnemyTarget(card);
             bool targetsAllEnemies = card.targetsAllEnemies && requiresEnemyTarget;
 
-            Log($"Played {card.cardName}.");
-
             if (requiresEnemyTarget && !targetsAllEnemies)
             {
+                SetPendingCardPlay(card, false);
                 int singleEnemyIndex = GetSingleAliveEnemyIndex();
                 if (singleEnemyIndex >= 0)
                 {
-                    BeginCardResolution(card, singleEnemyIndex, false);
+                    _pendingCardTargetEnemyIndex = singleEnemyIndex;
+                    ConfirmPendingCardPlay();
                 }
                 else
                 {
                     QueueEnemySelection($"Choose a target for {card.cardName}.",
-                        enemyIndex => BeginCardResolution(card, enemyIndex, false));
+                        enemyIndex =>
+                        {
+                            _pendingCardTargetEnemyIndex = enemyIndex;
+                            ConfirmPendingCardPlay();
+                        });
                     NotifyStateChanged();
                 }
 
                 return true;
             }
 
-            BeginCardResolution(card, -1, targetsAllEnemies);
+            SetPendingCardPlay(card, targetsAllEnemies);
+            QueueConfirmation($"Confirm {card.cardName}.", ConfirmPendingCardPlay);
+            NotifyStateChanged();
+            return true;
+        }
+
+        public bool ConfirmPendingChoice()
+        {
+            if (IsAwaitingDiceSelection)
+                return ConfirmPendingDiceSelection();
+
+            if (!IsAwaitingCardConfirmation)
+                return false;
+
+            var resolver = _pendingConfirmResolver;
+            ClearPendingConfirmation();
+            resolver?.Invoke();
+            return true;
+        }
+
+        public bool ConfirmPendingCardPlay()
+        {
+            if (!HasPendingCardPlay)
+                return false;
+
+            var card = _pendingCardToPlay;
+            int targetEnemyIndex = _pendingCardTargetEnemyIndex;
+            bool targetsAllEnemies = _pendingCardTargetsAllEnemies;
+
+            ClearPendingEnemySelection();
+            ClearPendingConfirmation();
+            ClearPendingCardPlay();
+
+            return ResolveCardPlay(card, targetEnemyIndex, targetsAllEnemies);
+        }
+
+        public bool CancelPendingCardPlay()
+        {
+            if (!HasPendingCardPlay)
+                return false;
+
+            ClearPendingEnemySelection();
+            ClearPendingConfirmation();
+            ClearPendingCardPlay();
+            NotifyStateChanged();
             return true;
         }
 
@@ -596,6 +639,12 @@ namespace BannerOfBones.CardGame
             PendingPrompt = prompt;
         }
 
+        private void QueueConfirmation(string prompt, Action resolver)
+        {
+            _pendingConfirmResolver = resolver;
+            PendingPrompt = prompt;
+        }
+
         private void ClearPendingEnemySelection()
         {
             _pendingEnemyResolver = null;
@@ -618,12 +667,59 @@ namespace BannerOfBones.CardGame
             PendingPrompt = null;
         }
 
+        private void ClearPendingConfirmation()
+        {
+            _pendingConfirmResolver = null;
+            PendingPrompt = null;
+        }
+
         private void ClearAllPrompts()
         {
             ClearPendingEnemySelection();
             ClearPendingDiceSelection();
             ClearPendingHandSelection();
+            ClearPendingConfirmation();
+            ClearPendingCardPlay();
             IsSelectingRetain = false;
+        }
+
+        private void SetPendingCardPlay(CardData card, bool targetsAllEnemies)
+        {
+            _pendingCardToPlay = card;
+            _pendingCardTargetEnemyIndex = -1;
+            _pendingCardTargetsAllEnemies = targetsAllEnemies;
+        }
+
+        private void ClearPendingCardPlay()
+        {
+            _pendingCardToPlay = null;
+            _pendingCardTargetEnemyIndex = -1;
+            _pendingCardTargetsAllEnemies = false;
+        }
+
+        private bool ResolveCardPlay(CardData card, int targetEnemyIndex, bool targetsAllEnemies)
+        {
+            if (State != ECombatState.PlayerTurn
+                || card == null
+                || !Player.Deck.Hand.Contains(card)
+                || !Player.Energy.TrySpendEnergy(card.energyCost))
+            {
+                return false;
+            }
+
+            switch (card.duration)
+            {
+                case ECardDuration.Exhaust:
+                    Player.Deck.ExhaustCard(card);
+                    break;
+                default:
+                    Player.Deck.PlayCard(card);
+                    break;
+            }
+
+            Log($"Played {card.cardName}.");
+            BeginCardResolution(card, targetEnemyIndex, targetsAllEnemies);
+            return true;
         }
 
         private bool CheckForCombatEnd()

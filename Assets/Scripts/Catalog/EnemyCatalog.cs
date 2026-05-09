@@ -69,13 +69,11 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Feint",
-                    description = "Intent: feint for 1 damage.",
                     damage = 1,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Stab",
-                    description = "Intent: stab for 2 damage.",
                     damage = 2,
                 },
             };
@@ -95,13 +93,11 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Cleave",
-                    description = "Intent: cleave for 3 damage.",
                     damage = 3,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Backhand",
-                    description = "Intent: backhand for 2 damage.",
                     damage = 2,
                 },
             };
@@ -121,13 +117,11 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Drain",
-                    description = "Intent: drain for 2 damage.",
                     damage = 2,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Ambush",
-                    description = "Intent: ambush for 3 damage.",
                     damage = 3,
                 },
             };
@@ -147,13 +141,11 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Wind Up",
-                    description = "Intent: wind up for 2 damage.",
                     damage = 2,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Crush",
-                    description = "Intent: crush for 4 damage.",
                     damage = 4,
                 },
             };
@@ -173,13 +165,11 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Harry",
-                    description = "Intent: harry for 3 damage.",
                     damage = 3,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Executioner Swing",
-                    description = "Intent: executioner swing for 5 damage.",
                     damage = 5,
                 },
             };

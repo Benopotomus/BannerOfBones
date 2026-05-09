@@ -250,10 +250,10 @@ namespace BannerOfBones.CardGame
             if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
                 return false;
 
-            QueueDiceSelection(ECardTarget.PlayerDice, 1, "Focus: choose 1 player die to reroll.", indices =>
+            QueueDiceSelection(ECardTarget.PlayerDice, 3, "Focus: choose up to 3 player dice to reroll.", indices =>
             {
                 Player.Dice.RerollAtIndices(indices);
-                Log("Focus rerolled 1 player die.");
+                Log($"Focus rerolled {indices.Length} player dice.");
             });
             return true;
         }

@@ -34,7 +34,7 @@ namespace BannerOfBones.CardGame
         private Button _focusButton;
         private Button _braceButton;
         private Button _scoutButton;
-        private Button _retainButton;
+        private Button _cancelButton;
         private Button _confirmDiceButton;
         private Button _endTurnButton;
         private Text _actionTooltipText;
@@ -110,9 +110,9 @@ namespace BannerOfBones.CardGame
             _focusButton = MkButton(root, "Focus", new Vector2(0.37f, 0.13f), new Vector2(0.50f, 0.165f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
             _braceButton = MkButton(root, "Brace", new Vector2(0.52f, 0.13f), new Vector2(0.65f, 0.165f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
             _scoutButton = MkButton(root, "Scout", new Vector2(0.67f, 0.13f), new Vector2(0.80f, 0.165f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
-            _retainButton = MkButton(root, "Retain", new Vector2(0.18f, 0.085f), new Vector2(0.38f, 0.12f), C(0.45f, 0.34f, 0.10f), OnRetainClicked);
+            _cancelButton = MkButton(root, "Cancel", new Vector2(0.18f, 0.085f), new Vector2(0.38f, 0.12f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.40f, 0.085f), new Vector2(0.60f, 0.12f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
-            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.62f, 0.085f), new Vector2(0.82f, 0.12f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.80f, 0f), new Vector2(1f, 0.17f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.03f, 0.12f, 0.97f, 0.13f);
             _actionTooltipText.text = string.Empty;
             AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll 1 player die.");
@@ -269,7 +269,8 @@ namespace BannerOfBones.CardGame
                 var diceContainer = MkContainer(panel, $"EnemyDice{i}", 0f, 0.26f, 1f, 0.46f, 2f, 0f, -2f, 0f);
                 RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
 
-                var passivesText = MkText(panel, 9, C(0.86f, 0.72f, 0.72f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
+                var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
+                passivesText.supportRichText = true;
                 passivesText.text = BuildEnemyActionText(enemy);
             }
         }
@@ -279,7 +280,6 @@ namespace BannerOfBones.CardGame
             var p = _combat.Player;
             if (p == null) return;
 
-            string retained = p.Deck.RetainedCard != null ? p.Deck.RetainedCard.cardName : "—";
             string prompt = string.IsNullOrEmpty(_combat.PendingPrompt) ? "Choose a card or baseline action." : _combat.PendingPrompt;
 
             _playerHpText.text = $"HP      {p.CurrentHealth} / {p.MaxHealth}";
@@ -290,21 +290,15 @@ namespace BannerOfBones.CardGame
                 ? "Player Dice"
                 : $"Player Dice  — {playerHandLabel}";
             _stateText.text =
-                $"[{_combat.State}]  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}\n" +
-                $"Retain: {retained}  |  Wagers: {p.ActiveWagers.Count}\n" +
+                $"[{_combat.State}]  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}  Wagers {p.ActiveWagers.Count}\n" +
                 $"{prompt}";
 
             bool canUseActions = _combat.CanUseBaselineActions();
             _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
-            bool canRetainSelect = _combat.State == ECombatState.PlayerTurn
-                                   && !_combat.IsAwaitingEnemySelection
-                                   && !_combat.IsAwaitingDiceSelection
-                                   && !_combat.IsAwaitingHandSelection
-                                   && !_combat.IsAwaitingCardConfirmation
-                                   && p.Deck.Hand.Count > 0;
-            _retainButton.interactable = _combat.HasPendingCardPlay || canRetainSelect;
+
+            _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
 
             bool showConfirmButton = _combat.IsAwaitingDiceSelection || _combat.IsAwaitingCardConfirmation;
             _confirmDiceButton.gameObject.SetActive(showConfirmButton);
@@ -312,7 +306,6 @@ namespace BannerOfBones.CardGame
                 ? _combat.SelectedDiceCount > 0 && _combat.PendingDiceSelectionLimit > 1
                 : _combat.IsAwaitingCardConfirmation;
             _endTurnButton.interactable = _combat.State == ECombatState.PlayerTurn && !_combat.HasPendingChoice;
-            SetButtonLabel(_retainButton, _combat.HasPendingCardPlay ? "Cancel Card" : _combat.IsSelectingRetain ? "Cancel Retain" : "Retain");
             SetButtonLabel(_confirmDiceButton, _combat.IsAwaitingCardConfirmation ? "Confirm Card" : "Confirm Dice");
 
             RefreshPlayerDiceButtons(_playerDiceButtonsContainer, p.Dice.Pool, ECardTarget.PlayerDice);
@@ -328,16 +321,10 @@ namespace BannerOfBones.CardGame
             for (int i = 0; i < hand.Count; i++)
             {
                 var card = hand[i];
-                bool retained = _combat.Player.Deck.RetainedCard == card;
                 bool interactable;
                 bool highlighted;
 
-                if (_combat.IsSelectingRetain)
-                {
-                    interactable = true;
-                    highlighted = retained;
-                }
-                else if (_combat.IsAwaitingHandSelection)
+                if (_combat.IsAwaitingHandSelection)
                 {
                     interactable = _combat.CanSelectHandCard(card);
                     highlighted = interactable;
@@ -367,7 +354,6 @@ namespace BannerOfBones.CardGame
                     i,
                     hand.Count,
                     OnHandCardClicked,
-                    retained,
                     highlighted,
                     BuildCardDescriptionText(card),
                     BuildCardTargetText(card));
@@ -529,16 +515,9 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
-        private void OnRetainClicked()
+        private void OnCancelClicked()
         {
-            if (_combat.HasPendingCardPlay)
-            {
-                if (_combat.CancelPendingCardPlay())
-                    RefreshUI();
-                return;
-            }
-
-            if (_combat.ToggleRetainSelection())
+            if (_combat.CancelPendingCardPlay())
                 RefreshUI();
         }
 
@@ -550,15 +529,8 @@ namespace BannerOfBones.CardGame
 
         private void OnHandCardClicked(CardData card)
         {
-            bool selectingRetain = _combat.IsSelectingRetain;
             if (!_combat.TryHandleHandCardClick(card))
                 return;
-
-            if (selectingRetain)
-            {
-                var retained = _combat.Player.Deck.RetainedCard;
-                Log(retained == null ? "Retain cleared." : $"Retaining {retained.cardName} for next round.");
-            }
 
             RefreshUI();
         }
@@ -741,13 +713,24 @@ namespace BannerOfBones.CardGame
             if (enemy.CurrentIntent != null)
             {
                 var sb = new StringBuilder();
-                sb.AppendLine($"Now: {enemy.CurrentIntent.intentName} ({enemy.CurrentIntent.damage})");
 
-                if (enemy.NextIntent != null)
-                    sb.AppendLine($"Next: {enemy.NextIntent.intentName} ({enemy.NextIntent.damage})");
+                // Current intent — show damage prominently
+                if (enemy.CurrentIntent.damage > 0)
+                    sb.AppendLine($"<color=#FF8080>⚔ {enemy.CurrentIntent.intentName}: {enemy.CurrentIntent.damage} damage</color>");
+                else
+                    sb.AppendLine($"→ {enemy.CurrentIntent.intentName}");
 
                 if (!string.IsNullOrWhiteSpace(enemy.CurrentIntent.description))
-                    sb.Append(enemy.CurrentIntent.description);
+                    sb.AppendLine($"  {enemy.CurrentIntent.description}");
+
+                // Next intent preview
+                if (enemy.NextIntent != null)
+                {
+                    if (enemy.NextIntent.damage > 0)
+                        sb.Append($"<color=#AAAAAA>Next: ⚔ {enemy.NextIntent.intentName} ({enemy.NextIntent.damage} dmg)</color>");
+                    else
+                        sb.Append($"<color=#AAAAAA>Next: → {enemy.NextIntent.intentName}</color>");
+                }
 
                 return sb.ToString().TrimEnd();
             }

@@ -32,6 +32,24 @@
         /// <summary>Remove one die from the target pool.</summary>
         RemoveDie,
 
+        /// <summary>
+        /// Add one die of the specified type to the target pool for this round only.
+        /// The die is removed automatically at the start of the next round before rolling.
+        /// </summary>
+        AddTemporaryDie,
+
+        /// <summary>
+        /// Upgrade one chosen die in the target pool to the next standard tier (d4 → d6 → d8 → d10 → d12 → d20).
+        /// Requires the player to select which die to upgrade.
+        /// </summary>
+        UpgradeDie,
+
+        /// <summary>
+        /// Downgrade one chosen die in the target pool to the previous standard tier.
+        /// Requires the player to select which die to downgrade.
+        /// </summary>
+        DowngradeDie,
+
         /// <summary>Discard another card from hand, then draw additional cards.</summary>
         CycleHand,
 

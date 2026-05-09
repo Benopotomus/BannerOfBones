@@ -46,38 +46,39 @@
         /// Returns the total number of pairs across all die values.
         /// Each group of N matching dice contributes N/2 pairs (integer division),
         /// so a triple counts as 1 pair and a four-of-a-kind counts as 2 pairs.
+        /// Works for any die type (d4–d20).
         /// </summary>
         public static int CountPairs(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int pairs = 0;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
                 pairs += freq[i] / 2;
             return pairs;
         }
 
         /// <summary>
         /// Returns the number of groups of exactly 3 matching dice.
-        /// A four-of-a-kind does NOT count as a triple.
+        /// A four-of-a-kind does NOT count as a triple. Works for any die type.
         /// </summary>
         public static int CountTriples(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int triples = 0;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
                 if (freq[i] == 3) triples++;
             return triples;
         }
 
         /// <summary>
         /// Returns 1 if the dice contain both exactly one triple and exactly one pair (full house),
-        /// otherwise 0.
+        /// otherwise 0. Works for any die type.
         /// </summary>
         public static int CountFullHouses(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             bool hasTriple = false, hasPair = false;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
             {
                 if (freq[i] == 3) hasTriple = true;
                 else if (freq[i] == 2) hasPair = true;
@@ -85,22 +86,22 @@
             return (hasTriple && hasPair) ? 1 : 0;
         }
 
-        /// <summary>Returns the number of groups of exactly 4 matching dice.</summary>
+        /// <summary>Returns the number of groups of exactly 4 matching dice. Works for any die type.</summary>
         public static int CountFourOfAKind(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int count = 0;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
                 if (freq[i] == 4) count++;
             return count;
         }
 
-        /// <summary>Returns the number of groups of exactly 5 matching dice (Yahtzee).</summary>
+        /// <summary>Returns the number of groups of exactly 5 matching dice (Yahtzee). Works for any die type.</summary>
         public static int CountFiveOfAKind(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int count = 0;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
                 if (freq[i] == 5) count++;
             return count;
         }
@@ -163,12 +164,12 @@
             return max;
         }
 
-        /// <summary>Returns the number of distinct values present in the dice pool.</summary>
+        /// <summary>Returns the number of distinct values present in the dice pool. Works for any die type.</summary>
         public static int CountUniqueDieValues(int[] dice)
         {
             int[] freq = GetFrequencies(dice);
             int unique = 0;
-            for (int i = 1; i <= 6; i++)
+            for (int i = 1; i < freq.Length; i++)
                 if (freq[i] > 0) unique++;
             return unique;
         }
@@ -176,14 +177,17 @@
         // ── Private Helpers ───────────────────────────────────────────────────────
 
         /// <summary>
-        /// Returns a frequency array of length 7 (indices 1–6).
-        /// freq[n] = number of dice showing value n.
+        /// Returns a frequency array large enough to hold every distinct die value present.
+        /// freq[n] = number of dice showing value n. Supports values up to d20.
         /// </summary>
         private static int[] GetFrequencies(int[] dice)
         {
-            int[] freq = new int[7];
+            int max = 6;
             foreach (int d in dice)
-                if (d >= 1 && d <= 6) freq[d]++;
+                if (d > max) max = d;
+            int[] freq = new int[max + 1];
+            foreach (int d in dice)
+                if (d >= 1) freq[d]++;
             return freq;
         }
     }

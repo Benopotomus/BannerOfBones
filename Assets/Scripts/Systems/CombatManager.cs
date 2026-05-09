@@ -10,6 +10,11 @@ namespace BannerOfBones.CardGame
     /// </summary>
     public class CombatManager
     {
+        public const int TuneEnergyCost = 1;
+        public const int TuneMaxDiceTargets = 2;
+        public const int SunderEnergyCost = 1;
+        public const int SunderMaxDiceTargets = 2;
+
         private enum PendingHandAction
         {
             None,
@@ -282,10 +287,10 @@ namespace BannerOfBones.CardGame
 
         public bool TryUseTune()
         {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(TuneEnergyCost))
                 return false;
 
-            int selectionLimit = Math.Min(2, Player.Dice.DiceCount);
+            int selectionLimit = Math.Min(TuneMaxDiceTargets, Player.Dice.DiceCount);
             if (selectionLimit <= 0) return false;
 
             QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Tune: choose up to 2 player dice to raise by 1.", indices =>
@@ -299,7 +304,7 @@ namespace BannerOfBones.CardGame
 
         public bool TryUseSunder()
         {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(SunderEnergyCost))
                 return false;
 
             int singleEnemyIndex = GetSingleAliveEnemyIndex();
@@ -739,7 +744,7 @@ namespace BannerOfBones.CardGame
             var enemy = GetEnemyAt(enemyIndex);
             if (enemy == null || !enemy.IsAlive) return;
 
-            int selectionLimit = Math.Min(2, enemy.Dice.DiceCount);
+            int selectionLimit = Math.Min(SunderMaxDiceTargets, enemy.Dice.DiceCount);
             if (selectionLimit <= 0) return;
 
             QueueDiceSelection(

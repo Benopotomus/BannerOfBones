@@ -122,8 +122,8 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll up to 3 player dice.");
             AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
             AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
-            AttachHoverTooltip(_tuneButton, "Tune: Spend 1 energy to raise up to 2 player dice by 1.");
-            AttachHoverTooltip(_sunderButton, "Sunder: Spend 1 energy to lower up to 2 enemy dice by 1.");
+            AttachHoverTooltip(_tuneButton, $"Tune: Spend {CombatManager.TuneEnergyCost} energy to raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1.");
+            AttachHoverTooltip(_sunderButton, $"Sunder: Spend {CombatManager.SunderEnergyCost} energy to lower up to {CombatManager.SunderMaxDiceTargets} enemy dice by 1.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
@@ -305,8 +305,8 @@ namespace BannerOfBones.CardGame
             _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
-            _tuneButton.interactable = canUseActions && p.Energy.CanAfford(1);
-            _sunderButton.interactable = canUseActions && p.Energy.CanAfford(1) && CountAliveEnemies() > 0;
+            _tuneButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.TuneEnergyCost);
+            _sunderButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.SunderEnergyCost) && CountAliveEnemies() > 0;
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
             _cancelButton.interactable = _combat.HasPendingCardPlay;

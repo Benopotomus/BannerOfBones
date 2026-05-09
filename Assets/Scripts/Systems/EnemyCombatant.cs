@@ -41,11 +41,19 @@ namespace BannerOfBones.CardGame
             if (CurrentHealth < 0) CurrentHealth = 0;
         }
 
+        /// <summary>
+        /// Adds block to this enemy.
+        /// Block absorbs incoming damage before health is reduced.
+        /// </summary>
         public void GainBlock(int amount)
         {
             Block += Math.Max(0, amount);
         }
 
+        /// <summary>
+        /// Clears all enemy block.
+        /// Called at the start of each round.
+        /// </summary>
         public void ClearBlock()
         {
             Block = 0;

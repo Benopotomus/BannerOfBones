@@ -90,7 +90,10 @@ namespace BannerOfBones.CardGame
                     RerollIndex(i);
         }
 
-        /// <summary>Rerolls up to <paramref name="count"/> of the lowest-valued dice and returns how many were rerolled.</summary>
+        /// <summary>
+        /// Rerolls up to <paramref name="count"/> of the lowest-valued dice and returns how many were rerolled.
+        /// If <paramref name="count"/> exceeds available dice, rerolls all available dice.
+        /// </summary>
         public int RerollLowestDice(int count)
         {
             int n = Math.Min(count, _dice.Count);
@@ -153,7 +156,10 @@ namespace BannerOfBones.CardGame
             _dice[index] = d;
         }
 
-        /// <summary>Adjusts the value of the die at <paramref name="index"/> by <paramref name="delta"/>, clamped to [1, sides].</summary>
+        /// <summary>
+        /// Adjusts the value of the die at <paramref name="index"/> by <paramref name="delta"/>, clamped to [1, sides].
+        /// Out-of-range indices are ignored.
+        /// </summary>
         public void AdjustDieValue(int index, int delta)
         {
             if (index < 0 || index >= _dice.Count) return;

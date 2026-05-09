@@ -202,7 +202,7 @@ namespace BannerOfBones.CardGame
             }
 
             SetPendingCardPlay(card, targetsAllEnemies);
-            QueueConfirmation($"Confirm {card.cardName}.", ConfirmPendingCardPlay);
+            QueueConfirmation($"Confirm {card.cardName}.", () => ConfirmPendingCardPlay());
             NotifyStateChanged();
             return true;
         }

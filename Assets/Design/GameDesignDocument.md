@@ -80,7 +80,8 @@ Card effects resolve immediately in play order:
 The player ends their turn when they choose to pass or run out of playable cards.
 
 ### 4. Enemy Turn
-Each living enemy evaluates their passive effects against their own current dice pool.
+Each living enemy resolves a clearly shown **intent** at the end of the player's turn.
+Standard enemies follow a simple repeating action pattern, and the UI shows both the current and next intent.
 All enemy damage is totaled together, then reduced by any remaining player block.
 Excess damage is applied to the player's health.
 
@@ -102,11 +103,11 @@ Excess damage is applied to the player's health.
 
 ## Enemy Rules
 - Enemies do **not** have cards or a hand.
-- Each enemy has a set of **passive effects** defined at creation that fire every round automatically.
-- Passive effects are evaluated against the **enemy's own dice roll**, not the player's.
+- Standard enemies use a short repeating list of **intents** instead of stacked passive formulas.
+- The current and next intent are always visible to the player.
+- Enemy dice are still rolled because player cards and wagers can target enemy dice pools.
 - Encounters field **1–4 enemies** at once.
 - Enemies have **fixed dice counts** (2–4 dice), defined per enemy.
-- Some enemies have **pre-round effects** that modify their own dice before the player's turn (e.g., rerolling unfavorable faces).
 
 ---
 
@@ -173,25 +174,24 @@ Excess damage is applied to the player's health.
 ## Example Enemies
 
 ### Goblin Scout (8 HP, 2 dice)
-- Deals 1 damage for each [2] rolled.
-- Deals 1 damage for each pair rolled.
+- Feint for 1 damage.
+- Stab for 2 damage.
 
 ### Orc Warrior (12 HP, 2 dice)
-- Deals 1 damage for each odd die rolled.
-- Deals 1 damage for each pair rolled.
+- Cleave for 3 damage.
+- Backhand for 2 damage.
 
 ### Shadow Wraith (10 HP, 3 dice)
-- Deals 1 damage for each odd die rolled.
-- Deals 1 damage for each [1] rolled.
+- Drain for 2 damage.
+- Ambush for 3 damage.
 
 ### Stone Golem (16 HP, 3 dice)
-- Rerolls all dice showing [1] at the start of each round.
-- Deals 1 damage for each even die rolled.
-- Deals 2 damage for each triple rolled.
+- Wind Up for 2 damage.
+- Crush for 4 damage.
 
 ### Death Knight (18 HP, 4 dice)
-- Deals 1 damage for each die showing 5 or 6.
-- Deals 2 damage for each pair rolled.
+- Harry for 3 damage.
+- Executioner Swing for 5 damage.
 
 ---
 

@@ -269,10 +269,7 @@ namespace BannerOfBones.CardGame
                 RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
 
                 var passivesText = MkText(panel, 9, C(0.86f, 0.72f, 0.72f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.28f);
-                var sb = new StringBuilder();
-                foreach (var passive in enemy.Data.passiveEffects)
-                    sb.AppendLine($"• {passive.description}");
-                passivesText.text = sb.ToString().TrimEnd();
+                passivesText.text = BuildEnemyActionText(enemy);
             }
         }
 
@@ -423,7 +420,7 @@ namespace BannerOfBones.CardGame
         {
             Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}");
+                Log($"   {enemy.Data.enemyName}: {FormatDice(enemy.Dice.CurrentRoll)}  HP {enemy.CurrentHealth}  {enemy.GetIntentSummary()}");
             RefreshUI();
         }
 
@@ -663,6 +660,28 @@ namespace BannerOfBones.CardGame
             }
 
             return alive;
+        }
+
+        private static string BuildEnemyActionText(EnemyCombatant enemy)
+        {
+            if (enemy.CurrentIntent != null)
+            {
+                var sb = new StringBuilder();
+                sb.AppendLine($"Now: {enemy.CurrentIntent.intentName} ({enemy.CurrentIntent.damage})");
+
+                if (enemy.NextIntent != null)
+                    sb.AppendLine($"Next: {enemy.NextIntent.intentName} ({enemy.NextIntent.damage})");
+
+                if (!string.IsNullOrWhiteSpace(enemy.CurrentIntent.description))
+                    sb.Append(enemy.CurrentIntent.description);
+
+                return sb.ToString().TrimEnd();
+            }
+
+            var passiveText = new StringBuilder();
+            foreach (var passive in enemy.Data.passiveEffects)
+                passiveText.AppendLine($"• {passive.description}");
+            return passiveText.ToString().TrimEnd();
         }
 
         private static string FormatDice(int[] roll)

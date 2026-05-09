@@ -458,7 +458,13 @@ namespace BannerOfBones.CardGame
 
             int damage = 0;
             foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
-                damage += enemy.CalculateDamage();
+            {
+                int enemyDamage = enemy.CalculateDamage();
+                damage += enemyDamage;
+
+                if (enemy.CurrentIntent != null)
+                    Log($"{enemy.Data.enemyName} uses {enemy.CurrentIntent.intentName} for {enemyDamage} damage.");
+            }
 
             Player.TakeDamage(damage);
             Log($"Enemies deal {damage} damage.");

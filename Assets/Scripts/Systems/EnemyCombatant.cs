@@ -4,7 +4,7 @@ namespace BannerOfBones.CardGame
 {
     /// <summary>
     /// Runtime state for an enemy during a combat encounter.
-    /// Enemies have no cards — they deal damage through passive effects evaluated each round.
+    /// Enemies have no cards — they usually resolve simple repeating intents, with passive dice logic as fallback.
     /// </summary>
     public class EnemyCombatant
     {
@@ -13,6 +13,15 @@ namespace BannerOfBones.CardGame
         public bool      IsAlive       => CurrentHealth > 0;
 
         public DiceManager Dice { get; }
+
+        public EnemyIntentData CurrentIntent
+            => HasIntentPattern && _currentIntentIndex >= 0 ? Data.roundIntents[_currentIntentIndex] : null;
+
+        public EnemyIntentData NextIntent
+            => HasIntentPattern ? Data.roundIntents[(_currentIntentIndex + 1) % Data.roundIntents.Count] : null;
+
+        private bool HasIntentPattern => Data.roundIntents != null && Data.roundIntents.Count > 0;
+        private int _currentIntentIndex = -1;
 
         public EnemyCombatant(EnemyData data)
         {
@@ -31,6 +40,13 @@ namespace BannerOfBones.CardGame
         public void StartRound()
         {
             Dice.RollAll();
+
+            if (!HasIntentPattern) return;
+
+            if (_currentIntentIndex < 0)
+                _currentIntentIndex = 0;
+            else
+                _currentIntentIndex = (_currentIntentIndex + 1) % Data.roundIntents.Count;
         }
 
         /// <summary>
@@ -57,10 +73,13 @@ namespace BannerOfBones.CardGame
         }
 
         /// <summary>
-        /// Calculates total damage this enemy deals this round from all DealDamage passives.
+        /// Calculates total damage this enemy deals this round from its current intent or legacy passives.
         /// </summary>
         public int CalculateDamage()
         {
+            if (CurrentIntent != null)
+                return Math.Max(0, CurrentIntent.damage);
+
             int total = 0;
             foreach (var passive in Data.passiveEffects)
             {
@@ -70,6 +89,16 @@ namespace BannerOfBones.CardGame
                 total += triggers * passive.magnitude;
             }
             return total;
+        }
+
+        public string GetIntentSummary()
+        {
+            if (CurrentIntent == null)
+                return "Acts from dice passives.";
+
+            return string.IsNullOrWhiteSpace(CurrentIntent.description)
+                ? $"{CurrentIntent.intentName}: {CurrentIntent.damage} damage."
+                : CurrentIntent.description;
         }
     }
 }

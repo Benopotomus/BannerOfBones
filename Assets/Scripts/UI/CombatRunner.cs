@@ -17,7 +17,7 @@ namespace BannerOfBones.CardGame
         public int playerEnergy = 3;
 
         [Header("Run Settings")]
-        [Tooltip("Set a fixed seed for reproducible runs. Leave 0 to use a random seed.")]
+        [Tooltip("Set a fixed seed for reproducible runs. Leave 0 to keep an existing external seed, or use a random seed if none exists.")]
         public int seed = 0;
 
         [Header("Prefabs")]

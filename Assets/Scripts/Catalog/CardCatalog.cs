@@ -797,7 +797,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Fractured Edge";
-            card.description = "Downgrade one of your dice to the previous tier. Deal 6 damage.";
+            card.description = "Downgrade one of your dice to the previous tier, then deal 6 damage.";
             card.energyCost = 0;
             card.duration = ECardDuration.Instant;
             card.effects = new List<CardEffectData>

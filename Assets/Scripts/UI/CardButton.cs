@@ -24,7 +24,7 @@ namespace BannerOfBones.CardGame
         /// <param name="total">Total number of cards in the hand.</param>
         /// <param name="onClick">Callback invoked when the button is clicked.</param>
         public void Setup(CardData card, bool interactable, int index, int total, Action<CardData> onClick,
-            bool retained = false, bool highlighted = false, string descriptionText = null, string targetLabel = null)
+            bool highlighted = false, string descriptionText = null, string targetLabel = null)
         {
             Card = card;
 
@@ -37,13 +37,11 @@ namespace BannerOfBones.CardGame
 
             // ── Background ────────────────────────────────────────────────────────
             var img = gameObject.GetComponent<Image>() ?? gameObject.AddComponent<Image>();
-            img.color = retained
-                ? new Color(0.45f, 0.36f, 0.10f)
-                : highlighted
-                    ? new Color(0.16f, 0.28f, 0.44f)
-                    : interactable
-                        ? new Color(0.18f, 0.38f, 0.14f)
-                        : new Color(0.20f, 0.20f, 0.20f);
+            img.color = highlighted
+                ? new Color(0.16f, 0.28f, 0.44f)
+                : interactable
+                    ? new Color(0.18f, 0.38f, 0.14f)
+                    : new Color(0.20f, 0.20f, 0.20f);
 
             // ── Button ────────────────────────────────────────────────────────────
             var btn = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
@@ -52,7 +50,33 @@ namespace BannerOfBones.CardGame
             var captured = card;
             btn.onClick.AddListener(() => onClick(captured));
 
-            // ── Label ─────────────────────────────────────────────────────────────
+            // ── Energy cost badge (upper left) ────────────────────────────────────
+            var badgeGO = new GameObject("CostBadge");
+            badgeGO.transform.SetParent(transform, false);
+            var badgeRT = badgeGO.AddComponent<RectTransform>();
+            badgeRT.anchorMin = new Vector2(0f, 0.72f);
+            badgeRT.anchorMax = new Vector2(0.28f, 1f);
+            badgeRT.offsetMin = new Vector2(3f, -3f);
+            badgeRT.offsetMax = new Vector2(-1f, -3f);
+            badgeGO.AddComponent<Image>().color = new Color(0.10f, 0.16f, 0.32f);
+
+            var badgeTextGO = new GameObject("CostText");
+            badgeTextGO.transform.SetParent(badgeGO.transform, false);
+            var badgeTextRT = badgeTextGO.AddComponent<RectTransform>();
+            badgeTextRT.anchorMin = Vector2.zero;
+            badgeTextRT.anchorMax = Vector2.one;
+            badgeTextRT.offsetMin = badgeTextRT.offsetMax = Vector2.zero;
+            var badgeTxt = badgeTextGO.AddComponent<Text>();
+            badgeTxt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            badgeTxt.text = card.energyCost.ToString();
+            badgeTxt.fontSize = 13;
+            badgeTxt.color = new Color(0.9f, 0.85f, 0.30f);
+            badgeTxt.alignment = TextAnchor.MiddleCenter;
+            badgeTxt.fontStyle = FontStyle.Bold;
+            badgeTxt.horizontalOverflow = HorizontalWrapMode.Overflow;
+            badgeTxt.verticalOverflow = VerticalWrapMode.Overflow;
+
+            // ── Label (main card body) ─────────────────────────────────────────────
             var textGO = new GameObject("Label");
             textGO.transform.SetParent(transform, false);
             var textRT = textGO.AddComponent<RectTransform>();
@@ -69,11 +93,10 @@ namespace BannerOfBones.CardGame
             txt.supportRichText = true;
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
-            string durationText = card.duration == ECardDuration.Instant ? string.Empty : $" | {card.duration}";
-            string retainedText = retained ? "\n<color=#F8E27A>Retained</color>" : string.Empty;
+            string durationText = card.duration == ECardDuration.Instant ? string.Empty : $" {card.duration}";
             string targetText = string.IsNullOrEmpty(targetLabel) ? string.Empty : $"\n<color=#F8E27A>{targetLabel}</color>";
             string renderedDescription = string.IsNullOrWhiteSpace(descriptionText) ? card.description : descriptionText;
-            txt.text = $"<b>{card.cardName}</b>\n{renderedDescription}\n[{card.energyCost}E{durationText}]{targetText}{retainedText}";
+            txt.text = $"<b>{card.cardName}</b>\n{renderedDescription}{(string.IsNullOrEmpty(durationText) ? string.Empty : $"\n[{durationText}]")}{targetText}";
         }
     }
 }

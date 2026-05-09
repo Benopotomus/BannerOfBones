@@ -263,7 +263,8 @@ namespace BannerOfBones.CardGame
                 hpText.text = $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
 
                 var diceText = MkText(panel, 10, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.46f, 1f, 0.60f);
-                diceText.text = "Dice";
+                string enemyHandLabel = BuildDiceHandLabel(enemy.Dice.CurrentRoll);
+                diceText.text = string.IsNullOrEmpty(enemyHandLabel) ? "Dice" : $"Dice  — {enemyHandLabel}";
 
                 var diceContainer = MkContainer(panel, $"EnemyDice{i}", 0f, 0.26f, 1f, 0.46f, 2f, 0f, -2f, 0f);
                 RefreshDiceButtons(diceContainer, enemy.Dice.CurrentRoll, ECardTarget.EnemyDice, C(0.45f, 0.15f, 0.15f), i);
@@ -287,7 +288,10 @@ namespace BannerOfBones.CardGame
             _playerHpText.text = $"HP      {p.CurrentHealth} / {p.MaxHealth}";
             _playerEnergyText.text = $"Energy  {p.Energy.CurrentEnergy} / {p.Energy.MaxEnergy}";
             _playerBlockText.text = $"Block   {p.Block}";
-            _playerDiceText.text = "Player Dice";
+            string playerHandLabel = BuildDiceHandLabel(p.Dice.CurrentRoll);
+            _playerDiceText.text = string.IsNullOrEmpty(playerHandLabel)
+                ? "Player Dice"
+                : $"Player Dice  — {playerHandLabel}";
             _stateText.text =
                 $"[{_combat.State}]  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}\n" +
                 $"Retain: {retained}  |  Wagers: {p.ActiveWagers.Count}\n" +
@@ -378,18 +382,23 @@ namespace BannerOfBones.CardGame
             ClearContainer(container);
             if (roll == null || roll.Length == 0) return;
 
-            float width = 1f / Mathf.Max(1, roll.Length);
-            for (int i = 0; i < roll.Length; i++)
-            {
-                int dieIndex = i;
-                bool interactable = _combat.CanSelectDie(target, i, enemyIndex);
-                bool selected = _combat.IsDieSelected(target, i, enemyIndex);
+            // Sort display by value ascending so matching dice appear together
+            int[] sortedIndices = new int[roll.Length];
+            for (int i = 0; i < roll.Length; i++) sortedIndices[i] = i;
+            System.Array.Sort(sortedIndices, (a, b) => roll[a].CompareTo(roll[b]));
 
-                var go = new GameObject($"Die{i}");
+            float width = 1f / Mathf.Max(1, roll.Length);
+            for (int slot = 0; slot < roll.Length; slot++)
+            {
+                int originalIndex = sortedIndices[slot];
+                bool interactable = _combat.CanSelectDie(target, originalIndex, enemyIndex);
+                bool selected = _combat.IsDieSelected(target, originalIndex, enemyIndex);
+
+                var go = new GameObject($"Die{originalIndex}");
                 go.transform.SetParent(container, false);
                 var rt = go.AddComponent<RectTransform>();
-                rt.anchorMin = new Vector2(i * width + 0.01f, 0.05f);
-                rt.anchorMax = new Vector2((i + 1) * width - 0.01f, 0.95f);
+                rt.anchorMin = new Vector2(slot * width + 0.01f, 0.05f);
+                rt.anchorMax = new Vector2((slot + 1) * width - 0.01f, 0.95f);
                 rt.offsetMin = rt.offsetMax = Vector2.zero;
 
                 var image = go.AddComponent<Image>();
@@ -401,10 +410,10 @@ namespace BannerOfBones.CardGame
 
                 var button = go.AddComponent<Button>();
                 button.interactable = interactable;
-                button.onClick.AddListener(() => OnDieClicked(target, dieIndex, enemyIndex));
+                button.onClick.AddListener(() => OnDieClicked(target, originalIndex, enemyIndex));
 
                 var txt = MkText(rt, 16, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
-                txt.text = roll[i].ToString();
+                txt.text = roll[originalIndex].ToString();
             }
         }
 
@@ -668,7 +677,53 @@ namespace BannerOfBones.CardGame
         private static string FormatDice(int[] roll)
         {
             if (roll == null || roll.Length == 0) return "(-)";
-            return "[" + string.Join("][", roll) + "]";
+            int[] sorted = (int[])roll.Clone();
+            System.Array.Sort(sorted);
+            return "[" + string.Join("][", sorted) + "]";
+        }
+
+        /// <summary>
+        /// Returns a short label describing the best hand in the dice pool
+        /// (e.g. "Pair of 3s", "Triple 5s", "Full House"), or an empty string if
+        /// no recognisable pattern is present.
+        /// </summary>
+        private static string BuildDiceHandLabel(int[] roll)
+        {
+            if (roll == null || roll.Length < 2) return string.Empty;
+
+            if (PokerEvaluator.CountFiveOfAKind(roll) > 0)
+                return $"Five {FindGroupValue(roll, 5)}s!";
+
+            if (PokerEvaluator.CountFourOfAKind(roll) > 0)
+                return $"Four {FindGroupValue(roll, 4)}s";
+
+            if (PokerEvaluator.CountFullHouses(roll) > 0)
+                return "Full House";
+
+            if (PokerEvaluator.CountTriples(roll) > 0)
+                return $"Triple {FindGroupValue(roll, 3)}s";
+
+            int pairs = PokerEvaluator.CountPairs(roll);
+            if (pairs >= 2)
+                return "Two Pairs";
+            if (pairs == 1)
+                return $"Pair of {FindGroupValue(roll, 2)}s";
+
+            if (PokerEvaluator.HasStraight(roll))
+                return "Straight";
+
+            return string.Empty;
+        }
+
+        /// <summary>Returns the highest die value whose frequency is >= <paramref name="groupSize"/>.</summary>
+        private static int FindGroupValue(int[] roll, int groupSize)
+        {
+            int[] freq = new int[7];
+            foreach (int d in roll)
+                if (d >= 1 && d <= 6) freq[d]++;
+            for (int i = 6; i >= 1; i--)
+                if (freq[i] >= groupSize) return i;
+            return 0;
         }
     }
 }

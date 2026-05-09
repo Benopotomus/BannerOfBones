@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace BannerOfBones.CardGame
 {
@@ -58,7 +56,7 @@ namespace BannerOfBones.CardGame
             for (int i = 0; i < _dice.Count; i++)
             {
                 var d = _dice[i];
-                d.Value = Random.Range(1, d.Sides + 1);
+                d.Value = BoBRandom.Range(1, d.Sides + 1);
                 _dice[i] = d;
             }
         }
@@ -102,7 +100,7 @@ namespace BannerOfBones.CardGame
         {
             sides = ClampToValidTier(sides);
             var d = new Die(sides, temporary);
-            d.Value = Random.Range(1, sides + 1);
+            d.Value = BoBRandom.Range(1, sides + 1);
             _dice.Add(d);
         }
 
@@ -151,7 +149,7 @@ namespace BannerOfBones.CardGame
         {
             if (idx < 0 || idx >= _dice.Count) return;
             var d = _dice[idx];
-            d.Value = Random.Range(1, d.Sides + 1);
+            d.Value = BoBRandom.Range(1, d.Sides + 1);
             _dice[idx] = d;
         }
 

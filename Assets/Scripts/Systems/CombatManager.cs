@@ -280,6 +280,45 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
+        public bool TryUseTune()
+        {
+            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+                return false;
+
+            int selectionLimit = Math.Min(2, Player.Dice.DiceCount);
+            if (selectionLimit <= 0) return false;
+
+            QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Tune: choose up to 2 player dice to raise by 1.", indices =>
+            {
+                foreach (int index in indices)
+                    Player.Dice.AdjustDieValue(index, 1);
+                Log($"Tune raised {indices.Length} player dice by 1.");
+            });
+            return true;
+        }
+
+        public bool TryUseSunder()
+        {
+            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+                return false;
+
+            int singleEnemyIndex = GetSingleAliveEnemyIndex();
+            if (singleEnemyIndex >= 0)
+            {
+                QueueSunderDiceSelection(singleEnemyIndex);
+                NotifyStateChanged();
+                return true;
+            }
+
+            QueueEnemySelection("Choose an enemy for Sunder.", enemyIndex =>
+            {
+                QueueSunderDiceSelection(enemyIndex);
+                NotifyStateChanged();
+            });
+            NotifyStateChanged();
+            return true;
+        }
+
         public bool ToggleRetainSelection()
         {
             if (State != ECombatState.PlayerTurn
@@ -461,11 +500,13 @@ namespace BannerOfBones.CardGame
             int damage = 0;
             foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
             {
-                int enemyDamage = enemy.CalculateDamage();
+                int enemyDamage = enemy.ExecuteIntent(Player);
                 damage += enemyDamage;
 
-                if (enemy.CurrentIntent != null)
+                if (enemy.CurrentIntent != null && enemyDamage > 0)
                     Log($"{enemy.Data.enemyName} uses {enemy.CurrentIntent.intentName} for {enemyDamage} damage.");
+                else if (enemy.CurrentIntent != null)
+                    Log($"{enemy.Data.enemyName} uses {enemy.CurrentIntent.intentName}.");
             }
 
             Player.TakeDamage(damage);
@@ -691,6 +732,29 @@ namespace BannerOfBones.CardGame
         {
             _pendingConfirmResolver = resolver;
             PendingPrompt = prompt;
+        }
+
+        private void QueueSunderDiceSelection(int enemyIndex)
+        {
+            var enemy = GetEnemyAt(enemyIndex);
+            if (enemy == null || !enemy.IsAlive) return;
+
+            int selectionLimit = Math.Min(2, enemy.Dice.DiceCount);
+            if (selectionLimit <= 0) return;
+
+            QueueDiceSelection(
+                ECardTarget.EnemyDice,
+                selectionLimit,
+                $"Sunder: choose up to {selectionLimit} dice on {enemy.Data.enemyName} to lower by 1.",
+                indices =>
+                {
+                    var selectedEnemy = GetEnemyAt(enemyIndex);
+                    if (selectedEnemy == null) return;
+                    foreach (int index in indices)
+                        selectedEnemy.Dice.AdjustDieValue(index, -1);
+                    Log($"Sunder lowered {indices.Length} dice on {selectedEnemy.Data.enemyName}.");
+                },
+                enemyIndex);
         }
 
         private void ClearPendingEnemySelection()

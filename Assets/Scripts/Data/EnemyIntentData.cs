@@ -6,6 +6,9 @@ namespace BannerOfBones.CardGame
     [Serializable]
     public class EnemyIntentData
     {
+        [Tooltip("What gameplay action this intent performs.")]
+        public EEnemyIntentType intentType = EEnemyIntentType.AttackFlat;
+
         [Tooltip("Short label shown in the enemy UI.")]
         public string intentName;
 
@@ -13,7 +16,10 @@ namespace BannerOfBones.CardGame
         [Tooltip("Human-readable description shown in the combat UI.")]
         public string description;
 
-        [Tooltip("Flat damage this intent deals at the end of the player's turn.")]
-        public int damage;
+        [Tooltip("Primary value used by this intent. For attacks this is damage or multiplier.")]
+        public int magnitude;
+
+        [Tooltip("How many dice this intent affects for reroll/weaken/upgrade actions.")]
+        public int count = 1;
     }
 }

@@ -42,7 +42,7 @@ namespace BannerOfBones.CardGame
         }
 
         /// <summary>Creates a pool of <paramref name="diceCount"/> dice, all of the given <paramref name="sides"/> type.</summary>
-        public DiceManager(int diceCount, int sides = 6)
+        public DiceManager(int diceCount, int sides = DefaultDieSides)
         {
             sides = ClampToValidTier(sides);
             int count = Math.Max(1, diceCount);
@@ -98,7 +98,7 @@ namespace BannerOfBones.CardGame
         /// Adds a die of the given type and rolls it immediately.
         /// Pass <paramref name="temporary"/> = true for a die that expires at the start of the next round.
         /// </summary>
-        public void AddDie(int sides = 6, bool temporary = false)
+        public void AddDie(int sides = DefaultDieSides, bool temporary = false)
         {
             sides = ClampToValidTier(sides);
             var d = new Die(sides, temporary);

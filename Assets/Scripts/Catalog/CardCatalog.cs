@@ -38,7 +38,7 @@ namespace BannerOfBones.CardGame
             deck.Add(CreateChainLightning());
             deck.Add(CreateCursedDice());
             deck.Add(CreateWarDrums());
-            deck.Add(CreateCorrosiveTouch());
+            deck.Add(CreateFracturedEdge());
             deck.Add(CreateLuckyCharm());
             deck.Add(CreateLoadedBet());
             deck.Add(CreatePrecisionStrike());
@@ -88,7 +88,7 @@ namespace BannerOfBones.CardGame
 
                 // ── Die Type Manipulation ─────────────────────────────────────────
                 CreateRuneForge(),
-                CreateCorrosiveTouch(),
+                CreateFracturedEdge(),
                 CreateBorrowedDie(),
                 CreateCrystalConduit(),
             };
@@ -793,10 +793,10 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        private static CardData CreateCorrosiveTouch()
+        private static CardData CreateFracturedEdge()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
-            card.name = card.cardName = "Corrosive Touch";
+            card.name = card.cardName = "Fractured Edge";
             card.description = "Downgrade one of your dice to the previous tier. Deal 6 damage.";
             card.energyCost = 0;
             card.duration = ECardDuration.Instant;

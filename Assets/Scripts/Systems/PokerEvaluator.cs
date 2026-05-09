@@ -46,7 +46,7 @@
         /// Returns the total number of pairs across all die values.
         /// Each group of N matching dice contributes N/2 pairs (integer division),
         /// so a triple counts as 1 pair and a four-of-a-kind counts as 2 pairs.
-        /// Works for any die type (d4–d20).
+        /// Works for any die type (d4–d12).
         /// </summary>
         public static int CountPairs(int[] dice)
         {
@@ -178,7 +178,7 @@
 
         /// <summary>
         /// Returns a frequency array large enough to hold every distinct die value present.
-        /// freq[n] = number of dice showing value n. Supports values up to d20.
+        /// freq[n] = number of dice showing value n. Supports values up to d12.
         /// </summary>
         private static int[] GetFrequencies(int[] dice)
         {

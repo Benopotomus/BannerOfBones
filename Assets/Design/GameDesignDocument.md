@@ -19,8 +19,7 @@ Dice come in six standard tiers. Higher-tier dice produce larger values, which b
 | d6 | 1–6 | Default starting die |
 | d8 | 1–8 | First upgrade tier |
 | d10 | 1–10 | |
-| d12 | 1–12 | |
-| d20 | 1–20 | Strongest; cannot be upgraded further |
+| d12 | 1–12 | Strongest; cannot be upgraded further |
 
 #### Pool Rules
 - **Player dice pool**: starts with 5 d6, rolled at the start of every round.
@@ -248,5 +247,5 @@ A balanced starter deck of 10–15 cards might include:
 | Energy | Resource spent to play cards; resets each round |
 | Block | Damage reduction that absorbs incoming enemy damage; cleared each round |
 | Discard | Cards played or unused at end of round enter the discard pile |
-| Die Tier | One step in the upgrade chain d4 → d6 → d8 → d10 → d12 → d20 |
+| Die Tier | One step in the upgrade chain d4 → d6 → d8 → d10 → d12 |
 | Temporary Die | A die added mid-round that is removed before the next round's roll |

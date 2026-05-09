@@ -7,7 +7,7 @@ namespace BannerOfBones.CardGame
 {
     /// <summary>
     /// Manages a pool of dice for one combatant.
-    /// Individual dice can be of different standard types (d4, d6, d8, d10, d12, d20).
+    /// Individual dice can be of different standard types (d4, d6, d8, d10, d12).
     /// Temporary dice are removed automatically at the start of the next round before rolling.
     /// </summary>
     public class DiceManager
@@ -15,8 +15,8 @@ namespace BannerOfBones.CardGame
         /// <summary>Number of sides on the default (starting) die type.</summary>
         public const int DefaultDieSides = 6;
 
-        /// <summary>Standard die-type tiers in ascending order of power.</summary>
-        public static readonly int[] DieTiers = { 4, DefaultDieSides, 8, 10, 12, 20 };
+        /// <summary>Standard die-type tiers in ascending order of power (d4 minimum, d12 maximum).</summary>
+        public static readonly int[] DieTiers = { 4, DefaultDieSides, 8, 10, 12 };
 
         private readonly List<Die> _dice = new List<Die>();
 
@@ -125,7 +125,7 @@ namespace BannerOfBones.CardGame
 
         // ── Die Upgrades / Downgrades ─────────────────────────────────────────────
 
-        /// <summary>Advances the die at <paramref name="index"/> one step up the tier ladder (max d20).</summary>
+        /// <summary>Advances the die at <paramref name="index"/> one step up the tier ladder (max d12).</summary>
         public void UpgradeDie(int index)
         {
             if (index < 0 || index >= _dice.Count) return;
@@ -167,7 +167,7 @@ namespace BannerOfBones.CardGame
         {
             for (int i = 0; i < DieTiers.Length - 1; i++)
                 if (DieTiers[i] == sides) return DieTiers[i + 1];
-            return sides; // already at max (d20)
+            return sides; // already at max (d12)
         }
 
         private static int PrevTier(int sides)

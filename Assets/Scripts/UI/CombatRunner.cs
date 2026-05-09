@@ -427,8 +427,7 @@ namespace BannerOfBones.CardGame
                 case 6:  return C(0.15f, 0.25f, 0.45f); // blue   — standard
                 case 8:  return C(0.18f, 0.30f, 0.52f); // lighter blue
                 case 10: return C(0.28f, 0.28f, 0.48f); // silver-blue
-                case 12: return C(0.35f, 0.18f, 0.52f); // purple
-                case 20: return C(0.52f, 0.42f, 0.10f); // gold   — strongest die
+                case 12: return C(0.35f, 0.18f, 0.52f); // purple — strongest die
                 default: return C(0.15f, 0.25f, 0.45f);
             }
         }

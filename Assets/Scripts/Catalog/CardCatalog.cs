@@ -745,7 +745,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Rune Forge";
-            card.description = "Upgrade one of your dice to the next tier (d6→d8→d10→d12→d20).";
+            card.description = "Upgrade one of your dice to the next tier (d6→d8→d10→d12).";
             card.energyCost = 2;
             card.duration = ECardDuration.Instant;
             card.effects = new List<CardEffectData>

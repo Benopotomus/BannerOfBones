@@ -39,7 +39,7 @@
         AddTemporaryDie,
 
         /// <summary>
-        /// Upgrade one chosen die in the target pool to the next standard tier (d4 → d6 → d8 → d10 → d12 → d20).
+        /// Upgrade one chosen die in the target pool to the next standard tier (d4 → d6 → d8 → d10 → d12).
         /// Requires the player to select which die to upgrade.
         /// </summary>
         UpgradeDie,

@@ -4,14 +4,14 @@ namespace BannerOfBones.CardGame
 {
     /// <summary>
     /// Represents a single die in a dice pool.
-    /// Each die can be of a different standard type (d4, d6, d8, d10, d12, or d20)
+    /// Each die can be of a different standard type (d4, d6, d8, d10, or d12)
     /// and may be flagged as temporary — meaning it is automatically removed at the
     /// start of the next round after it was added.
     /// </summary>
     [Serializable]
     public struct Die
     {
-        /// <summary>Number of faces on this die. Valid tiers: 4, 6, 8, 10, 12, 20.</summary>
+        /// <summary>Number of faces on this die. Valid tiers: 4, 6, 8, 10, 12.</summary>
         public int Sides;
 
         /// <summary>The value produced by the last roll. 0 if this die has not been rolled yet.</summary>

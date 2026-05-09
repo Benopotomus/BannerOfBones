@@ -27,7 +27,7 @@
         /// <summary>Trigger count = value of the highest die in the pool.</summary>
         HighestDieValue,
 
-        /// <summary>Trigger count = number of groups of exactly 2 matching dice.</summary>
+        /// <summary>Trigger count = total pairs in the pool (each group of N matching dice contributes N/2 pairs).</summary>
         PerPair,
 
         /// <summary>Trigger count = number of groups of exactly 3 matching dice.</summary>

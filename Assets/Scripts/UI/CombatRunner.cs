@@ -39,6 +39,9 @@ namespace BannerOfBones.CardGame
         private RectTransform _handContainer;
         private Button _endTurnButton;
 
+        private RectTransform _pileViewPanel;
+        private Text _pileViewText;
+
         private readonly List<string> _log = new List<string>();
         private const int MaxLogLines = 7;
 
@@ -129,10 +132,24 @@ namespace BannerOfBones.CardGame
             _endTurnButton = MkButton(root, "End Turn",
                 new Vector2(0.38f, 0.145f), new Vector2(0.62f, 0.23f),
                 C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            MkButton(root, "View Deck",
+                new Vector2(0.05f, 0.145f), new Vector2(0.22f, 0.23f),
+                C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
+            MkButton(root, "View Discard",
+                new Vector2(0.24f, 0.145f), new Vector2(0.36f, 0.23f),
+                C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
 
             // ── Log section (0%–13%) ──────────────────────────────────────────────
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0f, 1f, 0.13f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.13f);
+
+            // ── Pile-view overlay (hidden by default) ─────────────────────────────
+            _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
+            _pileViewPanel.gameObject.SetActive(false);
+            _pileViewText = MkText(_pileViewPanel, 13, Color.white, TextAnchor.UpperLeft, 0f, 0.06f, 1f, 1f);
+            MkButton(_pileViewPanel, "Close",
+                new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f),
+                C(0.50f, 0.15f, 0.10f), ClosePileView);
         }
 
         // ── UI helpers ────────────────────────────────────────────────────────────
@@ -297,8 +314,10 @@ namespace BannerOfBones.CardGame
 
         private void OnRoundStarted()
         {
+            var deck = _combat.Player.Deck;
             Log($"── Round: Player {FormatDice(_combat.Player.Dice.CurrentRoll)}" +
                 $"  vs  Enemy {FormatDice(_combat.Enemy.Dice.CurrentRoll)}");
+            Log($"   Draw pile: {deck.DrawPile.Count}  |  Discard pile: {deck.DiscardPile.Count}");
             RefreshUI();
         }
 
@@ -322,6 +341,32 @@ namespace BannerOfBones.CardGame
             if (!_combat.TryPlayCard(card)) return;
             Log($"Played  {card.cardName}  →  Enemy HP {_combat.Enemy.CurrentHealth}");
             RefreshUI();
+        }
+
+        private void OnViewDeckClicked()
+        {
+            ShowPileView("Draw Pile", _combat.Player.Deck.DrawPile);
+        }
+
+        private void OnViewDiscardClicked()
+        {
+            ShowPileView("Discard Pile", _combat.Player.Deck.DiscardPile);
+        }
+
+        private void ShowPileView(string title, IReadOnlyList<CardData> pile)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine($"{title}  ({pile.Count} cards)");
+            sb.AppendLine("──────────────────");
+            foreach (var c in pile)
+                sb.AppendLine($"· {c.cardName}");
+            _pileViewText.text = sb.ToString();
+            _pileViewPanel.gameObject.SetActive(true);
+        }
+
+        private void ClosePileView()
+        {
+            _pileViewPanel.gameObject.SetActive(false);
         }
 
         // ── Utility ───────────────────────────────────────────────────────────────

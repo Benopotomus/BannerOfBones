@@ -15,6 +15,7 @@ namespace BannerOfBones.CardGame
         public int energyCost;
 
         public ECardDuration duration;
+        public bool targetsAllEnemies;
 
         public List<CardEffectData> effects = new List<CardEffectData>();
     }

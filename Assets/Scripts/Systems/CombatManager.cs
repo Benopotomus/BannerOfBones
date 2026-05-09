@@ -5,7 +5,7 @@ using System.Linq;
 namespace BannerOfBones.CardGame
 {
     /// <summary>
-    /// Drives a single combat encounter between the player and one enemy.
+    /// Drives a single combat encounter between the player and a group of enemies.
     /// Handles card play, baseline actions, retained cards, wagers, and player-choice prompts.
     /// </summary>
     public class CombatManager
@@ -18,13 +18,15 @@ namespace BannerOfBones.CardGame
         }
 
         public PlayerCombatant Player { get; private set; }
-        public EnemyCombatant Enemy { get; private set; }
+        public IReadOnlyList<EnemyCombatant> Enemies => _enemies;
+        public EnemyCombatant Enemy => GetFirstAliveEnemy() ?? (_enemies.Count > 0 ? _enemies[0] : null);
         public ECombatState State { get; private set; } = ECombatState.Idle;
 
+        public bool IsAwaitingEnemySelection => _pendingEnemyResolver != null;
         public bool IsAwaitingDiceSelection => _pendingDiceResolver != null;
         public bool IsAwaitingHandSelection => _pendingHandAction != PendingHandAction.None;
         public bool IsSelectingRetain { get; private set; }
-        public bool HasPendingChoice => IsAwaitingDiceSelection || IsAwaitingHandSelection || IsSelectingRetain;
+        public bool HasPendingChoice => IsAwaitingEnemySelection || IsAwaitingDiceSelection || IsAwaitingHandSelection || IsSelectingRetain;
         public string PendingPrompt { get; private set; }
         public int SelectedDiceCount => _selectedDiceIndices.Count;
         public int PendingDiceSelectionLimit => _pendingDiceSelectionLimit;
@@ -41,22 +43,34 @@ namespace BannerOfBones.CardGame
         /// <summary>Fired for combat log output.</summary>
         public event Action<string> OnLogMessage;
 
+        private readonly List<EnemyCombatant> _enemies = new List<EnemyCombatant>();
         private readonly List<int> _selectedDiceIndices = new List<int>();
         private readonly List<CardEffectData> _resolvingEffects = new List<CardEffectData>();
         private PendingHandAction _pendingHandAction = PendingHandAction.None;
+        private Action<int> _pendingEnemyResolver;
         private Action<int[]> _pendingDiceResolver;
         private ECardTarget _pendingDiceTarget;
+        private int _pendingEnemyDiceTargetIndex = -1;
         private int _pendingDiceSelectionLimit;
         private int _pendingDrawCount;
         private int _resolvingEffectIndex;
+        private int _resolvingTargetEnemyIndex = -1;
+        private bool _resolvingTargetsAllEnemies;
         private string _resolvingSourceName;
 
         /// <summary>Initialises combat and begins the first round.</summary>
-        public void StartCombat(EnemyData enemyData, List<CardData> playerDeck,
+        public void StartCombat(IReadOnlyList<EnemyData> enemyData, List<CardData> playerDeck,
                                 int playerHealth = 30, int playerEnergy = 3)
         {
             Player = new PlayerCombatant(playerHealth, playerEnergy, playerDeck);
-            Enemy = new EnemyCombatant(enemyData);
+            _enemies.Clear();
+
+            if (enemyData != null)
+            {
+                foreach (var enemy in enemyData.Where(data => data != null).Take(4))
+                    _enemies.Add(new EnemyCombatant(enemy));
+            }
+
             BeginRound();
         }
 
@@ -82,21 +96,49 @@ namespace BannerOfBones.CardGame
             return IsAwaitingHandSelection || IsSelectingRetain || CanPlayCard(card);
         }
 
-        public bool CanSelectDie(ECardTarget target, int dieIndex)
+        public bool CanSelectEnemy(int enemyIndex)
+        {
+            return IsAwaitingEnemySelection
+                   && enemyIndex >= 0
+                   && enemyIndex < _enemies.Count
+                   && _enemies[enemyIndex].IsAlive;
+        }
+
+        public bool CanSelectDie(ECardTarget target, int dieIndex, int enemyIndex = -1)
         {
             if (!IsAwaitingDiceSelection || target != _pendingDiceTarget)
                 return false;
 
-            int dieCount = target == ECardTarget.PlayerDice
-                ? Player.Dice.DiceCount
-                : Enemy.Dice.DiceCount;
+            int dieCount;
+            if (target == ECardTarget.PlayerDice)
+            {
+                dieCount = Player.Dice.DiceCount;
+            }
+            else
+            {
+                if (enemyIndex != _pendingEnemyDiceTargetIndex
+                    || enemyIndex < 0
+                    || enemyIndex >= _enemies.Count
+                    || !_enemies[enemyIndex].IsAlive)
+                {
+                    return false;
+                }
+
+                dieCount = _enemies[enemyIndex].Dice.DiceCount;
+            }
 
             return dieIndex >= 0 && dieIndex < dieCount;
         }
 
-        public bool IsDieSelected(ECardTarget target, int dieIndex)
+        public bool IsDieSelected(ECardTarget target, int dieIndex, int enemyIndex = -1)
         {
-            return target == _pendingDiceTarget && _selectedDiceIndices.Contains(dieIndex);
+            if (target != _pendingDiceTarget)
+                return false;
+
+            if (target == ECardTarget.EnemyDice && enemyIndex != _pendingEnemyDiceTargetIndex)
+                return false;
+
+            return _selectedDiceIndices.Contains(dieIndex);
         }
 
         /// <summary>
@@ -105,7 +147,7 @@ namespace BannerOfBones.CardGame
         public bool TryHandleHandCardClick(CardData card)
         {
             if (State != ECombatState.PlayerTurn || card == null) return false;
-            if (IsAwaitingDiceSelection) return false;
+            if (IsAwaitingEnemySelection || IsAwaitingDiceSelection) return false;
 
             if (IsAwaitingHandSelection)
                 return ResolvePendingHandSelection(card);
@@ -138,11 +180,29 @@ namespace BannerOfBones.CardGame
                     break;
             }
 
-            if (card.duration == ECardDuration.Persistent)
-                Player.ActivePersistentCards.Add(card);
+            bool requiresEnemyTarget = CardEffectProcessor.CardRequiresEnemyTarget(card);
+            bool targetsAllEnemies = card.targetsAllEnemies && requiresEnemyTarget;
 
             Log($"Played {card.cardName}.");
-            BeginEffectSequence(card.cardName, card.effects);
+
+            if (requiresEnemyTarget && !targetsAllEnemies)
+            {
+                int singleEnemyIndex = GetSingleAliveEnemyIndex();
+                if (singleEnemyIndex >= 0)
+                {
+                    BeginCardResolution(card, singleEnemyIndex, false);
+                }
+                else
+                {
+                    QueueEnemySelection($"Choose a target for {card.cardName}.",
+                        enemyIndex => BeginCardResolution(card, enemyIndex, false));
+                    NotifyStateChanged();
+                }
+
+                return true;
+            }
+
+            BeginCardResolution(card, -1, targetsAllEnemies);
             return true;
         }
 
@@ -183,8 +243,14 @@ namespace BannerOfBones.CardGame
 
         public bool ToggleRetainSelection()
         {
-            if (State != ECombatState.PlayerTurn || IsAwaitingDiceSelection || IsAwaitingHandSelection || Player.Deck.Hand.Count == 0)
+            if (State != ECombatState.PlayerTurn
+                || IsAwaitingEnemySelection
+                || IsAwaitingDiceSelection
+                || IsAwaitingHandSelection
+                || Player.Deck.Hand.Count == 0)
+            {
                 return false;
+            }
 
             IsSelectingRetain = !IsSelectingRetain;
             PendingPrompt = IsSelectingRetain ? "Choose 1 card to retain for next round." : null;
@@ -192,9 +258,20 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
-        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex)
+        public bool TrySelectEnemy(int enemyIndex)
         {
-            if (!CanSelectDie(target, dieIndex)) return false;
+            if (!CanSelectEnemy(enemyIndex))
+                return false;
+
+            var resolver = _pendingEnemyResolver;
+            ClearPendingEnemySelection();
+            resolver?.Invoke(enemyIndex);
+            return true;
+        }
+
+        public bool TogglePendingDieSelection(ECardTarget target, int dieIndex, int enemyIndex = -1)
+        {
+            if (!CanSelectDie(target, dieIndex, enemyIndex)) return false;
 
             if (_selectedDiceIndices.Contains(dieIndex))
             {
@@ -239,14 +316,25 @@ namespace BannerOfBones.CardGame
             ExecuteEnemyTurn();
         }
 
+        private void BeginCardResolution(CardData card, int targetEnemyIndex, bool targetsAllEnemies)
+        {
+            if (card.duration == ECardDuration.Persistent)
+                Player.ActivePersistentCards.Add(new PersistentCardRuntime(card, targetEnemyIndex, targetsAllEnemies));
+
+            BeginEffectSequence(card.cardName, card.effects, targetEnemyIndex, targetsAllEnemies);
+        }
+
         private void BeginRound()
         {
             ClearAllPrompts();
 
             Player.StartRound();
-            Enemy.StartRound();
+            foreach (var enemy in _enemies.Where(enemy => enemy.IsAlive))
+                enemy.StartRound();
 
-            Enemy.ApplyPreRoundEffects();
+            foreach (var enemy in _enemies.Where(enemy => enemy.IsAlive))
+                enemy.ApplyPreRoundEffects();
+
             ApplyPersistentCardEffects();
             if (CheckForCombatEnd()) return;
 
@@ -259,9 +347,9 @@ namespace BannerOfBones.CardGame
 
         private void ApplyPersistentCardEffects()
         {
-            foreach (var card in Player.ActivePersistentCards)
+            foreach (var persistent in Player.ActivePersistentCards)
             {
-                foreach (var effect in card.effects)
+                foreach (var effect in persistent.Card.effects)
                 {
                     if (effect.effectType == EEffectType.AddDie
                         || effect.effectType == EEffectType.RemoveDie
@@ -271,7 +359,8 @@ namespace BannerOfBones.CardGame
                         continue;
                     }
 
-                    CardEffectProcessor.ProcessEffect(effect, Player, Enemy);
+                    CardEffectProcessor.ProcessEffect(effect, Player, _enemies,
+                        persistent.TargetEnemyIndex, persistent.TargetsAllEnemies);
                 }
             }
         }
@@ -285,22 +374,42 @@ namespace BannerOfBones.CardGame
 
             foreach (var wager in wagers)
             {
-                int[] dice = wager.DiceTarget == ECardTarget.PlayerDice
-                    ? Player.Dice.CurrentRoll
-                    : Enemy.Dice.CurrentRoll;
-
-                int triggers = PokerEvaluator.EvaluateTriggerCount(
-                    wager.TriggerOn, dice, wager.DieValue, wager.ValueThreshold);
-
-                if (triggers > 0)
+                if (wager.DiceTarget == ECardTarget.PlayerDice)
                 {
-                    Enemy.TakeDamage(wager.Magnitude);
-                    Log($"{wager.SourceName} pays off for {wager.Magnitude} damage.");
+                    var targets = new List<EnemyCombatant>(GetEnemyTargets(wager.TargetEnemyIndex, wager.TargetsAllEnemies));
+                    int triggers = PokerEvaluator.EvaluateTriggerCount(
+                        wager.TriggerOn, Player.Dice.CurrentRoll, wager.DieValue, wager.ValueThreshold);
+
+                    if (triggers > 0 && targets.Count > 0)
+                    {
+                        int damage = wager.Magnitude;
+                        foreach (var enemy in targets)
+                            enemy.TakeDamage(damage);
+
+                        Log($"{wager.SourceName} pays off for {damage} damage.");
+                    }
+                    else
+                    {
+                        Log($"{wager.SourceName} whiffs this round.");
+                    }
+
+                    continue;
                 }
-                else
+
+                bool anyTriggered = false;
+                foreach (var enemy in GetEnemyTargets(wager.TargetEnemyIndex, wager.TargetsAllEnemies))
                 {
-                    Log($"{wager.SourceName} whiffs this round.");
+                    int triggers = PokerEvaluator.EvaluateTriggerCount(
+                        wager.TriggerOn, enemy.Dice.CurrentRoll, wager.DieValue, wager.ValueThreshold);
+
+                    if (triggers <= 0) continue;
+                    anyTriggered = true;
+                    enemy.TakeDamage(wager.Magnitude);
                 }
+
+                Log(anyTriggered
+                    ? $"{wager.SourceName} pays off for {wager.Magnitude} damage."
+                    : $"{wager.SourceName} whiffs this round.");
             }
         }
 
@@ -308,9 +417,12 @@ namespace BannerOfBones.CardGame
         {
             SetState(ECombatState.EnemyTurn);
 
-            int damage = Enemy.CalculateDamage();
+            int damage = 0;
+            foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
+                damage += enemy.CalculateDamage();
+
             Player.TakeDamage(damage);
-            Log($"Enemy deals {damage} damage.");
+            Log($"Enemies deal {damage} damage.");
 
             if (!Player.IsAlive)
             {
@@ -321,12 +433,15 @@ namespace BannerOfBones.CardGame
             BeginRound();
         }
 
-        private void BeginEffectSequence(string sourceName, IReadOnlyList<CardEffectData> effects)
+        private void BeginEffectSequence(string sourceName, IReadOnlyList<CardEffectData> effects,
+            int targetEnemyIndex, bool targetsAllEnemies)
         {
             _resolvingEffects.Clear();
             _resolvingEffects.AddRange(effects);
             _resolvingEffectIndex = 0;
             _resolvingSourceName = sourceName;
+            _resolvingTargetEnemyIndex = targetEnemyIndex;
+            _resolvingTargetsAllEnemies = targetsAllEnemies;
 
             ContinueEffectSequence();
         }
@@ -349,13 +464,16 @@ namespace BannerOfBones.CardGame
                     continue;
                 }
 
-                CardEffectProcessor.ProcessEffect(effect, Player, Enemy);
+                CardEffectProcessor.ProcessEffect(effect, Player, _enemies,
+                    _resolvingTargetEnemyIndex, _resolvingTargetsAllEnemies);
                 if (CheckForCombatEnd()) return;
             }
 
             _resolvingEffects.Clear();
             _resolvingEffectIndex = 0;
             _resolvingSourceName = null;
+            _resolvingTargetEnemyIndex = -1;
+            _resolvingTargetsAllEnemies = false;
             NotifyStateChanged();
         }
 
@@ -366,9 +484,13 @@ namespace BannerOfBones.CardGame
 
             if (effect.effectType == EEffectType.RerollDice)
             {
+                if (effect.diceTarget == ECardTarget.EnemyDice && _resolvingTargetsAllEnemies)
+                    return false;
+
+                int enemyIndex = effect.diceTarget == ECardTarget.EnemyDice ? _resolvingTargetEnemyIndex : -1;
                 int dieCount = effect.diceTarget == ECardTarget.PlayerDice
                     ? Player.Dice.DiceCount
-                    : Enemy.Dice.DiceCount;
+                    : GetEnemyAt(enemyIndex)?.Dice.DiceCount ?? 0;
 
                 int selectionLimit = Math.Min(effect.count, dieCount);
                 if (selectionLimit <= 0) return false;
@@ -376,16 +498,24 @@ namespace BannerOfBones.CardGame
                 QueueDiceSelection(
                     effect.diceTarget,
                     selectionLimit,
-                    $"Choose up to {selectionLimit} {(effect.diceTarget == ECardTarget.PlayerDice ? "player" : "enemy")} dice to reroll.",
+                    effect.diceTarget == ECardTarget.PlayerDice
+                        ? $"Choose up to {selectionLimit} player dice to reroll."
+                        : $"Choose up to {selectionLimit} dice on {GetEnemyName(enemyIndex)} to reroll.",
                     indices =>
                     {
                         if (effect.diceTarget == ECardTarget.PlayerDice)
+                        {
                             Player.Dice.RerollAtIndices(indices);
+                            Log($"Rerolled {indices.Length} player dice.");
+                        }
                         else
-                            Enemy.Dice.RerollAtIndices(indices);
-
-                        Log($"Rerolled {indices.Length} {(effect.diceTarget == ECardTarget.PlayerDice ? "player" : "enemy")} dice.");
-                    });
+                        {
+                            var enemy = GetEnemyAt(enemyIndex);
+                            enemy?.Dice.RerollAtIndices(indices);
+                            Log($"Rerolled {indices.Length} dice on {GetEnemyName(enemyIndex)}.");
+                        }
+                    },
+                    enemyIndex);
 
                 return true;
             }
@@ -410,7 +540,11 @@ namespace BannerOfBones.CardGame
             if (effect.effectType != EEffectType.AddWager)
                 return false;
 
-            Player.ActiveWagers.Add(new WagerData(_resolvingSourceName, effect));
+            Player.ActiveWagers.Add(new WagerData(
+                _resolvingSourceName,
+                effect,
+                _resolvingTargetEnemyIndex,
+                _resolvingTargetsAllEnemies));
             Log($"{_resolvingSourceName} sets a wager for next round.");
             return true;
         }
@@ -438,10 +572,18 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
-        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver)
+        private void QueueEnemySelection(string prompt, Action<int> resolver)
+        {
+            _pendingEnemyResolver = resolver;
+            PendingPrompt = prompt;
+        }
+
+        private void QueueDiceSelection(ECardTarget target, int maxSelections, string prompt, Action<int[]> resolver,
+            int enemyIndex = -1)
         {
             _selectedDiceIndices.Clear();
             _pendingDiceTarget = target;
+            _pendingEnemyDiceTargetIndex = target == ECardTarget.EnemyDice ? enemyIndex : -1;
             _pendingDiceSelectionLimit = maxSelections;
             _pendingDiceResolver = resolver;
             PendingPrompt = prompt;
@@ -454,11 +596,18 @@ namespace BannerOfBones.CardGame
             PendingPrompt = prompt;
         }
 
+        private void ClearPendingEnemySelection()
+        {
+            _pendingEnemyResolver = null;
+            PendingPrompt = null;
+        }
+
         private void ClearPendingDiceSelection()
         {
             _selectedDiceIndices.Clear();
             _pendingDiceResolver = null;
             _pendingDiceSelectionLimit = 0;
+            _pendingEnemyDiceTargetIndex = -1;
             PendingPrompt = null;
         }
 
@@ -471,6 +620,7 @@ namespace BannerOfBones.CardGame
 
         private void ClearAllPrompts()
         {
+            ClearPendingEnemySelection();
             ClearPendingDiceSelection();
             ClearPendingHandSelection();
             IsSelectingRetain = false;
@@ -478,7 +628,7 @@ namespace BannerOfBones.CardGame
 
         private bool CheckForCombatEnd()
         {
-            if (!Enemy.IsAlive)
+            if (_enemies.All(enemy => !enemy.IsAlive))
             {
                 EndCombat(true);
                 return true;
@@ -498,6 +648,8 @@ namespace BannerOfBones.CardGame
             _resolvingEffects.Clear();
             _resolvingEffectIndex = 0;
             _resolvingSourceName = null;
+            _resolvingTargetEnemyIndex = -1;
+            _resolvingTargetsAllEnemies = false;
             ClearAllPrompts();
             SetState(playerWon ? ECombatState.Victory : ECombatState.Defeat);
             OnCombatEnded?.Invoke(playerWon);
@@ -517,6 +669,53 @@ namespace BannerOfBones.CardGame
         private void Log(string message)
         {
             OnLogMessage?.Invoke(message);
+        }
+
+        private EnemyCombatant GetEnemyAt(int enemyIndex)
+        {
+            return enemyIndex >= 0 && enemyIndex < _enemies.Count ? _enemies[enemyIndex] : null;
+        }
+
+        private string GetEnemyName(int enemyIndex)
+        {
+            return GetEnemyAt(enemyIndex)?.Data.enemyName ?? "the target";
+        }
+
+        private EnemyCombatant GetFirstAliveEnemy()
+        {
+            return _enemies.FirstOrDefault(enemy => enemy.IsAlive);
+        }
+
+        private int GetSingleAliveEnemyIndex()
+        {
+            int foundIndex = -1;
+
+            for (int i = 0; i < _enemies.Count; i++)
+            {
+                if (!_enemies[i].IsAlive)
+                    continue;
+
+                if (foundIndex >= 0)
+                    return -1;
+
+                foundIndex = i;
+            }
+
+            return foundIndex;
+        }
+
+        private IEnumerable<EnemyCombatant> GetEnemyTargets(int targetEnemyIndex, bool targetsAllEnemies)
+        {
+            if (targetsAllEnemies)
+            {
+                foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
+                    yield return enemy;
+                yield break;
+            }
+
+            var targetEnemy = GetEnemyAt(targetEnemyIndex);
+            if (targetEnemy != null && targetEnemy.IsAlive)
+                yield return targetEnemy;
         }
     }
 }

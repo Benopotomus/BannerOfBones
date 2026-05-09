@@ -71,7 +71,8 @@ namespace BannerOfBones.CardGame
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             string durationText = card.duration == ECardDuration.Instant ? string.Empty : $" | {card.duration}";
             string retainedText = retained ? "\n<color=#F8E27A>Retained</color>" : string.Empty;
-            txt.text = $"<b>{card.cardName}</b>\n{card.description}\n[{card.energyCost}E{durationText}]{retainedText}";
+            string targetText = card.targetsAllEnemies ? "\n<color=#F8E27A>All Enemies</color>" : string.Empty;
+            txt.text = $"<b>{card.cardName}</b>\n{card.description}\n[{card.energyCost}E{durationText}]{targetText}{retainedText}";
         }
     }
 }

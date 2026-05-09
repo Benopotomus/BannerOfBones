@@ -2,7 +2,7 @@
 
 ## Overview
 
-A turn-based card game with poker-dice mechanics. The player builds a deck of action cards and fights enemies through a series of combat encounters. Each round, both the player and the enemy roll pools of six-sided dice. Cards are played to spend those dice results on damage, defense, and dice manipulation.
+A turn-based card game with poker-dice mechanics. The player builds a deck of action cards and fights small enemy groups through a series of combat encounters. Each round, the player and up to four enemies roll pools of six-sided dice. Cards are played to spend those dice results on damage, defense, and dice manipulation.
 
 ---
 
@@ -10,7 +10,7 @@ A turn-based card game with poker-dice mechanics. The player builds a deck of ac
 
 ### Dice
 - **Player dice pool**: 5 six-sided dice (d6), rolled at the start of every round.
-- **Enemy dice pool**: 2–5 six-sided dice, defined per enemy and rolled at the start of every round.
+- **Enemy dice pool**: each enemy rolls their own 2–4 six-sided dice at the start of every round.
 - Dice results are evaluated using **poker-dice style** rules: singles, pairs, triples, straights, full houses, four-of-a-kind, and five-of-a-kind (Yahtzee).
 
 ### Poker-Dice Hand Reference
@@ -45,7 +45,9 @@ A turn-based card game with poker-dice mechanics. The player builds a deck of ac
 #### Card Targets
 Cards specify which dice pool their effects evaluate:
 - **Player Dice**: Read your own dice.
-- **Enemy Dice**: Read the enemy's dice.
+- **Enemy Dice**: Read one chosen enemy's dice, unless the card targets all enemies.
+
+Cards that damage or manipulate enemies must choose a target enemy when played, unless the card explicitly says it hits **all enemies**.
 
 ---
 
@@ -69,15 +71,17 @@ The player may spend energy on any number of cards or baseline actions during th
 - **Retain**: Mark 1 card in hand to keep for the next round instead of discarding it.
 
 Card effects resolve immediately in play order:
+- Most attack cards choose a single living enemy when played.
+- Cards marked as affecting **all enemies** resolve against every living enemy.
 - Rerolling dice lets the player choose which dice to reroll.
-- Damage dealt reduces the enemy's health immediately.
+- Damage dealt reduces the chosen enemy's health immediately, or all enemies for area effects.
 - Block gained reduces incoming damage from the enemy this round.
 
 The player ends their turn when they choose to pass or run out of playable cards.
 
 ### 4. Enemy Turn
-Enemy passive effects are evaluated against the enemy's current dice pool.
-All enemy damage is totaled, then reduced by any remaining player block.
+Each living enemy evaluates their passive effects against their own current dice pool.
+All enemy damage is totaled together, then reduced by any remaining player block.
 Excess damage is applied to the player's health.
 
 ### 5. End of Round
@@ -91,7 +95,7 @@ Excess damage is applied to the player's health.
 - **Starting Health**: 30 HP.
 - **Starting Energy**: 3 per round (can be modified by deck/items).
 - **Starting Dice Pool**: 5 d6.
-- The player wins when the enemy's health reaches 0.
+- The player wins when every enemy's health reaches 0.
 - The player loses when their own health reaches 0.
 
 ---
@@ -100,7 +104,8 @@ Excess damage is applied to the player's health.
 - Enemies do **not** have cards or a hand.
 - Each enemy has a set of **passive effects** defined at creation that fire every round automatically.
 - Passive effects are evaluated against the **enemy's own dice roll**, not the player's.
-- Enemies have **fixed dice counts** (2–5 dice), defined per enemy.
+- Encounters field **1–4 enemies** at once.
+- Enemies have **fixed dice counts** (2–4 dice), defined per enemy.
 - Some enemies have **pre-round effects** that modify their own dice before the player's turn (e.g., rerolling unfavorable faces).
 
 ---
@@ -126,14 +131,17 @@ Excess damage is applied to the player's health.
 ## Example Cards
 
 ### Damage Cards
+- **Strike** (1 energy): Deal 1 damage for every die showing 5 or 6.
 - **Swift Slash** (1 energy): Deal 1 damage for each [1] rolled.
 - **Ace High** (1 energy): Deal 3 damage for each [6] rolled.
-- **Twin Fangs** (1 energy): Deal 1 damage for each pair rolled.
-- **Spirit Strike** (2 energy): Deal 2 damage for each pair rolled.
-- **Focused Strike** (2 energy): Deal 3 damage for each triple rolled.
-- **Gambler's Blade** (2 energy): Deal 5 damage if you have a straight; otherwise deal 1 damage.
+- **Twin Fangs** (1 energy): Deal 2 damage for each pair rolled.
+- **Spirit Strike** (2 energy): Deal 3 damage for each pair rolled.
+- **Focused Strike** (2 energy): Deal 4 damage for each triple rolled.
+- **Gambler's Blade** (2 energy): Deal 5 damage if you have a straight; otherwise take 1 damage.
 - **Crushing Blow** (3 energy): Deal 4 damage per full house rolled.
 - **Dragon's Roar** (3 energy): Deal 6 damage per five-of-a-kind rolled.
+- **Scatter Shot** (2 energy): Deal 1 damage to all enemies for each unique die value showing.
+- **Chain Lightning** (2 energy): Deal 2 damage to every enemy for each pair found in their dice.
 
 ### Defense Cards
 - **Iron Shield** (1 energy): Block 1 damage for each [4] rolled.
@@ -144,14 +152,14 @@ Excess damage is applied to the player's health.
 ### Dice Manipulation
 - **Lucky Reroll** (1 energy): Choose up to 3 of your dice to reroll.
 - **Full Send** (2 energy): Reroll all of your dice.
-- **Hex Curse** (2 energy): Choose up to 2 enemy dice to reroll.
-- **Cursed Dice** (2 energy): Force the enemy to reroll all of their dice.
-- **War Drums** (3 energy): Reroll all enemy dice, then deal 1 damage per unique value in their new roll.
+- **Hex Curse** (2 energy): Choose an enemy, then reroll up to 2 of their dice.
+- **Cursed Dice** (2 energy): Force all enemies to reroll all of their dice.
+- **War Drums** (3 energy): Reroll all enemy dice, then deal 1 damage to each enemy per unique value in their new roll.
 - **Lucky Charm** (3 energy, Persistent): Add 1 die to your pool for the rest of combat.
 
 ### Hand Planning
 - **Tactical Pivot** (1 energy): Discard another card, then draw 2 cards.
-- **Loaded Bet** (1 energy): Next round, if you roll a pair, deal 6 damage.
+- **Loaded Bet** (1 energy): Next round, if you roll a pair, deal 6 damage to the chosen enemy.
 
 ### Exhaust Cards
 - **Last Stand** (0 energy, Exhaust): Deal damage equal to 3× your highest die.
@@ -164,37 +172,36 @@ Excess damage is applied to the player's health.
 
 ## Example Enemies
 
-### Goblin Scout (15 HP, 2 dice)
+### Goblin Scout (8 HP, 2 dice)
 - Deals 1 damage for each [2] rolled.
-- Deals 2 damage for each pair rolled.
+- Deals 1 damage for each pair rolled.
 
-### Orc Warrior (25 HP, 3 dice)
-- Deals 2 damage for each pair rolled.
+### Orc Warrior (12 HP, 2 dice)
 - Deals 1 damage for each odd die rolled.
+- Deals 1 damage for each pair rolled.
 
-### Shadow Wraith (20 HP, 4 dice)
+### Shadow Wraith (10 HP, 3 dice)
 - Deals 1 damage for each odd die rolled.
-- Deals 2 damage for each [1] rolled.
+- Deals 1 damage for each [1] rolled.
 
-### Stone Golem (40 HP, 3 dice)
+### Stone Golem (16 HP, 3 dice)
 - Rerolls all dice showing [1] at the start of each round.
-- Deals 3 damage for each triple rolled.
 - Deals 1 damage for each even die rolled.
+- Deals 2 damage for each triple rolled.
 
-### Death Knight (35 HP, 5 dice)
+### Death Knight (18 HP, 4 dice)
+- Deals 1 damage for each die showing 5 or 6.
 - Deals 2 damage for each pair rolled.
-- Deals 4 damage for each triple rolled.
-- Deals 6 damage if a straight is rolled.
 
 ---
 
 ## Deck Building Guidelines (Starter Deck)
 A balanced starter deck of 10–15 cards might include:
-- 2–3 block cards for sustained defense.
-- 3–4 damage cards at various energy costs.
+- 4 basic **Strike** cards for reliable single-target damage.
+- 3–4 block cards for sustained defense.
+- 1–2 area cards to help clear groups.
 - 1–2 reroll cards for dice manipulation.
-- 1 persistent card for long-term advantage.
-- 1 high-risk/high-reward card for burst potential.
+- 1 hand-management or setup card.
 
 ---
 

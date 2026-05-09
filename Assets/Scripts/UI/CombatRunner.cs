@@ -34,6 +34,8 @@ namespace BannerOfBones.CardGame
         private Button _focusButton;
         private Button _braceButton;
         private Button _scoutButton;
+        private Button _tuneButton;
+        private Button _sunderButton;
         private Button _cancelButton;
         private Button _confirmDiceButton;
         private Button _endTurnButton;
@@ -107,17 +109,21 @@ namespace BannerOfBones.CardGame
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
             MkButton(root, "View Deck", new Vector2(0.05f, 0.04f), new Vector2(0.17f, 0.10f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
             MkButton(root, "View Discard", new Vector2(0.18f, 0.04f), new Vector2(0.30f, 0.10f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
-            _focusButton = MkButton(root, "Focus", new Vector2(0.33f, 0.04f), new Vector2(0.43f, 0.10f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
-            _braceButton = MkButton(root, "Brace", new Vector2(0.44f, 0.04f), new Vector2(0.54f, 0.10f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
-            _scoutButton = MkButton(root, "Scout", new Vector2(0.55f, 0.04f), new Vector2(0.65f, 0.10f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
-            _cancelButton = MkButton(root, "Cancel", new Vector2(0.68f, 0.04f), new Vector2(0.76f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
-            _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.77f, 0.04f), new Vector2(0.88f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
-            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.89f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            _focusButton = MkButton(root, "Focus", new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
+            _braceButton = MkButton(root, "Brace", new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
+            _scoutButton = MkButton(root, "Scout", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
+            _tuneButton = MkButton(root, "Tune", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), C(0.18f, 0.38f, 0.14f), OnTuneClicked);
+            _sunderButton = MkButton(root, "Sunder", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.18f, 0.38f, 0.14f), OnSunderClicked);
+            _cancelButton = MkButton(root, "Cancel", new Vector2(0.72f, 0.04f), new Vector2(0.79f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
+            _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
+            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
             _actionTooltipText.text = string.Empty;
             AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll up to 3 player dice.");
             AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
             AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
+            AttachHoverTooltip(_tuneButton, $"Tune: Spend {CombatManager.TuneEnergyCost} energy to raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1.");
+            AttachHoverTooltip(_sunderButton, $"Sunder: Spend {CombatManager.SunderEnergyCost} energy to lower up to {CombatManager.SunderMaxDiceTargets} enemy dice by 1.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
@@ -260,7 +266,9 @@ namespace BannerOfBones.CardGame
 
                 var hpText = MkText(panel, 12, enemy.IsAlive ? C(1f, 0.80f, 0.80f) : C(0.65f, 0.65f, 0.65f),
                     TextAnchor.UpperLeft, 0f, 0.58f, 1f, 0.74f);
-                hpText.text = $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
+                hpText.text = enemy.Block > 0
+                    ? $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}   Block {enemy.Block}"
+                    : $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
 
                 var diceText = MkText(panel, 10, C(1f, 0.90f, 0.30f), TextAnchor.UpperLeft, 0f, 0.46f, 1f, 0.60f);
                 string enemyHandLabel = BuildDiceHandLabel(enemy.Dice.CurrentRoll);
@@ -297,6 +305,8 @@ namespace BannerOfBones.CardGame
             _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
             _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
+            _tuneButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.TuneEnergyCost);
+            _sunderButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.SunderEnergyCost) && CountAliveEnemies() > 0;
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
             _cancelButton.interactable = _combat.HasPendingCardPlay;
@@ -516,6 +526,18 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
+        private void OnTuneClicked()
+        {
+            if (_combat.TryUseTune())
+                RefreshUI();
+        }
+
+        private void OnSunderClicked()
+        {
+            if (_combat.TryUseSunder())
+                RefreshUI();
+        }
+
         private void OnCancelClicked()
         {
             if (_combat.CancelPendingCardPlay())
@@ -714,24 +736,11 @@ namespace BannerOfBones.CardGame
             if (enemy.CurrentIntent != null)
             {
                 var sb = new StringBuilder();
+                sb.AppendLine($"<color=#FFB0B0>{FormatIntentHeadline(enemy, enemy.CurrentIntent, true)}</color>");
+                sb.AppendLine($"  {enemy.GetIntentSummary()}");
 
-                // Current intent — show damage prominently
-                if (enemy.CurrentIntent.damage > 0)
-                    sb.AppendLine($"<color=#FF8080>⚔ {enemy.CurrentIntent.intentName}: {enemy.CurrentIntent.damage} damage</color>");
-                else
-                    sb.AppendLine($"→ {enemy.CurrentIntent.intentName}");
-
-                if (!string.IsNullOrWhiteSpace(enemy.CurrentIntent.description))
-                    sb.AppendLine($"  {enemy.CurrentIntent.description}");
-
-                // Next intent preview
                 if (enemy.NextIntent != null)
-                {
-                    if (enemy.NextIntent.damage > 0)
-                        sb.Append($"<color=#AAAAAA>Next: ⚔ {enemy.NextIntent.intentName} ({enemy.NextIntent.damage} dmg)</color>");
-                    else
-                        sb.Append($"<color=#AAAAAA>Next: → {enemy.NextIntent.intentName}</color>");
-                }
+                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, false)}</color>");
 
                 return sb.ToString().TrimEnd();
             }
@@ -740,6 +749,37 @@ namespace BannerOfBones.CardGame
             foreach (var passive in enemy.Data.passiveEffects)
                 passiveText.AppendLine($"• {passive.description}");
             return passiveText.ToString().TrimEnd();
+        }
+
+        private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, bool includeCurrentDamage)
+        {
+            int amount = Mathf.Max(0, intent.magnitude);
+            int count = Mathf.Max(1, intent.count);
+            switch (intent.intentType)
+            {
+                case EEnemyIntentType.AttackFlat:
+                {
+                    int damage = amount;
+                    return $"⚔ {intent.intentName} ({damage} dmg)";
+                }
+                case EEnemyIntentType.AttackFromHighestDie:
+                {
+                    int damage = includeCurrentDamage ? enemy.CalculateIntentDamage() : 0;
+                    return includeCurrentDamage
+                        ? $"⚔ {intent.intentName} ({amount}×die = {damage} dmg)"
+                        : $"⚔ {intent.intentName} ({amount}×highest die)";
+                }
+                case EEnemyIntentType.Guard:
+                    return $"🛡 {intent.intentName} (+{amount} block)";
+                case EEnemyIntentType.RerollPlayerDice:
+                    return $"🎲 {intent.intentName} (reroll {count} low dice)";
+                case EEnemyIntentType.WeakenPlayerDice:
+                    return $"☠ {intent.intentName} (-{amount} to {count} high dice)";
+                case EEnemyIntentType.UpgradeSelfDice:
+                    return $"⬆ {intent.intentName} (upgrade {count} die)";
+                default:
+                    return $"→ {intent.intentName}";
+            }
         }
 
         private static string FormatDice(int[] roll)

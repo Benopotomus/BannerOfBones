@@ -90,6 +90,19 @@ namespace BannerOfBones.CardGame
                     RerollIndex(i);
         }
 
+        /// <summary>
+        /// Rerolls up to <paramref name="count"/> of the lowest-valued dice and returns how many were rerolled.
+        /// If <paramref name="count"/> exceeds available dice, rerolls all available dice.
+        /// </summary>
+        public int RerollLowestDice(int count)
+        {
+            int n = Math.Min(count, _dice.Count);
+            int[] indices = GetIndicesSortedAscendingByValue();
+            for (int i = 0; i < n; i++)
+                RerollIndex(indices[i]);
+            return n;
+        }
+
         // ── Pool Sizing ───────────────────────────────────────────────────────────
 
         /// <summary>
@@ -143,6 +156,40 @@ namespace BannerOfBones.CardGame
             _dice[index] = d;
         }
 
+        /// <summary>
+        /// Adjusts the value of the die at <paramref name="index"/> by <paramref name="delta"/>, clamped to [1, sides].
+        /// Out-of-range indices are ignored.
+        /// </summary>
+        public void AdjustDieValue(int index, int delta)
+        {
+            if (index < 0 || index >= _dice.Count) return;
+            var d = _dice[index];
+            d.Value = Math.Max(1, Math.Min(d.Sides, d.Value + delta));
+            _dice[index] = d;
+        }
+
+        /// <summary>
+        /// Adjusts up to <paramref name="count"/> highest-valued dice by <paramref name="delta"/> and returns how many were changed.
+        /// </summary>
+        public int AdjustHighestDice(int count, int delta)
+        {
+            int n = Math.Min(count, _dice.Count);
+            int[] indices = GetIndicesSortedDescendingByValue();
+            for (int i = 0; i < n; i++)
+                AdjustDieValue(indices[i], delta);
+            return n;
+        }
+
+        /// <summary>Upgrades up to <paramref name="count"/> highest-valued dice by one tier and returns how many were upgraded.</summary>
+        public int UpgradeHighestDice(int count)
+        {
+            int n = Math.Min(count, _dice.Count);
+            int[] indices = GetIndicesSortedDescendingByValue();
+            for (int i = 0; i < n; i++)
+                UpgradeDie(indices[i]);
+            return n;
+        }
+
         // ── Private ───────────────────────────────────────────────────────────────
 
         private void RerollIndex(int idx)
@@ -158,6 +205,14 @@ namespace BannerOfBones.CardGame
             var indices = new int[_dice.Count];
             for (int i = 0; i < _dice.Count; i++) indices[i] = i;
             Array.Sort(indices, (a, b) => _dice[a].Value.CompareTo(_dice[b].Value));
+            return indices;
+        }
+
+        private int[] GetIndicesSortedDescendingByValue()
+        {
+            var indices = new int[_dice.Count];
+            for (int i = 0; i < _dice.Count; i++) indices[i] = i;
+            Array.Sort(indices, (a, b) => _dice[b].Value.CompareTo(_dice[a].Value));
             return indices;
         }
 

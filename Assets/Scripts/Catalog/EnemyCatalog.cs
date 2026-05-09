@@ -32,12 +32,12 @@ namespace BannerOfBones.CardGame
                 (CreateDeathKnight(), 2),
             };
 
-            int budget = Random.Range(2, maxEnemies + 1);
+            int budget = BoBRandom.Range(2, maxEnemies + 1);
             var encounter = new List<EnemyData>();
 
             while (candidates.Count > 0 && encounter.Count < maxEnemies)
             {
-                int pick = Random.Range(0, candidates.Count);
+                int pick = BoBRandom.Range(0, candidates.Count);
                 var candidate = candidates[pick];
                 candidates.RemoveAt(pick);
 
@@ -61,20 +61,29 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Goblin Scout";
-            enemy.description = "A quick skirmisher with a simple two-step attack pattern.";
+            enemy.description = "A disruptive skirmisher that chips damage and scrambles your dice.";
             enemy.maxHealth = 8;
             enemy.diceCount = 2;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
-                    intentName = "Feint",
-                    damage = 1,
+                    intentName = "Pocket Sand",
+                    intentType = EEnemyIntentType.RerollPlayerDice,
+                    count = 1,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Stab",
-                    damage = 2,
+                    intentType = EEnemyIntentType.AttackFromHighestDie,
+                    magnitude = 1,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Shiv Twist",
+                    intentType = EEnemyIntentType.WeakenPlayerDice,
+                    magnitude = 1,
+                    count = 1,
                 },
             };
             enemy.passiveEffects = new List<EnemyPassiveEffectData>();
@@ -85,20 +94,29 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Orc Warrior";
-            enemy.description = "A bruiser that alternates between a heavy hit and a follow-up swing.";
+            enemy.description = "A bruiser that builds guard before punishing weak turns.";
             enemy.maxHealth = 12;
             enemy.diceCount = 2;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
-                    intentName = "Cleave",
-                    damage = 3,
+                    intentName = "Hunker",
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 3,
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Backhand",
-                    damage = 2,
+                    intentName = "Cleave",
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 3,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Batter",
+                    intentType = EEnemyIntentType.WeakenPlayerDice,
+                    magnitude = 1,
+                    count = 2,
                 },
             };
             enemy.passiveEffects = new List<EnemyPassiveEffectData>();
@@ -109,20 +127,28 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Shadow Wraith";
-            enemy.description = "A fragile predator that alternates chip damage with a sharper strike.";
+            enemy.description = "A trickster that repeatedly disrupts your setup before striking.";
             enemy.maxHealth = 10;
             enemy.diceCount = 3;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
-                    intentName = "Drain",
-                    damage = 2,
+                    intentName = "Hex",
+                    intentType = EEnemyIntentType.RerollPlayerDice,
+                    count = 2,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Ambush",
-                    damage = 3,
+                    intentType = EEnemyIntentType.AttackFromHighestDie,
+                    magnitude = 1,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Fade",
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 2,
                 },
             };
             enemy.passiveEffects = new List<EnemyPassiveEffectData>();
@@ -133,7 +159,7 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Stone Golem";
-            enemy.description = "A slow elite that telegraphs a steady slam pattern.";
+            enemy.description = "A scaling elite that upgrades itself before crushing blows.";
             enemy.maxHealth = 16;
             enemy.diceCount = 3;
             enemy.roundIntents = new List<EnemyIntentData>
@@ -141,12 +167,20 @@ namespace BannerOfBones.CardGame
                 new EnemyIntentData
                 {
                     intentName = "Wind Up",
-                    damage = 2,
+                    intentType = EEnemyIntentType.UpgradeSelfDice,
+                    count = 1,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Crush",
-                    damage = 4,
+                    intentType = EEnemyIntentType.AttackFromHighestDie,
+                    magnitude = 2,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Fortify",
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 4,
                 },
             };
             enemy.passiveEffects = new List<EnemyPassiveEffectData>();
@@ -157,20 +191,29 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Death Knight";
-            enemy.description = "An elite threat with a very clear spike-damage cadence.";
+            enemy.description = "An elite controller that weakens your dice before execution hits.";
             enemy.maxHealth = 18;
             enemy.diceCount = 4;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
-                    intentName = "Harry",
-                    damage = 3,
+                    intentName = "Soul Rend",
+                    intentType = EEnemyIntentType.WeakenPlayerDice,
+                    magnitude = 1,
+                    count = 2,
                 },
                 new EnemyIntentData
                 {
                     intentName = "Executioner Swing",
-                    damage = 5,
+                    intentType = EEnemyIntentType.AttackFromHighestDie,
+                    magnitude = 2,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Dark Bulwark",
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 5,
                 },
             };
             enemy.passiveEffects = new List<EnemyPassiveEffectData>();

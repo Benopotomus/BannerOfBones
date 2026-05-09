@@ -80,7 +80,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Strike";
-            card.description = "Deal 1 damage for every die showing 5 or 6.";
+            card.description = "Deal 1 damage for every die showing 5+.";
             card.energyCost = 1;
             card.duration = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -284,7 +284,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
             card.description = "Deal 4 damage per full house (triple + pair) rolled.";
-            card.energyCost  = 3;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {

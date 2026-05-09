@@ -24,10 +24,13 @@ namespace BannerOfBones.CardGame
 
         // ── Private ───────────────────────────────────────────────────────────────
 
+        private const string BuiltinFont = "LegacyRuntime.ttf";
+
         private CombatRunner _runner;
         private Canvas        _overlayCanvas;
         private InputField    _seedInputField;
         private Text          _activeSeedLabel;
+        private GameObject    _overlayBox;
 
         private void Awake()
         {
@@ -68,6 +71,7 @@ namespace BannerOfBones.CardGame
 
             // Card-style box in the centre
             var box = MkPanel(bg, "Box", new Color(0.10f, 0.10f, 0.18f, 1f), 0.30f, 0.35f, 0.70f, 0.65f);
+            _overlayBox = box.gameObject;
 
             // Title
             var title = MkText(box, "Title", 22, new Color(0.95f, 0.80f, 0.30f), TextAnchor.MiddleCenter,
@@ -110,8 +114,7 @@ namespace BannerOfBones.CardGame
                 _activeSeedLabel.text = $"Seed: {BoBRandom.Seed}";
 
             // Hide the input box then hand control back to CombatRunner.
-            var box = _overlayCanvas.transform.Find("OverlayBg/Box");
-            if (box != null) box.gameObject.SetActive(false);
+            if (_overlayBox != null) _overlayBox.SetActive(false);
 
             _runner.enabled = true;
             // CombatRunner.Start() will be called by Unity on the next frame now that it is enabled.
@@ -140,7 +143,7 @@ namespace BannerOfBones.CardGame
             var go  = new GameObject(name);
             go.transform.SetParent(parent, false);
             var t   = go.AddComponent<Text>();
-            t.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.font      = Resources.GetBuiltinResource<Font>(BuiltinFont);
             t.fontSize  = fontSize;
             t.color     = color;
             t.alignment = anchor;
@@ -169,7 +172,7 @@ namespace BannerOfBones.CardGame
             var textGo = new GameObject("Text");
             textGo.transform.SetParent(go.transform, false);
             var textComp = textGo.AddComponent<Text>();
-            textComp.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            textComp.font      = Resources.GetBuiltinResource<Font>(BuiltinFont);
             textComp.fontSize  = 18;
             textComp.color     = Color.white;
             textComp.alignment = TextAnchor.MiddleCenter;
@@ -183,7 +186,7 @@ namespace BannerOfBones.CardGame
             var phGo = new GameObject("Placeholder");
             phGo.transform.SetParent(go.transform, false);
             var phComp = phGo.AddComponent<Text>();
-            phComp.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            phComp.font      = Resources.GetBuiltinResource<Font>(BuiltinFont);
             phComp.fontSize  = 18;
             phComp.color     = new Color(0.6f, 0.6f, 0.6f);
             phComp.alignment = TextAnchor.MiddleCenter;
@@ -219,7 +222,7 @@ namespace BannerOfBones.CardGame
             var textGo = new GameObject("Text");
             textGo.transform.SetParent(go.transform, false);
             var t = textGo.AddComponent<Text>();
-            t.font      = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            t.font      = Resources.GetBuiltinResource<Font>(BuiltinFont);
             t.text      = label;
             t.fontSize  = 16;
             t.color     = Color.white;

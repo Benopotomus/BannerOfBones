@@ -345,21 +345,18 @@ namespace BannerOfBones.CardGame
 
         private void OnViewDeckClicked()
         {
-            var pile = _combat.Player.Deck.DrawPile;
-            var sb = new StringBuilder();
-            sb.AppendLine($"Draw Pile  ({pile.Count} cards)");
-            sb.AppendLine("──────────────────");
-            foreach (var c in pile)
-                sb.AppendLine($"· {c.cardName}");
-            _pileViewText.text = sb.ToString();
-            _pileViewPanel.gameObject.SetActive(true);
+            ShowPileView("Draw Pile", _combat.Player.Deck.DrawPile);
         }
 
         private void OnViewDiscardClicked()
         {
-            var pile = _combat.Player.Deck.DiscardPile;
+            ShowPileView("Discard Pile", _combat.Player.Deck.DiscardPile);
+        }
+
+        private void ShowPileView(string title, IReadOnlyList<CardData> pile)
+        {
             var sb = new StringBuilder();
-            sb.AppendLine($"Discard Pile  ({pile.Count} cards)");
+            sb.AppendLine($"{title}  ({pile.Count} cards)");
             sb.AppendLine("──────────────────");
             foreach (var c in pile)
                 sb.AppendLine($"· {c.cardName}");

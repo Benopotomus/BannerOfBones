@@ -598,28 +598,6 @@ namespace BannerOfBones.CardGame
                 switch (effect.effectType)
                 {
                     case EEffectType.DealDamage:
-                    {
-                        if (effect.diceTarget == ECardTarget.PlayerDice)
-                        {
-                            total += EvaluateDamageForRoll(effect, _combat.Player.Dice.CurrentRoll);
-                        }
-                        else if (card.targetsAllEnemies)
-                        {
-                            foreach (var enemy in _combat.Enemies)
-                            {
-                                if (!enemy.IsAlive) continue;
-                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
-                            }
-                        }
-                        else
-                        {
-                            var enemy = _combat.Enemy;
-                            if (enemy != null && enemy.IsAlive)
-                                total += EvaluateDamageForRoll(effect, enemy.Dice.CurrentRoll);
-                        }
-
-                        break;
-                    }
                     case EEffectType.ConditionalDamage:
                     {
                         if (effect.diceTarget == ECardTarget.PlayerDice)

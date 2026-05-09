@@ -705,10 +705,13 @@ namespace BannerOfBones.CardGame
             if (State != ECombatState.PlayerTurn
                 || card == null
                 || !Player.Deck.Hand.Contains(card)
-                || !Player.Energy.TrySpendEnergy(card.energyCost))
+                || !Player.Energy.CanAfford(card.energyCost))
             {
                 return false;
             }
+
+            if (!Player.Energy.TrySpendEnergy(card.energyCost))
+                return false;
 
             switch (card.duration)
             {

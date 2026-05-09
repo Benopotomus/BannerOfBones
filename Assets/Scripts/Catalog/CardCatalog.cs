@@ -23,6 +23,26 @@ namespace BannerOfBones.CardGame
             deck.Add(CreateLuckyReroll());
             deck.Add(CreateTacticalPivot());
             deck.Add(CreateScatterShot());
+            deck.Add(CreateFocusedStrike());
+            deck.Add(CreateFocusedStrike());
+            deck.Add(CreateSpiritStrike());
+            deck.Add(CreateSpiritStrike());
+            deck.Add(CreateGamblersBlade());
+            deck.Add(CreateCrushingBlow());
+            deck.Add(CreateRuneForge());
+            deck.Add(CreateBorrowedDie());
+            deck.Add(CreateBorrowedDie());
+            deck.Add(CreateCrystalConduit());
+            deck.Add(CreateChainLightning());
+            deck.Add(CreateCursedDice());
+            deck.Add(CreateWarDrums());
+            deck.Add(CreateCorrosiveTouch());
+            deck.Add(CreateLuckyCharm());
+            deck.Add(CreateFullSend());
+            deck.Add(CreatePrecisionStrike());
+            deck.Add(CreateLoadedBet());
+            deck.Add(CreateHexCurse());
+            deck.Add(CreateCursedAura());
             return deck;
         }
 
@@ -149,7 +169,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Focused Strike";
-            card.description = "Deal 4 damage for each triple rolled.";
+            card.description = "Deal 8 damage for each triple rolled.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -159,7 +179,7 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.DealDamage,
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn  = EPokerHandType.PerTriple,
-                    magnitude  = 4,
+                    magnitude  = 8,
                 },
             };
             return card;
@@ -171,7 +191,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Gambler's Blade";
-            card.description = "If you have a straight, deal 5 damage. Otherwise, take 1 damage.";
+            card.description = "If you have a straight, deal 10 damage. Otherwise, take 1 damage.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -181,7 +201,7 @@ namespace BannerOfBones.CardGame
                     effectType   = EEffectType.ConditionalDamage,
                     diceTarget   = ECardTarget.PlayerDice,
                     triggerOn    = EPokerHandType.IfStraight,
-                    magnitude    = 5,
+                    magnitude    = 10,
                     altMagnitude = 1,
                 },
             };
@@ -239,8 +259,30 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Spirit Strike";
-            card.description = "Deal 3 damage for each pair rolled.";
+            card.description = "Deal 5 damage for each pair rolled.";
             card.energyCost  = 2;
+            card.duration    = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn  = EPokerHandType.PerPair,
+                    magnitude  = 5,
+                },
+            };
+            return card;
+        }
+
+        // ── Card 09 ───────────────────────────────────────────────────────────────
+
+        private static CardData CreateTwinFangs()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Twin Fangs";
+            card.description = "Deal 3 damage for each pair rolled.";
+            card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -255,36 +297,14 @@ namespace BannerOfBones.CardGame
             return card;
         }
 
-        // ── Card 09 ───────────────────────────────────────────────────────────────
-
-        private static CardData CreateTwinFangs()
-        {
-            var card = ScriptableObject.CreateInstance<CardData>();
-            card.name = card.cardName = "Twin Fangs";
-            card.description = "Deal 2 damage for each pair rolled.";
-            card.energyCost  = 1;
-            card.duration    = ECardDuration.Instant;
-            card.effects = new List<CardEffectData>
-            {
-                new CardEffectData
-                {
-                    effectType = EEffectType.DealDamage,
-                    diceTarget = ECardTarget.PlayerDice,
-                    triggerOn  = EPokerHandType.PerPair,
-                    magnitude  = 2,
-                },
-            };
-            return card;
-        }
-
         // ── Card 10 ───────────────────────────────────────────────────────────────
 
         private static CardData CreateCrushingBlow()
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
-            card.description = "Deal 4 damage per full house (triple + pair) rolled.";
-            card.energyCost  = 0;
+            card.description = "Deal 8 damage per full house (triple + pair) rolled.";
+            card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -293,7 +313,7 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.DealDamage,
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn  = EPokerHandType.PerFullHouse,
-                    magnitude  = 4,
+                    magnitude  = 8,
                 },
             };
             return card;

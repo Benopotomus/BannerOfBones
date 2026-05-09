@@ -89,7 +89,7 @@ Any persistent cards already in play apply their recurring effects:
 ### 3. Player Turn
 The player may spend energy on any number of cards or baseline actions during their turn:
 - **Play cards** from hand.
-- **Focus** (1 energy): Reroll 1 chosen player die.
+- **Focus** (1 energy): Reroll up to 3 chosen player dice.
 - **Brace** (1 energy): Gain 2 block.
 - **Scout** (2 energy): Discard 1 card, then draw 2 cards.
 - **Retain**: Mark 1 card in hand to keep for the next round instead of discarding it.
@@ -162,11 +162,11 @@ Excess damage is applied to the player's health.
 - **Strike** (1 energy): Deal 1 damage for every die showing 5 or 6.
 - **Swift Slash** (1 energy): Deal 1 damage for each [1] rolled.
 - **Ace High** (1 energy): Deal 3 damage for each [6] rolled.
-- **Twin Fangs** (1 energy): Deal 2 damage for each pair rolled.
-- **Spirit Strike** (2 energy): Deal 3 damage for each pair rolled.
-- **Focused Strike** (2 energy): Deal 4 damage for each triple rolled.
-- **Gambler's Blade** (2 energy): Deal 5 damage if you have a straight; otherwise take 1 damage.
-- **Crushing Blow** (3 energy): Deal 4 damage per full house rolled.
+- **Twin Fangs** (1 energy): Deal 3 damage for each pair rolled.
+- **Spirit Strike** (2 energy): Deal 5 damage for each pair rolled.
+- **Focused Strike** (2 energy): Deal 8 damage for each triple rolled.
+- **Gambler's Blade** (2 energy): Deal 10 damage if you have a straight; otherwise take 1 damage.
+- **Crushing Blow** (2 energy): Deal 8 damage per full house rolled.
 - **Dragon's Roar** (3 energy): Deal 6 damage per five-of-a-kind rolled.
 - **Scatter Shot** (2 energy): Deal 1 damage to all enemies for each unique die value showing.
 - **Chain Lightning** (2 energy): Deal 2 damage to every enemy for each pair found in their dice.
@@ -229,12 +229,11 @@ Excess damage is applied to the player's health.
 ---
 
 ## Deck Building Guidelines (Starter Deck)
-A balanced starter deck of 10–15 cards might include:
-- 4 basic **Strike** cards for reliable single-target damage.
-- 3–4 block cards for sustained defense.
-- 1–2 area cards to help clear groups.
-- 1–2 reroll cards for dice manipulation.
-- 1 hand-management or setup card.
+The current prototype starter deck is an expanded 32-card list that includes:
+- Core damage and defense staples for consistency.
+- Multiple cards that scale off doubles, triples, full houses, and straights.
+- Dice-tier upgrades/downgrades and temporary-die generation.
+- Enemy-dice interaction cards, including all-enemy reroll/payoff effects.
 
 ---
 

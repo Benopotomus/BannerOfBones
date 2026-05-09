@@ -90,10 +90,10 @@ namespace BannerOfBones.CardGame
             _enemyGroupContainer = MkContainer(ep, "EnemyGroup", 0f, 0f, 1f, 0.84f, 8f, 6f, -8f, -6f);
 
             var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0f, 0.41f, 1f, 0.66f);
-            _playerHpText = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.68f, 0.35f, 1f);
-            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.42f, 0.35f, 0.68f);
-            _playerBlockText = MkText(pp, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0f, 0.16f, 0.35f, 0.42f);
-            _stateText = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.35f, 0f, 1f, 1f);
+            _playerHpText = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.68f, 0.14f, 1f);
+            _playerBlockText = MkText(pp, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0.14f, 0.68f, 0.30f, 1f);
+            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0f, 0.30f, 0.28f);
+            _stateText = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0.30f, 0f, 1f, 1f);
 
             MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.12f, 0.35f, 0.88f, 0.41f);
             _playerDiceText = MkText(root, 12, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0.12f, 0.385f, 0.88f, 0.41f);
@@ -115,7 +115,7 @@ namespace BannerOfBones.CardGame
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.80f, 0f), new Vector2(1f, 0.17f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.03f, 0.12f, 0.97f, 0.13f);
             _actionTooltipText.text = string.Empty;
-            AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll 1 player die.");
+            AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll up to 3 player dice.");
             AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
             AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
 

@@ -434,6 +434,9 @@ namespace BannerOfBones.CardGame
         {
             SetState(ECombatState.EnemyTurn);
 
+            foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
+                enemy.ClearBlock();
+
             int damage = 0;
             foreach (var enemy in _enemies.Where(currentEnemy => currentEnemy.IsAlive))
             {

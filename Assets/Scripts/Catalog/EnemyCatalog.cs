@@ -123,15 +123,15 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Shadow Wraith";
-            enemy.description = "A trickster that repeatedly disrupts your setup before striking.";
+            enemy.description = "A slippery duelist that alternates pressure, defense, and burst damage.";
             enemy.maxHealth = 10;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
-                    intentName = "Hex",
-                    intentType = EEnemyIntentType.RerollPlayerDice,
-                    count = 2,
+                    intentName = "Shroud",
+                    intentType = EEnemyIntentType.Guard,
+                    magnitude = 3,
                 },
                 new EnemyIntentData
                 {

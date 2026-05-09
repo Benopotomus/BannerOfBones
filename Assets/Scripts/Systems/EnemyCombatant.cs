@@ -59,8 +59,6 @@ namespace BannerOfBones.CardGame
         /// <summary>Advances to the next intent at the start of a round.</summary>
         public void StartRound()
         {
-            ClearBlock();
-
             if (!HasIntentPattern) return;
 
             if (_currentIntentIndex < 0)

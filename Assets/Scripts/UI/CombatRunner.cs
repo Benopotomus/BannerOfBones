@@ -263,9 +263,7 @@ namespace BannerOfBones.CardGame
 
                 var hpText = MkText(panel, 12, enemy.IsAlive ? C(1f, 0.80f, 0.80f) : C(0.65f, 0.65f, 0.65f),
                     TextAnchor.UpperLeft, 0f, 0.58f, 1f, 0.74f);
-                hpText.text = enemy.Block > 0
-                    ? $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}   Block {enemy.Block}"
-                    : $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}";
+                hpText.text = $"HP  {enemy.CurrentHealth} / {enemy.Data.maxHealth}   Block {enemy.Block}";
 
                 var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.58f);
                 passivesText.supportRichText = true;
@@ -440,7 +438,7 @@ namespace BannerOfBones.CardGame
         {
             Log($"── Round: Player {FormatDicePool(_combat.Player.Dice.Pool)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  {enemy.GetIntentSummary()}");
+                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  Block {enemy.Block}  {enemy.GetIntentSummary()}");
             RefreshUI();
         }
 

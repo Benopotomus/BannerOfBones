@@ -166,7 +166,7 @@ Excess damage is applied to the player's health.
 - **Spirit Strike** (2 energy): Deal 5 damage for each pair rolled.
 - **Focused Strike** (2 energy): Deal 8 damage for each triple rolled.
 - **Gambler's Blade** (2 energy): Deal 10 damage if you have a straight; otherwise take 1 damage.
-- **Crushing Blow** (2 energy): Deal 10 damage per full house rolled.
+- **Crushing Blow** (2 energy): Deal 8 damage per full house rolled.
 - **Dragon's Roar** (3 energy): Deal 6 damage per five-of-a-kind rolled.
 - **Scatter Shot** (2 energy): Deal 1 damage to all enemies for each unique die value showing.
 - **Chain Lightning** (2 energy): Deal 2 damage to every enemy for each pair found in their dice.

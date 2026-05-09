@@ -303,7 +303,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
-            card.description = "Deal 10 damage per full house (triple + pair) rolled.";
+            card.description = "Deal 8 damage per full house (triple + pair) rolled.";
             card.energyCost  = 2;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -313,7 +313,7 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.DealDamage,
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn  = EPokerHandType.PerFullHouse,
-                    magnitude  = 10,
+                    magnitude  = 8,
                 },
             };
             return card;

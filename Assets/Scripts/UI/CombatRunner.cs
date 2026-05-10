@@ -12,6 +12,12 @@ namespace BannerOfBones.CardGame
     /// </summary>
     public class CombatRunner : MonoBehaviour
     {
+        public enum RunMode
+        {
+            SingleCombat,
+            Progression,
+        }
+
         [Header("Player Settings")]
         public int playerHealth = 30;
         public int playerEnergy = 3;
@@ -19,6 +25,14 @@ namespace BannerOfBones.CardGame
         [Header("Run Settings")]
         [Tooltip("Set a fixed seed for reproducible runs. Leave 0 to keep an existing external seed, or use a random seed if none exists.")]
         public int seed = 0;
+        [Tooltip("SingleCombat starts one fight. Progression chains fights and offers path choices after each victory.")]
+        public RunMode runMode = RunMode.SingleCombat;
+        [Min(1)]
+        [Tooltip("How many combats to clear in progression mode.")]
+        public int progressionCombatCount = 3;
+        [Range(2, 4)]
+        [Tooltip("How many path options to offer between combats in progression mode.")]
+        public int progressionPathChoices = 3;
 
         [Header("Prefabs")]
         [Tooltip("Optional CardButton prefab. Assign for custom card styling; leave empty to use the built-in fallback.")]
@@ -49,13 +63,26 @@ namespace BannerOfBones.CardGame
 
         private RectTransform _pileViewPanel;
         private Text _pileViewText;
+        private RectTransform _progressionPanel;
+        private Text _progressionTitleText;
+        private RectTransform _progressionOptionsContainer;
 
         private readonly List<string> _log = new List<string>();
+        private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
         private readonly List<RectTransform> _enemyDropTargets = new List<RectTransform>();
         private const int MaxLogLines = 8;
         private static readonly Vector2 DragPreviewSize = new Vector2(240f, 180f);
 
         private GameObject _activeDragCard;
+
+        private int _runCombatIndex;
+        private int _runPlayerHealth;
+
+        private struct ProgressionOption
+        {
+            public string Label;
+            public int MaxEnemies;
+        }
 
         private void Start()
         {
@@ -64,24 +91,11 @@ namespace BannerOfBones.CardGame
             else if (!BoBRandom.IsSeeded)
                 BoBRandom.InitRandom();
 
-            var enemies = EnemyCatalog.CreateEncounterGroup();
-            var deck = CardCatalog.CreateStarterDeck();
-
-            _combat = new CombatManager();
-            _combat.OnStateChanged += _ => RefreshUI();
-            _combat.OnRoundStarted += OnRoundStarted;
-            _combat.OnCombatEnded += OnCombatEnded;
-            _combat.OnLogMessage += Log;
-
             BuildUI();
+            _runCombatIndex = 0;
+            _runPlayerHealth = Mathf.Max(1, playerHealth);
 
-            _combat.StartCombat(enemies, deck, playerHealth, playerEnergy);
-
-            Log($"=== {enemies.Count} enemies appear! ===");
-            foreach (var enemy in enemies)
-                Log($"• {enemy.enemyName}: {enemy.description}");
-
-            RefreshUI();
+            StartEncounter(EnemyCatalog.CreateEncounterGroup(GetInitialEncounterMaxEnemies()));
         }
 
         private void BuildUI()
@@ -146,8 +160,127 @@ namespace BannerOfBones.CardGame
             _pileViewText = MkText(_pileViewPanel, 13, Color.white, TextAnchor.UpperLeft, 0f, 0.06f, 1f, 1f);
             MkButton(_pileViewPanel, "Close", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f), C(0.50f, 0.15f, 0.10f), ClosePileView);
 
+            _progressionPanel = MkPanel(root, "ProgressionPanel", C(0.05f, 0.05f, 0.10f), 0.20f, 0.20f, 0.80f, 0.78f);
+            _progressionPanel.gameObject.SetActive(false);
+            _progressionTitleText = MkText(_progressionPanel, 18, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
+            _progressionOptionsContainer = MkContainer(_progressionPanel, "ProgressionOptions", 0.06f, 0.12f, 0.94f, 0.84f);
+
             _dragLayer = MkContainer(root, "DragLayer", 0f, 0f, 1f, 1f);
             _dragLayer.SetAsLastSibling();
+        }
+
+        private int GetRunTargetCombatCount()
+        {
+            return runMode == RunMode.Progression
+                ? Mathf.Max(1, progressionCombatCount)
+                : 1;
+        }
+
+        private int GetInitialEncounterMaxEnemies()
+        {
+            return runMode == RunMode.Progression ? 2 : 4;
+        }
+
+        private void StartEncounter(List<EnemyData> enemies)
+        {
+            if (_combat != null)
+            {
+                _combat.OnStateChanged -= OnCombatStateChanged;
+                _combat.OnRoundStarted -= OnRoundStarted;
+                _combat.OnCombatEnded -= OnCombatEnded;
+                _combat.OnLogMessage -= Log;
+            }
+
+            var deck = CardCatalog.CreateStarterDeck();
+            _combat = new CombatManager();
+            _combat.OnStateChanged += OnCombatStateChanged;
+            _combat.OnRoundStarted += OnRoundStarted;
+            _combat.OnCombatEnded += OnCombatEnded;
+            _combat.OnLogMessage += Log;
+
+            _runCombatIndex++;
+            HideProgressionSelection();
+            _combat.StartCombat(enemies, deck, _runPlayerHealth, playerEnergy);
+
+            Log($"=== Combat {_runCombatIndex}/{GetRunTargetCombatCount()} — {enemies.Count} enemies appear! ===");
+            foreach (var enemy in enemies)
+                Log($"• {enemy.enemyName}: {enemy.description}");
+            RefreshUI();
+        }
+
+        private void OnCombatStateChanged(ECombatState _)
+        {
+            RefreshUI();
+        }
+
+        private void ShowProgressionSelection()
+        {
+            if (runMode != RunMode.Progression || _progressionPanel == null)
+                return;
+
+            int remainingCombats = Mathf.Max(0, GetRunTargetCombatCount() - _runCombatIndex);
+            if (remainingCombats <= 0)
+                return;
+
+            _progressionTitleText.text = $"Choose your path ({remainingCombats} combat{(remainingCombats == 1 ? string.Empty : "s")} left)";
+            _progressionOptions.Clear();
+
+            int choices = Mathf.Clamp(progressionPathChoices, 2, 4);
+            int baseThreat = Mathf.Clamp(2 + (_runCombatIndex / 2), 2, 4);
+            for (int i = 0; i < choices; i++)
+            {
+                int maxEnemies = Mathf.Clamp(baseThreat + i - 1, 2, 4);
+                string threatLabel = maxEnemies <= 2 ? "Skirmish" : maxEnemies == 3 ? "Battle" : "Gauntlet";
+                _progressionOptions.Add(new ProgressionOption
+                {
+                    Label = $"Path {i + 1}: {threatLabel} ({Mathf.Max(1, maxEnemies - 1)}-{maxEnemies} foes)",
+                    MaxEnemies = maxEnemies,
+                });
+            }
+
+            BuildProgressionOptionButtons();
+            _progressionPanel.gameObject.SetActive(true);
+        }
+
+        private void BuildProgressionOptionButtons()
+        {
+            ClearContainer(_progressionOptionsContainer);
+
+            int count = Mathf.Max(1, _progressionOptions.Count);
+            for (int i = 0; i < _progressionOptions.Count; i++)
+            {
+                int optionIndex = i;
+                float yTop = 1f - (i * (1f / count));
+                float yBottom = 1f - ((i + 1) * (1f / count)) + 0.03f;
+
+                MkButton(_progressionOptionsContainer,
+                    _progressionOptions[i].Label,
+                    new Vector2(0f, yBottom),
+                    new Vector2(1f, yTop),
+                    C(0.20f, 0.26f, 0.40f),
+                    () => OnProgressionOptionSelected(optionIndex));
+            }
+        }
+
+        private void OnProgressionOptionSelected(int optionIndex)
+        {
+            if (optionIndex < 0 || optionIndex >= _progressionOptions.Count)
+                return;
+
+            var option = _progressionOptions[optionIndex];
+            Log($"Path chosen: {option.Label}");
+            StartEncounter(EnemyCatalog.CreateEncounterGroup(option.MaxEnemies));
+        }
+
+        private void HideProgressionSelection()
+        {
+            if (_progressionPanel == null)
+                return;
+
+            _progressionPanel.gameObject.SetActive(false);
+            if (_progressionOptionsContainer != null)
+                ClearContainer(_progressionOptionsContainer);
+            _progressionOptions.Clear();
         }
 
         private static void EnsureEventSystem()
@@ -309,7 +442,7 @@ namespace BannerOfBones.CardGame
                 ? "Player Dice"
                 : $"Player Dice  — {playerHandLabel}";
             _stateText.text =
-                $"[{_combat.State}]  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}  Wagers {p.ActiveWagers.Count}\n" +
+                $"[{_combat.State}]  Run {_runCombatIndex}/{GetRunTargetCombatCount()}  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}  Wagers {p.ActiveWagers.Count}\n" +
                 $"{prompt}";
 
             bool canUseActions = _combat.CanUseBaselineActions();
@@ -473,6 +606,32 @@ namespace BannerOfBones.CardGame
             Log(playerWon ? "★  VICTORY! ★" : "✕  DEFEATED");
             DestroyActiveDragCard();
             ClearContainer(_handContainer);
+
+            if (!playerWon)
+            {
+                HideProgressionSelection();
+                RefreshLog();
+                return;
+            }
+
+            if (runMode != RunMode.Progression)
+            {
+                HideProgressionSelection();
+                RefreshLog();
+                return;
+            }
+
+            _runPlayerHealth = Mathf.Max(1, _combat.Player.CurrentHealth);
+            if (_runCombatIndex >= GetRunTargetCombatCount())
+            {
+                HideProgressionSelection();
+                Log("★★ RUN COMPLETE! ★★");
+                RefreshLog();
+                return;
+            }
+
+            ShowProgressionSelection();
+            Log("Choose a path to begin the next combat.");
             RefreshLog();
         }
 

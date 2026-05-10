@@ -25,8 +25,8 @@ namespace BannerOfBones.CardGame
         public static List<CardData> CreateDefaultStarterDeck()
         {
             var deck = new List<CardData>();
-            for (int i = 0; i < 3; i++) deck.Add(CreateStrike());
-            for (int i = 0; i < 2; i++) deck.Add(CreateIronShield());
+            for (int i = 0; i < 5; i++) deck.Add(CreateStrike());
+            for (int i = 0; i < 5; i++) deck.Add(CreateIronShield());
             for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
             deck.Add(CreateTwinFangs());
             deck.Add(CreateLuckyReroll());

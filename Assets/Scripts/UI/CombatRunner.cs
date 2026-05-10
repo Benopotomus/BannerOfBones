@@ -290,7 +290,7 @@ namespace BannerOfBones.CardGame
 
                 var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.58f);
                 passivesText.supportRichText = true;
-                passivesText.text = BuildEnemyActionText(enemy);
+                 passivesText.text = BuildEnemyActionText(enemy);
             }
         }
 
@@ -464,7 +464,7 @@ namespace BannerOfBones.CardGame
         {
             Log($"── Round: Player {FormatDicePool(_combat.Player.Dice.Pool)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  Block {enemy.Block}  {enemy.GetIntentSummary()}");
+                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  Block {enemy.Block}  {enemy.GetIntentSummary(_combat.Player.Dice.CurrentRoll)}");
             RefreshUI();
         }
 
@@ -842,16 +842,17 @@ namespace BannerOfBones.CardGame
             return foundIndex;
         }
 
-        private static string BuildEnemyActionText(EnemyCombatant enemy)
+        private string BuildEnemyActionText(EnemyCombatant enemy)
         {
             if (enemy.CurrentIntent != null)
             {
+                var playerDiceRoll = _combat?.Player?.Dice?.CurrentRoll;
                 var sb = new StringBuilder();
-                sb.AppendLine($"<color=#FFB0B0>{FormatIntentHeadline(enemy, enemy.CurrentIntent, true)}</color>");
-                sb.AppendLine($"  {enemy.GetIntentSummary()}");
+                sb.AppendLine($"<color=#FFB0B0>{FormatIntentHeadline(enemy, enemy.CurrentIntent, playerDiceRoll)}</color>");
+                sb.AppendLine($"  {enemy.GetIntentSummary(playerDiceRoll)}");
 
                 if (enemy.NextIntent != null)
-                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, false)}</color>");
+                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, playerDiceRoll)}</color>");
 
                 return sb.ToString().TrimEnd();
             }
@@ -859,7 +860,7 @@ namespace BannerOfBones.CardGame
             return "No action.";
         }
 
-        private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, bool includeCurrentDamage)
+        private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, int[] playerDiceRoll)
         {
             int amount = Mathf.Max(0, intent.magnitude);
             int count = Mathf.Max(1, intent.count);
@@ -867,7 +868,9 @@ namespace BannerOfBones.CardGame
             {
                 case EEnemyIntentType.AttackFlat:
                 {
-                    int damage = amount;
+                    int damage = enemy.CurrentIntent == intent
+                        ? enemy.CalculateIntentDamage(playerDiceRoll)
+                        : amount;
                     return $"⚔ {intent.intentName} ({damage} dmg)";
                 }
                 case EEnemyIntentType.Guard:

@@ -290,7 +290,7 @@ namespace BannerOfBones.CardGame
 
                 var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.58f);
                 passivesText.supportRichText = true;
-                 passivesText.text = BuildEnemyActionText(enemy);
+                passivesText.text = BuildEnemyActionText(enemy);
             }
         }
 
@@ -863,7 +863,6 @@ namespace BannerOfBones.CardGame
         private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, int[] playerDiceRoll)
         {
             int amount = Mathf.Max(0, intent.magnitude);
-            int count = Mathf.Max(1, intent.count);
             switch (intent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
@@ -875,10 +874,12 @@ namespace BannerOfBones.CardGame
                 }
                 case EEnemyIntentType.Guard:
                     return $"🛡 {intent.intentName} (+{amount} block)";
-                case EEnemyIntentType.RerollPlayerDice:
-                    return $"🎲 {intent.intentName} (reroll {count} low dice)";
-                case EEnemyIntentType.WeakenPlayerDice:
-                    return $"☠ {intent.intentName} (-{amount} to {count} high dice)";
+                case EEnemyIntentType.ShredPlayerBlock:
+                    return $"🪓 {intent.intentName} (-{amount} block)";
+                case EEnemyIntentType.SapPlayerEnergy:
+                    return amount == 1
+                        ? $"⚡ {intent.intentName} (-1 die next turn)"
+                        : $"⚡ {intent.intentName} (-{amount} dice next turn)";
                 default:
                     return $"→ {intent.intentName}";
             }

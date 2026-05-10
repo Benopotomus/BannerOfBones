@@ -215,7 +215,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Gambler's Blade";
-            card.description = "If you have a straight, deal 10 damage. Otherwise, take 1 damage.";
+            card.description = "If you have a straight, deal 10 damage.";
             card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -226,7 +226,7 @@ namespace BannerOfBones.CardGame
                     diceTarget   = ECardTarget.PlayerDice,
                     triggerOn    = EPokerHandType.IfStraight,
                     magnitude    = 10,
-                    altMagnitude = 1,
+                    altMagnitude = 0,
                 },
             };
             return card;
@@ -327,7 +327,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
-            card.description = "Deal 8 damage per full house (triple + pair) rolled.";
+            card.description = "Playable only with a full house. Deal 8 damage per full house (triple + pair) rolled.";
             card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>

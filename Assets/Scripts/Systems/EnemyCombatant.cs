@@ -97,7 +97,7 @@ namespace BannerOfBones.CardGame
                     return 0;
 
                 case EEnemyIntentType.SapPlayerEnergy:
-                    player?.Energy.ApplyNextTurnPenalty(amount);
+                    player?.ApplyNextTurnDieLoss(amount);
                     return 0;
             }
 
@@ -123,7 +123,9 @@ namespace BannerOfBones.CardGame
                     fallback = $"{CurrentIntent.intentName}: remove up to {amount} block.";
                     break;
                 case EEnemyIntentType.SapPlayerEnergy:
-                    fallback = $"{CurrentIntent.intentName}: lose {amount} energy next turn.";
+                    fallback = amount == 1
+                        ? $"{CurrentIntent.intentName}: lose 1 die next turn."
+                        : $"{CurrentIntent.intentName}: lose {amount} dice next turn.";
                     break;
                 default:
                     fallback = CurrentIntent.intentName;

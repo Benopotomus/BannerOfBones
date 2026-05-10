@@ -697,7 +697,9 @@ namespace BannerOfBones.CardGame
                 case EEnemyIntentType.ShredPlayerBlock:
                     return $"🪓 {intent.intentName} (-{amount} block)";
                 case EEnemyIntentType.SapPlayerEnergy:
-                    return $"⚡ {intent.intentName} (-{amount} energy next turn)";
+                    return amount == 1
+                        ? $"⚡ {intent.intentName} (-1 die next turn)"
+                        : $"⚡ {intent.intentName} (-{amount} dice next turn)";
                 default:
                     return $"→ {intent.intentName}";
             }

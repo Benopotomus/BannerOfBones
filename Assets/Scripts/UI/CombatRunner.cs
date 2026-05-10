@@ -64,6 +64,7 @@ namespace BannerOfBones.CardGame
         private RectTransform _pileViewPanel;
         private Text _pileViewTitleText;
         private RectTransform _pileViewCardsContainer;
+        private ScrollRect _pileViewScrollRect;
         private RectTransform _progressionPanel;
         private Text _progressionTitleText;
         private RectTransform _progressionOptionsContainer;
@@ -159,7 +160,7 @@ namespace BannerOfBones.CardGame
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);
             _pileViewTitleText = MkText(_pileViewPanel, 16, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.92f, 1f, 1f);
-            _pileViewCardsContainer = MkContainer(_pileViewPanel, "PileCards", 0f, 0.08f, 1f, 0.92f, 8f, 4f, -8f, -4f);
+            (_pileViewScrollRect, _pileViewCardsContainer) = MkScrollView(_pileViewPanel, "PileCards", 0f, 0.08f, 1f, 0.92f, 8f, 4f, -8f, -4f);
             MkButton(_pileViewPanel, "Close", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f), C(0.50f, 0.15f, 0.10f), ClosePileView);
 
             _progressionPanel = MkPanel(root, "ProgressionPanel", C(0.05f, 0.05f, 0.10f), 0.20f, 0.20f, 0.80f, 0.78f);
@@ -322,6 +323,55 @@ namespace BannerOfBones.CardGame
             rt.offsetMin = new Vector2(offsetMinX, offsetMinY);
             rt.offsetMax = new Vector2(offsetMaxX, offsetMaxY);
             return rt;
+        }
+
+        // Creates a vertical ScrollRect. Returns (scrollRect, contentRectTransform).
+        // The content RectTransform is what you parent card items to; its height is
+        // set at population time via SetSizeWithCurrentAnchors.
+        private static (ScrollRect, RectTransform) MkScrollView(RectTransform parent, string name,
+            float ax0, float ay0, float ax1, float ay1,
+            float offsetMinX = 0f, float offsetMinY = 0f, float offsetMaxX = 0f, float offsetMaxY = 0f)
+        {
+            // Scroll root (holds the ScrollRect component + a background image)
+            var scrollGO = new GameObject(name);
+            scrollGO.transform.SetParent(parent, false);
+            var scrollRT = scrollGO.AddComponent<RectTransform>();
+            scrollRT.anchorMin = new Vector2(ax0, ay0);
+            scrollRT.anchorMax = new Vector2(ax1, ay1);
+            scrollRT.offsetMin = new Vector2(offsetMinX, offsetMinY);
+            scrollRT.offsetMax = new Vector2(offsetMaxX, offsetMaxY);
+            scrollGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f); // transparent
+
+            // Viewport (masks content)
+            var vpGO = new GameObject("Viewport");
+            vpGO.transform.SetParent(scrollGO.transform, false);
+            var vpRT = vpGO.AddComponent<RectTransform>();
+            vpRT.anchorMin = Vector2.zero;
+            vpRT.anchorMax = Vector2.one;
+            vpRT.offsetMin = vpRT.offsetMax = Vector2.zero;
+            vpGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
+            vpGO.AddComponent<Mask>().showMaskGraphic = false;
+
+            // Content (grows vertically to fit all cards)
+            var contentGO = new GameObject("Content");
+            contentGO.transform.SetParent(vpGO.transform, false);
+            var contentRT = contentGO.AddComponent<RectTransform>();
+            // Anchor to top-left; width stretches full viewport; height is set programmatically
+            contentRT.anchorMin = new Vector2(0f, 1f);
+            contentRT.anchorMax = new Vector2(1f, 1f);
+            contentRT.pivot = new Vector2(0f, 1f);
+            contentRT.offsetMin = contentRT.offsetMax = Vector2.zero;
+
+            // ScrollRect wiring
+            var sr = scrollGO.AddComponent<ScrollRect>();
+            sr.viewport = vpRT;
+            sr.content = contentRT;
+            sr.horizontal = false;
+            sr.vertical = true;
+            sr.scrollSensitivity = 20f;
+            sr.movementType = ScrollRect.MovementType.Clamped;
+
+            return (sr, contentRT);
         }
 
         private static Text MkText(RectTransform parent, int fontSize, Color color,
@@ -751,9 +801,15 @@ namespace BannerOfBones.CardGame
             ClearContainer(_pileViewCardsContainer);
 
             const int cols = 4;
+            const float rowHeight = 140f; // pixels per row -- gives cards room to breathe
             int rows = Mathf.CeilToInt(pile.Count / (float)cols);
-            float rowH = rows > 0 ? 1f / rows : 1f;
-            float colW = 1f / cols;
+            float totalHeight = rows * rowHeight;
+
+            // Resize the content rect so ScrollRect knows how tall the list is
+            _pileViewCardsContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, totalHeight);
+
+            // Reset scroll to top whenever we open the view
+            _pileViewScrollRect.verticalNormalizedPosition = 1f;
 
             for (int i = 0; i < pile.Count; i++)
             {
@@ -761,16 +817,24 @@ namespace BannerOfBones.CardGame
                 int row = i / cols;
                 int col = i % cols;
 
-                float x0 = col * colW + 0.005f;
-                float x1 = (col + 1) * colW - 0.005f;
-                float y0 = 1f - (row + 1) * rowH + 0.005f;
-                float y1 = 1f - row * rowH - 0.005f;
+                // Card panel anchored inside the content rect using absolute pixel positions
+                // Content pivot is top-left, so y increases downward
+                var cardGO = new GameObject($"PileCard{i}");
+                cardGO.transform.SetParent(_pileViewCardsContainer, false);
+                var cardRT = cardGO.AddComponent<RectTransform>();
+                cardRT.anchorMin = new Vector2(col / (float)cols, 1f);
+                cardRT.anchorMax = new Vector2((col + 1) / (float)cols, 1f);
+                cardRT.pivot = new Vector2(0f, 1f);
+                float yTop = row * rowHeight;
+                cardRT.offsetMin = new Vector2(4f, -(yTop + rowHeight - 4f));
+                cardRT.offsetMax = new Vector2(-4f, -yTop);
 
-                var cardPanel = MkPanel(_pileViewCardsContainer, $"PileCard{i}", C(0.18f, 0.18f, 0.18f), x0, y0, x1, y1);
+                var cardPanel = cardGO;
+                cardPanel.AddComponent<Image>().color = C(0.18f, 0.18f, 0.18f);
 
                 // Energy cost badge (upper left)
                 var badgeGO = new GameObject("CostBadge");
-                badgeGO.transform.SetParent(cardPanel, false);
+                badgeGO.transform.SetParent(cardRT, false);
                 var badgeRT = badgeGO.AddComponent<RectTransform>();
                 badgeRT.anchorMin = new Vector2(0f, 0.72f);
                 badgeRT.anchorMax = new Vector2(0.24f, 1f);
@@ -787,7 +851,7 @@ namespace BannerOfBones.CardGame
                 string targetLine = string.IsNullOrEmpty(targetText) ? string.Empty : $"\n<color=#F8E27A>{targetText}</color>";
                 string body = $"<b>{card.cardName}</b>\n{BuildCardDescriptionText(card)}{durationText}{targetLine}";
 
-                var bodyTxt = MkText(cardPanel, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 0.72f);
+                var bodyTxt = MkText(cardRT, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 0.72f);
                 bodyTxt.supportRichText = true;
                 bodyTxt.text = body;
             }

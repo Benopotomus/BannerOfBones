@@ -290,7 +290,7 @@ namespace BannerOfBones.CardGame
 
                 var passivesText = MkText(panel, 11, C(0.95f, 0.80f, 0.80f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.58f);
                 passivesText.supportRichText = true;
-                 passivesText.text = BuildEnemyActionText(enemy);
+                passivesText.text = BuildEnemyActionText(enemy);
             }
         }
 

@@ -89,29 +89,24 @@ namespace BannerOfBones.CardGame
 
             int[] playerDiceRoll = player?.Dice?.CurrentRoll;
             int amount = Math.Max(0, CurrentIntent.magnitude);
-            int count = Math.Max(1, CurrentIntent.count);
+            int repeatCount = Math.Max(1, CurrentIntent.count);
             int triggerCount = EvaluateTriggerCount(CurrentIntent, playerDiceRoll);
+            int triggeredAmount = ResolveTriggeredMagnitude(CurrentIntent, playerDiceRoll);
             switch (CurrentIntent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
-                    return amount * triggerCount;
+                    return triggeredAmount;
 
                 case EEnemyIntentType.Guard:
-                    GainBlock(amount * triggerCount);
+                    GainBlock(triggeredAmount);
                     return 0;
 
                 case EEnemyIntentType.ShredPlayerBlock:
-                    if (triggerCount <= 0)
-                        return 0;
-
-                    player?.LoseBlock(amount * count * triggerCount);
+                    player?.LoseBlock(triggeredAmount * repeatCount);
                     return 0;
 
                 case EEnemyIntentType.SapPlayerEnergy:
-                    if (triggerCount <= 0)
-                        return 0;
-
-                    player?.ApplyNextTurnDieLoss(amount * count * triggerCount);
+                    player?.ApplyNextTurnDieLoss(triggeredAmount * repeatCount);
                     return 0;
             }
 
@@ -125,7 +120,7 @@ namespace BannerOfBones.CardGame
 
             string fallback;
             int amount = Math.Max(0, CurrentIntent.magnitude);
-            int count = Math.Max(1, CurrentIntent.count);
+            int repeatCount = Math.Max(1, CurrentIntent.count);
             int triggerCount = EvaluateTriggerCount(CurrentIntent, playerDiceRoll);
             bool usesPlayerDiceTrigger = CurrentIntent.triggerOn != EPokerHandType.Always;
             string triggerRule = BuildTriggerRuleText(CurrentIntent);
@@ -143,14 +138,14 @@ namespace BannerOfBones.CardGame
                     break;
                 case EEnemyIntentType.ShredPlayerBlock:
                     fallback = usesPlayerDiceTrigger
-                        ? $"{CurrentIntent.intentName}: remove up to {amount * count * triggerCount} block now ({triggerRule})."
-                        : $"{CurrentIntent.intentName}: remove up to {amount * count} block.";
+                        ? $"{CurrentIntent.intentName}: remove up to {amount * repeatCount * triggerCount} block now."
+                        : $"{CurrentIntent.intentName}: remove up to {amount * repeatCount} block.";
                     break;
                 case EEnemyIntentType.SapPlayerEnergy:
-                    int dieLoss = usesPlayerDiceTrigger ? amount * count * triggerCount : amount * count;
+                    int dieLoss = usesPlayerDiceTrigger ? amount * repeatCount * triggerCount : amount * repeatCount;
                     string dieText = dieLoss == 1 ? "1 die" : $"{dieLoss} dice";
                     fallback = usesPlayerDiceTrigger
-                        ? $"{CurrentIntent.intentName}: lose {dieText} next turn ({triggerRule})."
+                        ? $"{CurrentIntent.intentName}: lose {dieText} next turn."
                         : $"{CurrentIntent.intentName}: lose {dieText} next turn.";
                     break;
                 default:

@@ -62,7 +62,8 @@ namespace BannerOfBones.CardGame
         private Text _actionTooltipText;
 
         private RectTransform _pileViewPanel;
-        private Text _pileViewText;
+        private Text _pileViewTitleText;
+        private RectTransform _pileViewCardsContainer;
         private RectTransform _progressionPanel;
         private Text _progressionTitleText;
         private RectTransform _progressionOptionsContainer;
@@ -157,7 +158,8 @@ namespace BannerOfBones.CardGame
 
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);
-            _pileViewText = MkText(_pileViewPanel, 13, Color.white, TextAnchor.UpperLeft, 0f, 0.06f, 1f, 1f);
+            _pileViewTitleText = MkText(_pileViewPanel, 16, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.92f, 1f, 1f);
+            _pileViewCardsContainer = MkContainer(_pileViewPanel, "PileCards", 0f, 0.08f, 1f, 0.92f, 8f, 4f, -8f, -4f);
             MkButton(_pileViewPanel, "Close", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f), C(0.50f, 0.15f, 0.10f), ClosePileView);
 
             _progressionPanel = MkPanel(root, "ProgressionPanel", C(0.05f, 0.05f, 0.10f), 0.20f, 0.20f, 0.80f, 0.78f);
@@ -744,18 +746,59 @@ namespace BannerOfBones.CardGame
 
         private void ShowPileView(string title, IReadOnlyList<CardData> pile)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine($"{title}  ({pile.Count} cards)");
-            sb.AppendLine("──────────────────");
-            foreach (var c in pile)
-                sb.AppendLine($"· {c.cardName}");
-            _pileViewText.text = sb.ToString();
+            _pileViewTitleText.text = $"{title}  ({pile.Count} cards)";
+
+            ClearContainer(_pileViewCardsContainer);
+
+            const int cols = 4;
+            int rows = Mathf.CeilToInt(pile.Count / (float)cols);
+            float rowH = rows > 0 ? 1f / rows : 1f;
+            float colW = 1f / cols;
+
+            for (int i = 0; i < pile.Count; i++)
+            {
+                var card = pile[i];
+                int row = i / cols;
+                int col = i % cols;
+
+                float x0 = col * colW + 0.005f;
+                float x1 = (col + 1) * colW - 0.005f;
+                float y0 = 1f - (row + 1) * rowH + 0.005f;
+                float y1 = 1f - row * rowH - 0.005f;
+
+                var cardPanel = MkPanel(_pileViewCardsContainer, $"PileCard{i}", C(0.18f, 0.18f, 0.18f), x0, y0, x1, y1);
+
+                // Energy cost badge (upper left)
+                var badgeGO = new GameObject("CostBadge");
+                badgeGO.transform.SetParent(cardPanel, false);
+                var badgeRT = badgeGO.AddComponent<RectTransform>();
+                badgeRT.anchorMin = new Vector2(0f, 0.72f);
+                badgeRT.anchorMax = new Vector2(0.24f, 1f);
+                badgeRT.offsetMin = new Vector2(3f, -3f);
+                badgeRT.offsetMax = new Vector2(-1f, -3f);
+                badgeGO.AddComponent<Image>().color = new Color(0.10f, 0.16f, 0.32f);
+                var badgeTxt = MkText(badgeRT, 13, new Color(0.9f, 0.85f, 0.30f), TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
+                badgeTxt.fontStyle = FontStyle.Bold;
+                badgeTxt.text = card.energyCost.ToString();
+
+                // Card body text
+                string durationText = card.duration == ECardDuration.Instant ? string.Empty : $"\n[{card.duration}]";
+                string targetText = BuildCardTargetText(card);
+                string targetLine = string.IsNullOrEmpty(targetText) ? string.Empty : $"\n<color=#F8E27A>{targetText}</color>";
+                string body = $"<b>{card.cardName}</b>\n{BuildCardDescriptionText(card)}{durationText}{targetLine}";
+
+                var bodyTxt = MkText(cardPanel, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 0.72f);
+                bodyTxt.supportRichText = true;
+                bodyTxt.text = body;
+            }
+
             _pileViewPanel.gameObject.SetActive(true);
         }
 
         private void ClosePileView()
         {
             _pileViewPanel.gameObject.SetActive(false);
+            ClearContainer(_pileViewCardsContainer);
         }
 
         private void Log(string line)

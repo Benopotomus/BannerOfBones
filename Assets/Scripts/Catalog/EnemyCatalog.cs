@@ -61,28 +61,30 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Goblin Scout";
-            enemy.description = "A disruptive skirmisher that chips damage and scrambles your dice.";
+            enemy.description = "A dirty skirmisher that disrupts your setup before darting in.";
             enemy.maxHealth = 8;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
                     intentName = "Pocket Sand",
-                    intentType = EEnemyIntentType.RerollPlayerDice,
-                    count = 1,
+                    intentType = EEnemyIntentType.SapPlayerEnergy,
+                    magnitude = 1,
+                    description = "Pocket Sand: lose 1 energy next turn.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Stab",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 4,
+                    description = "Stab: deal 4 damage.",
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Shiv Twist",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
-                    magnitude = 1,
-                    count = 1,
+                    intentName = "Hamstring",
+                    intentType = EEnemyIntentType.ShredPlayerBlock,
+                    magnitude = 4,
+                    description = "Hamstring: remove up to 4 block.",
                 },
             };
             return enemy;
@@ -92,7 +94,7 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Orc Warrior";
-            enemy.description = "A bruiser that builds guard before punishing weak turns.";
+            enemy.description = "A bruiser that builds guard, then smashes through defenses.";
             enemy.maxHealth = 12;
             enemy.roundIntents = new List<EnemyIntentData>
             {
@@ -101,19 +103,21 @@ namespace BannerOfBones.CardGame
                     intentName = "Hunker",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 3,
+                    description = "Hunker: gain 3 block.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Cleave",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 3,
+                    description = "Cleave: deal 3 damage.",
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Batter",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
-                    magnitude = 1,
-                    count = 2,
+                    intentName = "Guard Break",
+                    intentType = EEnemyIntentType.ShredPlayerBlock,
+                    magnitude = 6,
+                    description = "Guard Break: remove up to 6 block.",
                 },
             };
             return enemy;
@@ -132,18 +136,21 @@ namespace BannerOfBones.CardGame
                     intentName = "Shroud",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 3,
+                    description = "Shroud: gain 3 block.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Ambush",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 5,
+                    description = "Ambush: deal 5 damage.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Fade",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 2,
+                    description = "Fade: gain 2 block.",
                 },
             };
             return enemy;
@@ -162,18 +169,21 @@ namespace BannerOfBones.CardGame
                     intentName = "Wind Up",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 3,
+                    description = "Wind Up: gain 3 block.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Crush",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 8,
+                    description = "Crush: deal 8 damage.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Fortify",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 4,
+                    description = "Fortify: gain 4 block.",
                 },
             };
             return enemy;
@@ -183,28 +193,30 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Death Knight";
-            enemy.description = "An elite controller that weakens your dice before execution hits.";
+            enemy.description = "An elite controller that drains your tempo before execution hits.";
             enemy.maxHealth = 18;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
                     intentName = "Soul Rend",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
+                    intentType = EEnemyIntentType.SapPlayerEnergy,
                     magnitude = 1,
-                    count = 2,
+                    description = "Soul Rend: lose 1 energy next turn.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Executioner Swing",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 9,
+                    description = "Executioner Swing: deal 9 damage.",
                 },
                 new EnemyIntentData
                 {
                     intentName = "Dark Bulwark",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 5,
+                    description = "Dark Bulwark: gain 5 block.",
                 },
             };
             return enemy;

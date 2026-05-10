@@ -83,8 +83,6 @@ namespace BannerOfBones.CardGame
                 return CalculateIntentDamage();
 
             int amount = Math.Max(0, CurrentIntent.magnitude);
-            int count = Math.Max(1, CurrentIntent.count);
-
             switch (CurrentIntent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
@@ -94,12 +92,12 @@ namespace BannerOfBones.CardGame
                     GainBlock(amount);
                     return 0;
 
-                case EEnemyIntentType.RerollPlayerDice:
-                    player?.Dice.RerollLowestDice(count);
+                case EEnemyIntentType.ShredPlayerBlock:
+                    player?.LoseBlock(amount);
                     return 0;
 
-                case EEnemyIntentType.WeakenPlayerDice:
-                    player?.Dice.AdjustHighestDice(count, -amount);
+                case EEnemyIntentType.SapPlayerEnergy:
+                    player?.Energy.ApplyNextTurnPenalty(amount);
                     return 0;
             }
 
@@ -113,7 +111,6 @@ namespace BannerOfBones.CardGame
 
             string fallback;
             int amount = Math.Max(0, CurrentIntent.magnitude);
-            int count = Math.Max(1, CurrentIntent.count);
             switch (CurrentIntent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
@@ -122,11 +119,11 @@ namespace BannerOfBones.CardGame
                 case EEnemyIntentType.Guard:
                     fallback = $"{CurrentIntent.intentName}: gain {amount} block.";
                     break;
-                case EEnemyIntentType.RerollPlayerDice:
-                    fallback = $"{CurrentIntent.intentName}: reroll {count} of your lowest dice.";
+                case EEnemyIntentType.ShredPlayerBlock:
+                    fallback = $"{CurrentIntent.intentName}: remove up to {amount} block.";
                     break;
-                case EEnemyIntentType.WeakenPlayerDice:
-                    fallback = $"{CurrentIntent.intentName}: reduce your {count} highest dice by {amount}.";
+                case EEnemyIntentType.SapPlayerEnergy:
+                    fallback = $"{CurrentIntent.intentName}: lose {amount} energy next turn.";
                     break;
                 default:
                     fallback = CurrentIntent.intentName;

@@ -52,6 +52,13 @@ namespace BannerOfBones.CardGame
             Block = 0;
         }
 
+        public int LoseBlock(int amount)
+        {
+            int removed = Math.Min(Block, Math.Max(0, amount));
+            Block -= removed;
+            return removed;
+        }
+
         /// <summary>
         /// Called at the start of each round: removes temporary dice, clears block, resets energy,
         /// discards the previous hand, draws a new hand, and rolls all dice.

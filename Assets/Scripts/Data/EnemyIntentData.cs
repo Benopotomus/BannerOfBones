@@ -19,7 +19,7 @@ namespace BannerOfBones.CardGame
         [Tooltip("Primary value used by this intent. For attacks this is damage or multiplier.")]
         public int magnitude;
 
-        [Tooltip("How many dice this intent affects for reroll/weaken/upgrade actions.")]
+        [Tooltip("Optional secondary value used by intent types that act on multiple targets or scale repeated effects.")]
         public int count = 1;
     }
 }

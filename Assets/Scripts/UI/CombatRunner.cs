@@ -685,7 +685,6 @@ namespace BannerOfBones.CardGame
         private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, bool includeCurrentDamage)
         {
             int amount = Mathf.Max(0, intent.magnitude);
-            int count = Mathf.Max(1, intent.count);
             switch (intent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
@@ -695,10 +694,10 @@ namespace BannerOfBones.CardGame
                 }
                 case EEnemyIntentType.Guard:
                     return $"🛡 {intent.intentName} (+{amount} block)";
-                case EEnemyIntentType.RerollPlayerDice:
-                    return $"🎲 {intent.intentName} (reroll {count} low dice)";
-                case EEnemyIntentType.WeakenPlayerDice:
-                    return $"☠ {intent.intentName} (-{amount} to {count} high dice)";
+                case EEnemyIntentType.ShredPlayerBlock:
+                    return $"🪓 {intent.intentName} (-{amount} block)";
+                case EEnemyIntentType.SapPlayerEnergy:
+                    return $"⚡ {intent.intentName} (-{amount} energy next turn)";
                 default:
                     return $"→ {intent.intentName}";
             }

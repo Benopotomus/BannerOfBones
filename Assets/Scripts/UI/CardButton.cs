@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace BannerOfBones.CardGame
@@ -11,9 +12,17 @@ namespace BannerOfBones.CardGame
     /// runtime so the prefab itself stays free of package-specific assets.
     /// </summary>
     [DisallowMultipleComponent]
-    public class CardButton : MonoBehaviour
+    public class CardButton : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
     {
         public CardData Card { get; private set; }
+
+        private Action<CardData> _onClick;
+        private Action<CardData, PointerEventData> _onBeginDrag;
+        private Action<PointerEventData> _onDrag;
+        private Action<CardData, PointerEventData> _onEndDrag;
+        private bool _isInteractable;
+        private bool _suppressClick;
+        private bool _isDragging;
 
         /// <summary>
         /// Positions this card within the hand container and wires up visuals + click.
@@ -24,9 +33,18 @@ namespace BannerOfBones.CardGame
         /// <param name="total">Total number of cards in the hand.</param>
         /// <param name="onClick">Callback invoked when the button is clicked.</param>
         public void Setup(CardData card, bool interactable, int index, int total, Action<CardData> onClick,
-            bool highlighted = false, string descriptionText = null, string targetLabel = null)
+            bool highlighted = false, string descriptionText = null, string targetLabel = null,
+            Action<CardData, PointerEventData> onBeginDrag = null, Action<PointerEventData> onDrag = null,
+            Action<CardData, PointerEventData> onEndDrag = null)
         {
             Card = card;
+            _onClick = onClick;
+            _onBeginDrag = onBeginDrag;
+            _onDrag = onDrag;
+            _onEndDrag = onEndDrag;
+            _isInteractable = interactable;
+            _suppressClick = false;
+            _isDragging = false;
 
             // ── Size / position ───────────────────────────────────────────────────
             var rt = GetComponent<RectTransform>();
@@ -47,8 +65,6 @@ namespace BannerOfBones.CardGame
             var btn = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
             btn.interactable = interactable;
             btn.onClick.RemoveAllListeners();
-            var captured = card;
-            btn.onClick.AddListener(() => onClick(captured));
 
             // ── Energy cost badge (upper left) ────────────────────────────────────
             var badgeGO = new GameObject("CostBadge");
@@ -97,6 +113,47 @@ namespace BannerOfBones.CardGame
             string targetText = string.IsNullOrEmpty(targetLabel) ? string.Empty : $"\n<color=#F8E27A>{targetLabel}</color>";
             string renderedDescription = string.IsNullOrWhiteSpace(descriptionText) ? card.description : descriptionText;
             txt.text = $"<b>{card.cardName}</b>\n{renderedDescription}{(string.IsNullOrEmpty(durationText) ? string.Empty : $"\n[{durationText}]")}{targetText}";
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (!_isInteractable || eventData.button != PointerEventData.InputButton.Left)
+                return;
+
+            if (_suppressClick)
+            {
+                _suppressClick = false;
+                return;
+            }
+
+            _onClick?.Invoke(Card);
+        }
+
+        public void OnBeginDrag(PointerEventData eventData)
+        {
+            if (!_isInteractable || eventData.button != PointerEventData.InputButton.Left)
+                return;
+
+            _isDragging = true;
+            _suppressClick = true;
+            _onBeginDrag?.Invoke(Card, eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            if (!_isDragging)
+                return;
+
+            _onDrag?.Invoke(eventData);
+        }
+
+        public void OnEndDrag(PointerEventData eventData)
+        {
+            if (!_isDragging)
+                return;
+
+            _isDragging = false;
+            _onEndDrag?.Invoke(Card, eventData);
         }
     }
 }

@@ -74,9 +74,12 @@ namespace BannerOfBones.CardGame
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Stab",
+                    intentName = "Needle Storm",
                     intentType = EEnemyIntentType.AttackFlat,
-                    magnitude = 4,
+                    magnitude = 2,
+                    triggerOn = EPokerHandType.PerDieValue,
+                    dieValue = 5,
+                    description = "Deal 2 damage for each 5 in your roll.",
                 },
                 new EnemyIntentData
                 {
@@ -197,9 +200,12 @@ namespace BannerOfBones.CardGame
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Executioner Swing",
+                    intentName = "Death Sentence",
                     intentType = EEnemyIntentType.AttackFlat,
-                    magnitude = 9,
+                    magnitude = 2,
+                    triggerOn = EPokerHandType.PerHighDie,
+                    valueThreshold = 5,
+                    description = "Deal 2 damage for each die showing 5 or higher.",
                 },
                 new EnemyIntentData
                 {

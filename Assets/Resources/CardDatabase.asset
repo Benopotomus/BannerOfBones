@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e312486ac5644a98bfd81af9a8975e7, type: 3}
+  m_Name: CardDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardDatabase
+  allCards:
+  - {fileID: 11400000, guid: a9a274d7bb644864bab436021934b241, type: 2}
+  - {fileID: 11400000, guid: 341d421521e2d174f8a863d544aa86cc, type: 2}
+  - {fileID: 11400000, guid: fbec22610e0ad97498ea08d8d8e919c5, type: 2}
+  - {fileID: 11400000, guid: 4f7a106623a95954aa4d47ae9ac22784, type: 2}
+  - {fileID: 11400000, guid: 6c0552b73db99494093eabced62d58e2, type: 2}
+  - {fileID: 11400000, guid: 2d3c07ca6375a5a4e9f36a686b8dec28, type: 2}
+  - {fileID: 11400000, guid: beea0807912c24e4390b33f03a11b176, type: 2}
+  - {fileID: 11400000, guid: 95144013205fcbd439d2ddccfe8aabd4, type: 2}
+  - {fileID: 11400000, guid: 47bb65e16411a0c408a80923378d0650, type: 2}
+  - {fileID: 11400000, guid: f30f8addca84451498a61781dd1aa2be, type: 2}
+  - {fileID: 11400000, guid: d36fc25e1edf5f043ac09125f835f8a1, type: 2}
+  - {fileID: 11400000, guid: 2722c765a33f86246a42636c468a6d64, type: 2}
+  - {fileID: 11400000, guid: af34da91372796446ab2b153c1d14540, type: 2}
+  - {fileID: 11400000, guid: 09d53cef1f40cdb4b90f5f2581c2acba, type: 2}
+  - {fileID: 11400000, guid: 91072fe0f21fdfb41afb3c8ff4050425, type: 2}
+  - {fileID: 11400000, guid: 397df9bc37fdc51438348cca38b4a10a, type: 2}
+  - {fileID: 11400000, guid: 80ab2512d2d796446bee913c042841b4, type: 2}
+  - {fileID: 11400000, guid: 8d42188a4a4d89141b9c61367e6e7c62, type: 2}
+  - {fileID: 11400000, guid: 7856568e932287848bced8f0318d83e4, type: 2}
+  - {fileID: 11400000, guid: 1557506c66b148c449a1d8be0fb08a28, type: 2}
+  - {fileID: 11400000, guid: d615f029ff3f2294e8c7323a4319c847, type: 2}
+  - {fileID: 11400000, guid: 4d272844a75f58044b20f7ee99f4bb83, type: 2}
+  - {fileID: 11400000, guid: 3719ec598c7758d4a9f31fc0f44ed01a, type: 2}
+  - {fileID: 11400000, guid: bfa4ccccc5ac0a64f9b8bfed1e3973cf, type: 2}
+  - {fileID: 11400000, guid: d73f55a3b178162429c71f630f2ec5be, type: 2}
+  - {fileID: 11400000, guid: dd7b13800446c064983db307a56c2138, type: 2}
+  - {fileID: 11400000, guid: e2530af123be2ad47aa45a9f6ca0246f, type: 2}
+  - {fileID: 11400000, guid: 15ea0704eb4242242a2d9f4552343427, type: 2}
+  - {fileID: 11400000, guid: d2f9fb5528b16ec4a959ace846fafb82, type: 2}
+  - {fileID: 11400000, guid: be11d50d6b8e5114e906e5a280ecf384, type: 2}
+  - {fileID: 11400000, guid: 57fadc4bf9972b14f8c110b086359bd9, type: 2}
+  - {fileID: 11400000, guid: 520d61989eb514245ba705dc868a6527, type: 2}
+  - {fileID: 11400000, guid: b46d3604019263441bf8cd1b0cac6556, type: 2}
+  - {fileID: 11400000, guid: 3ac6cc75c7bb4004dad384af2144e2bf, type: 2}
+  starterDeck:
+  - card: {fileID: 11400000, guid: fbec22610e0ad97498ea08d8d8e919c5, type: 2}
+    copies: 2
+  - card: {fileID: 11400000, guid: 4f7a106623a95954aa4d47ae9ac22784, type: 2}
+    copies: 2
+  - card: {fileID: 11400000, guid: 6c0552b73db99494093eabced62d58e2, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 2d3c07ca6375a5a4e9f36a686b8dec28, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: beea0807912c24e4390b33f03a11b176, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 95144013205fcbd439d2ddccfe8aabd4, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 47bb65e16411a0c408a80923378d0650, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 2722c765a33f86246a42636c468a6d64, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: af34da91372796446ab2b153c1d14540, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 09d53cef1f40cdb4b90f5f2581c2acba, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 91072fe0f21fdfb41afb3c8ff4050425, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 397df9bc37fdc51438348cca38b4a10a, type: 2}
+    copies: 2
+  - card: {fileID: 11400000, guid: 8d42188a4a4d89141b9c61367e6e7c62, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 1557506c66b148c449a1d8be0fb08a28, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: d615f029ff3f2294e8c7323a4319c847, type: 2}
+    copies: 2
+  - card: {fileID: 11400000, guid: 4d272844a75f58044b20f7ee99f4bb83, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 3719ec598c7758d4a9f31fc0f44ed01a, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: bfa4ccccc5ac0a64f9b8bfed1e3973cf, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: e2530af123be2ad47aa45a9f6ca0246f, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 15ea0704eb4242242a2d9f4552343427, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: d2f9fb5528b16ec4a959ace846fafb82, type: 2}
+    copies: 3
+  - card: {fileID: 11400000, guid: 57fadc4bf9972b14f8c110b086359bd9, type: 2}
+    copies: 2
+  - card: {fileID: 11400000, guid: b46d3604019263441bf8cd1b0cac6556, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: 3ac6cc75c7bb4004dad384af2144e2bf, type: 2}
+    copies: 1
+  - card: {fileID: 11400000, guid: a9a274d7bb644864bab436021934b241, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: 341d421521e2d174f8a863d544aa86cc, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: f30f8addca84451498a61781dd1aa2be, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: d36fc25e1edf5f043ac09125f835f8a1, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: 80ab2512d2d796446bee913c042841b4, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: 7856568e932287848bced8f0318d83e4, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: d73f55a3b178162429c71f630f2ec5be, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: dd7b13800446c064983db307a56c2138, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: be11d50d6b8e5114e906e5a280ecf384, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: 520d61989eb514245ba705dc868a6527, type: 2}
+    copies: 0

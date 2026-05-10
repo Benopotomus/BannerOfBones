@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Full Send
   description: Reroll all of your dice.
-  energyCost: 1
+  energyCost: 0
   duration: 0
   targetsAllEnemies: 0
   effects:

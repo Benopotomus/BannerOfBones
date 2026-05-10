@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Cursed Dice
   description: Reroll all of your dice. Gain 1 block for each odd die.
-  energyCost: 1
+  energyCost: 0
   duration: 0
   targetsAllEnemies: 0
   effects:

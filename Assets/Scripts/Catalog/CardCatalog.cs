@@ -25,8 +25,8 @@ namespace BannerOfBones.CardGame
         public static List<CardData> CreateDefaultStarterDeck()
         {
             var deck = new List<CardData>();
-            for (int i = 0; i < 5; i++) deck.Add(CreateStrike());
-            for (int i = 0; i < 5; i++) deck.Add(CreateIronShield());
+            for (int i = 0; i < 7; i++) deck.Add(CreateStrike());
+            for (int i = 0; i < 7; i++) deck.Add(CreateIronShield());
             for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
             deck.Add(CreateTwinFangs());
             deck.Add(CreateLuckyReroll());
@@ -577,7 +577,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Full Send";
             card.description = "Reroll all of your dice.";
-            card.energyCost  = 1;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -597,7 +597,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Hex Curse";
             card.description = "Reroll up to 2 of your dice. Then deal 2 damage for each [1] rolled.";
-            card.energyCost  = 1;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -626,7 +626,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Cursed Dice";
             card.description = "Reroll all of your dice. Gain 1 block for each odd die.";
-            card.energyCost  = 1;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
             {
@@ -681,7 +681,7 @@ namespace BannerOfBones.CardGame
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Cursed Aura";
             card.description = "At the start of each round, reroll your lowest die.";
-            card.energyCost  = 1;
+            card.energyCost  = 0;
             card.duration    = ECardDuration.Persistent;
             card.effects = new List<CardEffectData>
             {

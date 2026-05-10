@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -62,9 +63,12 @@ namespace BannerOfBones.CardGame
                     : new Color(0.20f, 0.20f, 0.20f);
 
             // ── Button ────────────────────────────────────────────────────────────
-            var btn = gameObject.GetComponent<Button>() ?? gameObject.AddComponent<Button>();
-            btn.interactable = interactable;
-            btn.onClick.RemoveAllListeners();
+            var btn = gameObject.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                btn.enabled = false;
+            }
 
             // ── Energy cost badge (upper left) ────────────────────────────────────
             var badgeGO = new GameObject("CostBadge");
@@ -154,6 +158,14 @@ namespace BannerOfBones.CardGame
 
             _isDragging = false;
             _onEndDrag?.Invoke(Card, eventData);
+            StopAllCoroutines();
+            StartCoroutine(ClearClickSuppressionNextFrame());
+        }
+
+        private IEnumerator ClearClickSuppressionNextFrame()
+        {
+            yield return null;
+            _suppressClick = false;
         }
     }
 }

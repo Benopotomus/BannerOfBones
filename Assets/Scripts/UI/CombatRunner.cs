@@ -627,8 +627,12 @@ namespace BannerOfBones.CardGame
             }
 
             int targetEnemyIndex = GetEnemyDropTargetIndex(screenPosition, eventCamera);
-            if (targetEnemyIndex < 0 && CountAliveEnemies() > 1)
-                return false;
+            if (targetEnemyIndex < 0)
+            {
+                targetEnemyIndex = GetSingleAliveEnemyIndex();
+                if (targetEnemyIndex < 0)
+                    return false;
+            }
 
             if (!_combat.TryPlayCard(card))
                 return false;
@@ -819,6 +823,23 @@ namespace BannerOfBones.CardGame
             }
 
             return alive;
+        }
+
+        private int GetSingleAliveEnemyIndex()
+        {
+            int foundIndex = -1;
+            for (int i = 0; i < _combat.Enemies.Count; i++)
+            {
+                if (!_combat.Enemies[i].IsAlive)
+                    continue;
+
+                if (foundIndex >= 0)
+                    return -1;
+
+                foundIndex = i;
+            }
+
+            return foundIndex;
         }
 
         private static string BuildEnemyActionText(EnemyCombatant enemy)

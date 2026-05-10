@@ -70,6 +70,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Pocket Sand",
                     intentType = EEnemyIntentType.SapPlayerEnergy,
                     magnitude = 1,
+                    count = 1,
                 },
                 new EnemyIntentData
                 {
@@ -82,6 +83,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Hamstring",
                     intentType = EEnemyIntentType.ShredPlayerBlock,
                     magnitude = 4,
+                    count = 1,
                 },
             };
             return enemy;
@@ -112,6 +114,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Guard Break",
                     intentType = EEnemyIntentType.ShredPlayerBlock,
                     magnitude = 6,
+                    count = 1,
                 },
             };
             return enemy;
@@ -190,6 +193,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Soul Rend",
                     intentType = EEnemyIntentType.SapPlayerEnergy,
                     magnitude = 1,
+                    count = 1,
                 },
                 new EnemyIntentData
                 {

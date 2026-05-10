@@ -4,7 +4,7 @@ namespace BannerOfBones.CardGame
     {
         AttackFlat,
         Guard,
-        RerollPlayerDice,
-        WeakenPlayerDice,
+        ShredPlayerBlock,
+        SapPlayerEnergy,
     }
 }

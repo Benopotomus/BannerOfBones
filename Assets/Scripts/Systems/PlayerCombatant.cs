@@ -16,6 +16,7 @@ namespace BannerOfBones.CardGame
         public DiceManager  Dice   { get; }
         public DeckManager  Deck   { get; }
         public EnergyManager Energy { get; }
+        public int PendingNextTurnDieLoss { get; private set; }
 
         /// <summary>Cards with Persistent duration currently in play.</summary>
         public List<PersistentCardRuntime> ActivePersistentCards { get; } = new List<PersistentCardRuntime>();
@@ -52,6 +53,13 @@ namespace BannerOfBones.CardGame
             Block = 0;
         }
 
+        public int LoseBlock(int amount)
+        {
+            int removed = Math.Min(Block, Math.Max(0, amount));
+            Block -= removed;
+            return removed;
+        }
+
         /// <summary>
         /// Called at the start of each round: removes temporary dice, clears block, resets energy,
         /// discards the previous hand, draws a new hand, and rolls all dice.
@@ -59,11 +67,19 @@ namespace BannerOfBones.CardGame
         public void StartRound()
         {
             Dice.RemoveTemporaryDice();
+            for (int i = 0; i < PendingNextTurnDieLoss; i++)
+                Dice.RemoveDie();
+            PendingNextTurnDieLoss = 0;
             ClearBlock();
             Energy.ResetEnergy();
             Deck.DiscardHandExceptRetained();
             Deck.DrawCards();
             Dice.RollAll();
+        }
+
+        public void ApplyNextTurnDieLoss(int amount)
+        {
+            PendingNextTurnDieLoss += Math.Max(0, amount);
         }
     }
 }

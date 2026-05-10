@@ -8,6 +8,7 @@
     {
         public int MaxEnergy     { get; }
         public int CurrentEnergy { get; private set; }
+        public int PendingNextTurnPenalty { get; private set; }
 
         public EnergyManager(int maxEnergy)
         {
@@ -17,7 +18,8 @@
 
         public void ResetEnergy()
         {
-            CurrentEnergy = MaxEnergy;
+            CurrentEnergy = System.Math.Max(0, MaxEnergy - PendingNextTurnPenalty);
+            PendingNextTurnPenalty = 0;
         }
 
         public bool CanAfford(int cost) => CurrentEnergy >= cost;
@@ -28,6 +30,11 @@
             if (!CanAfford(cost)) return false;
             CurrentEnergy -= cost;
             return true;
+        }
+
+        public void ApplyNextTurnPenalty(int amount)
+        {
+            PendingNextTurnPenalty += System.Math.Max(0, amount);
         }
     }
 }

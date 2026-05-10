@@ -41,6 +41,8 @@ namespace BannerOfBones.CardGame
         private CombatManager _combat;
 
         private RectTransform _enemyGroupContainer;
+        private RectTransform _enemyAreaPanel;
+        private RectTransform _playerAreaPanel;
         private Text _playerHpText;
         private Text _playerEnergyText;
         private Text _playerBlockText;
@@ -49,6 +51,7 @@ namespace BannerOfBones.CardGame
         private Text _logText;
         private RectTransform _playerDiceButtonsContainer;
         private RectTransform _handContainer;
+        private RectTransform _dragLayer;
         private Button _focusButton;
         private Button _braceButton;
         private Button _scoutButton;
@@ -66,7 +69,11 @@ namespace BannerOfBones.CardGame
 
         private readonly List<string> _log = new List<string>();
         private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
+        private readonly List<RectTransform> _enemyDropTargets = new List<RectTransform>();
         private const int MaxLogLines = 8;
+        private static readonly Vector2 DragPreviewSize = new Vector2(240f, 180f);
+
+        private GameObject _activeDragCard;
 
         private int _runCombatIndex;
         private int _runPlayerHealth;
@@ -108,16 +115,16 @@ namespace BannerOfBones.CardGame
 
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            var ep = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.04f, 0.56f, 0.96f, 0.98f);
-            var enemyLabel = MkText(ep, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
+            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.04f, 0.56f, 0.96f, 0.98f);
+            var enemyLabel = MkText(_enemyAreaPanel, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             enemyLabel.text = "— E N E M I E S —";
-            _enemyGroupContainer = MkContainer(ep, "EnemyGroup", 0f, 0f, 1f, 0.86f, 10f, 8f, -10f, -8f);
+            _enemyGroupContainer = MkContainer(_enemyAreaPanel, "EnemyGroup", 0f, 0f, 1f, 0.86f, 10f, 8f, -10f, -8f);
 
-            var pp = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0.04f, 0.40f, 0.34f, 0.54f);
-            _playerHpText = MkText(pp, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.48f, 0.50f, 1f);
-            _playerBlockText = MkText(pp, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0.50f, 0.48f, 1f, 1f);
-            _playerEnergyText = MkText(pp, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.22f, 1f, 0.54f);
-            _stateText = MkText(pp, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.30f);
+            _playerAreaPanel = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0.04f, 0.40f, 0.34f, 0.54f);
+            _playerHpText = MkText(_playerAreaPanel, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.48f, 0.50f, 1f);
+            _playerBlockText = MkText(_playerAreaPanel, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0.50f, 0.48f, 1f, 1f);
+            _playerEnergyText = MkText(_playerAreaPanel, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.22f, 1f, 0.54f);
+            _stateText = MkText(_playerAreaPanel, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.30f);
 
             var playerDicePanel = MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.36f, 0.40f, 0.96f, 0.54f);
             _playerDiceText = MkText(playerDicePanel, 13, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.72f, 1f, 1f);
@@ -157,6 +164,9 @@ namespace BannerOfBones.CardGame
             _progressionPanel.gameObject.SetActive(false);
             _progressionTitleText = MkText(_progressionPanel, 18, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             _progressionOptionsContainer = MkContainer(_progressionPanel, "ProgressionOptions", 0.06f, 0.12f, 0.94f, 0.84f);
+
+            _dragLayer = MkContainer(root, "DragLayer", 0f, 0f, 1f, 1f);
+            _dragLayer.SetAsLastSibling();
         }
 
         private int GetRunTargetCombatCount()
@@ -375,6 +385,7 @@ namespace BannerOfBones.CardGame
         private void RefreshEnemies()
         {
             ClearContainer(_enemyGroupContainer);
+            _enemyDropTargets.Clear();
 
             var enemies = _combat.Enemies;
             if (enemies == null || enemies.Count == 0) return;
@@ -391,6 +402,7 @@ namespace BannerOfBones.CardGame
                         ? selectable ? C(0.48f, 0.23f, 0.13f) : C(0.28f, 0.12f, 0.12f)
                         : C(0.14f, 0.10f, 0.10f),
                     i * width + 0.01f, 0.02f, (i + 1) * width - 0.01f, 0.98f);
+                _enemyDropTargets.Add(panel);
 
                 if (selectable)
                 {
@@ -498,7 +510,10 @@ namespace BannerOfBones.CardGame
                     OnHandCardClicked,
                     highlighted,
                     BuildCardDescriptionText(card),
-                    BuildCardTargetText(card));
+                    BuildCardTargetText(card),
+                    OnHandCardDragStarted,
+                    OnHandCardDragged,
+                    OnHandCardDragEnded);
             }
         }
 
@@ -582,13 +597,14 @@ namespace BannerOfBones.CardGame
         {
             Log($"── Round: Player {FormatDicePool(_combat.Player.Dice.Pool)}");
             foreach (var enemy in _combat.Enemies)
-                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  Block {enemy.Block}  {enemy.GetIntentSummary()}");
+                Log($"   {enemy.Data.enemyName}: HP {enemy.CurrentHealth}  Block {enemy.Block}  {enemy.GetIntentSummary(_combat.Player.Dice.CurrentRoll)}");
             RefreshUI();
         }
 
         private void OnCombatEnded(bool playerWon)
         {
             Log(playerWon ? "★  VICTORY! ★" : "✕  DEFEATED");
+            DestroyActiveDragCard();
             ClearContainer(_handContainer);
 
             if (!playerWon)
@@ -669,6 +685,41 @@ namespace BannerOfBones.CardGame
             RefreshUI();
         }
 
+        private void OnHandCardDragStarted(CardData card, PointerEventData eventData)
+        {
+            DestroyActiveDragCard();
+            _activeDragCard = CreateDragPreview(card);
+            UpdateDragPreviewPosition(eventData.position, GetEventCamera(eventData));
+        }
+
+        private void OnHandCardDragged(PointerEventData eventData)
+        {
+            if (_activeDragCard == null)
+                return;
+
+            UpdateDragPreviewPosition(eventData.position, GetEventCamera(eventData));
+        }
+
+        private void OnHandCardDragEnded(CardData card, PointerEventData eventData)
+        {
+            try
+            {
+                if (_combat == null || !_combat.CanPlayCard(card))
+                    return;
+
+                var eventCamera = GetEventCamera(eventData);
+                if (!RectTransformUtility.RectangleContainsScreenPoint(_enemyAreaPanel, eventData.position, eventCamera))
+                    return;
+
+                if (TryResolveDraggedCard(card, eventData.position, eventCamera))
+                    RefreshUI();
+            }
+            finally
+            {
+                DestroyActiveDragCard();
+            }
+        }
+
         private void OnEnemyClicked(int enemyIndex)
         {
             if (_combat.TrySelectEnemy(enemyIndex))
@@ -719,6 +770,115 @@ namespace BannerOfBones.CardGame
             var label = button.GetComponentInChildren<Text>();
             if (label != null)
                 label.text = text;
+        }
+
+        private bool TryResolveDraggedCard(CardData card, Vector2 screenPosition, Camera eventCamera)
+        {
+            bool requiresEnemyTarget = CardEffectProcessor.CardRequiresEnemyTarget(card);
+            bool targetsAllEnemies = requiresEnemyTarget && card.targetsAllEnemies;
+
+            if (!requiresEnemyTarget || targetsAllEnemies)
+            {
+                if (!_combat.TryPlayCard(card))
+                    return false;
+
+                return !_combat.IsAwaitingCardConfirmation || _combat.ConfirmPendingChoice();
+            }
+
+            int targetEnemyIndex = GetEnemyDropTargetIndex(screenPosition, eventCamera);
+            if (targetEnemyIndex < 0)
+            {
+                targetEnemyIndex = GetSingleAliveEnemyIndex();
+                if (targetEnemyIndex < 0)
+                    return false;
+            }
+
+            if (!_combat.TryPlayCard(card))
+                return false;
+
+            return !_combat.IsAwaitingEnemySelection || _combat.TrySelectEnemy(targetEnemyIndex);
+        }
+
+        private int GetEnemyDropTargetIndex(Vector2 screenPosition, Camera eventCamera)
+        {
+            for (int i = 0; i < _enemyDropTargets.Count; i++)
+            {
+                if (RectTransformUtility.RectangleContainsScreenPoint(_enemyDropTargets[i], screenPosition, eventCamera))
+                    return i;
+            }
+
+            return -1;
+        }
+
+        private GameObject CreateDragPreview(CardData card)
+        {
+            var preview = new GameObject("DraggedCard");
+            preview.transform.SetParent(_dragLayer, false);
+
+            var canvasGroup = preview.AddComponent<CanvasGroup>();
+            canvasGroup.blocksRaycasts = false;
+
+            var rectTransform = preview.AddComponent<RectTransform>();
+            rectTransform.anchorMin = rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            rectTransform.sizeDelta = DragPreviewSize;
+
+            var background = preview.AddComponent<Image>();
+            background.color = new Color(0.18f, 0.38f, 0.14f, 0.95f);
+
+            var costBadge = new GameObject("CostBadge");
+            costBadge.transform.SetParent(preview.transform, false);
+            var costBadgeRect = costBadge.AddComponent<RectTransform>();
+            costBadgeRect.anchorMin = new Vector2(0f, 1f);
+            costBadgeRect.anchorMax = new Vector2(0.24f, 1f);
+            costBadgeRect.pivot = new Vector2(0f, 1f);
+            costBadgeRect.anchoredPosition = new Vector2(6f, -6f);
+            costBadgeRect.sizeDelta = new Vector2(0f, 28f);
+            costBadge.AddComponent<Image>().color = new Color(0.10f, 0.16f, 0.32f, 0.95f);
+
+            var costText = MkText(costBadgeRect, 13, new Color(0.9f, 0.85f, 0.30f), TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
+            costText.fontStyle = FontStyle.Bold;
+            costText.text = card.energyCost.ToString();
+
+            var body = MkText(rectTransform, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 1f);
+            body.supportRichText = true;
+            body.text = BuildDragPreviewText(card);
+
+            return preview;
+        }
+
+        private string BuildDragPreviewText(CardData card)
+        {
+            string targetText = BuildCardTargetText(card);
+            string durationText = card.duration == ECardDuration.Instant ? string.Empty : $"\n[{card.duration}]";
+            string targetLine = string.IsNullOrEmpty(targetText) ? string.Empty : $"\n<color=#F8E27A>{targetText}</color>";
+            return $"<b>{card.cardName}</b>\n{BuildCardDescriptionText(card)}{durationText}{targetLine}";
+        }
+
+        private void UpdateDragPreviewPosition(Vector2 screenPosition, Camera eventCamera)
+        {
+            if (_activeDragCard == null)
+                return;
+
+            var rectTransform = _activeDragCard.GetComponent<RectTransform>();
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_dragLayer, screenPosition, eventCamera, out var localPoint))
+                return;
+
+            rectTransform.anchoredPosition = localPoint + new Vector2(0f, 40f);
+        }
+
+        private void DestroyActiveDragCard()
+        {
+            if (_activeDragCard == null)
+                return;
+
+            Destroy(_activeDragCard);
+            _activeDragCard = null;
+        }
+
+        private static Camera GetEventCamera(PointerEventData eventData)
+        {
+            return eventData?.pressEventCamera ?? eventData?.enterEventCamera;
         }
 
         private void AttachHoverTooltip(Button button, string tooltipText)
@@ -824,16 +984,34 @@ namespace BannerOfBones.CardGame
             return alive;
         }
 
-        private static string BuildEnemyActionText(EnemyCombatant enemy)
+        private int GetSingleAliveEnemyIndex()
+        {
+            int foundIndex = -1;
+            for (int i = 0; i < _combat.Enemies.Count; i++)
+            {
+                if (!_combat.Enemies[i].IsAlive)
+                    continue;
+
+                if (foundIndex >= 0)
+                    return -1;
+
+                foundIndex = i;
+            }
+
+            return foundIndex;
+        }
+
+        private string BuildEnemyActionText(EnemyCombatant enemy)
         {
             if (enemy.CurrentIntent != null)
             {
+                var playerDiceRoll = _combat?.Player?.Dice?.CurrentRoll;
                 var sb = new StringBuilder();
-                sb.AppendLine($"<color=#FFB0B0>{FormatIntentHeadline(enemy, enemy.CurrentIntent, true)}</color>");
-                sb.AppendLine($"  {enemy.GetIntentSummary()}");
+                sb.AppendLine($"<color=#FFB0B0>{FormatIntentHeadline(enemy, enemy.CurrentIntent, playerDiceRoll)}</color>");
+                sb.AppendLine($"  {enemy.GetIntentSummary(playerDiceRoll)}");
 
                 if (enemy.NextIntent != null)
-                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, false)}</color>");
+                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, playerDiceRoll)}</color>");
 
                 return sb.ToString().TrimEnd();
             }
@@ -841,23 +1019,26 @@ namespace BannerOfBones.CardGame
             return "No action.";
         }
 
-        private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, bool includeCurrentDamage)
+        private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, int[] playerDiceRoll)
         {
             int amount = Mathf.Max(0, intent.magnitude);
-            int count = Mathf.Max(1, intent.count);
             switch (intent.intentType)
             {
                 case EEnemyIntentType.AttackFlat:
                 {
-                    int damage = amount;
+                    int damage = enemy.CurrentIntent == intent
+                        ? enemy.CalculateIntentDamage(playerDiceRoll)
+                        : amount;
                     return $"⚔ {intent.intentName} ({damage} dmg)";
                 }
                 case EEnemyIntentType.Guard:
                     return $"🛡 {intent.intentName} (+{amount} block)";
-                case EEnemyIntentType.RerollPlayerDice:
-                    return $"🎲 {intent.intentName} (reroll {count} low dice)";
-                case EEnemyIntentType.WeakenPlayerDice:
-                    return $"☠ {intent.intentName} (-{amount} to {count} high dice)";
+                case EEnemyIntentType.ShredPlayerBlock:
+                    return $"🪓 {intent.intentName} (-{amount} block)";
+                case EEnemyIntentType.SapPlayerEnergy:
+                    return amount == 1
+                        ? $"⚡ {intent.intentName} (-1 die next turn)"
+                        : $"⚡ {intent.intentName} (-{amount} dice next turn)";
                 default:
                     return $"→ {intent.intentName}";
             }

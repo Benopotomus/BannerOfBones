@@ -61,27 +61,31 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Goblin Scout";
-            enemy.description = "A disruptive skirmisher that chips damage and scrambles your dice.";
+            enemy.description = "A dirty skirmisher that disrupts your setup before darting in.";
             enemy.maxHealth = 8;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
                     intentName = "Pocket Sand",
-                    intentType = EEnemyIntentType.RerollPlayerDice,
+                    intentType = EEnemyIntentType.SapPlayerEnergy,
+                    magnitude = 1,
                     count = 1,
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Stab",
+                    intentName = "Needle Storm",
                     intentType = EEnemyIntentType.AttackFlat,
-                    magnitude = 4,
+                    magnitude = 2,
+                    triggerOn = EPokerHandType.PerDieValue,
+                    dieValue = 5,
+                    description = "Deal 2 damage for each 5 in your roll.",
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Shiv Twist",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
-                    magnitude = 1,
+                    intentName = "Hamstring",
+                    intentType = EEnemyIntentType.ShredPlayerBlock,
+                    magnitude = 4,
                     count = 1,
                 },
             };
@@ -92,7 +96,7 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Orc Warrior";
-            enemy.description = "A bruiser that builds guard before punishing weak turns.";
+            enemy.description = "A bruiser that builds guard, then smashes through defenses.";
             enemy.maxHealth = 12;
             enemy.roundIntents = new List<EnemyIntentData>
             {
@@ -110,10 +114,10 @@ namespace BannerOfBones.CardGame
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Batter",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
-                    magnitude = 1,
-                    count = 2,
+                    intentName = "Guard Break",
+                    intentType = EEnemyIntentType.ShredPlayerBlock,
+                    magnitude = 6,
+                    count = 1,
                 },
             };
             return enemy;
@@ -183,22 +187,25 @@ namespace BannerOfBones.CardGame
         {
             var enemy = ScriptableObject.CreateInstance<EnemyData>();
             enemy.name = enemy.enemyName = "Death Knight";
-            enemy.description = "An elite controller that weakens your dice before execution hits.";
+            enemy.description = "An elite controller that drains your tempo before execution hits.";
             enemy.maxHealth = 18;
             enemy.roundIntents = new List<EnemyIntentData>
             {
                 new EnemyIntentData
                 {
                     intentName = "Soul Rend",
-                    intentType = EEnemyIntentType.WeakenPlayerDice,
+                    intentType = EEnemyIntentType.SapPlayerEnergy,
                     magnitude = 1,
-                    count = 2,
+                    count = 1,
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Executioner Swing",
+                    intentName = "Death Sentence",
                     intentType = EEnemyIntentType.AttackFlat,
-                    magnitude = 9,
+                    magnitude = 2,
+                    triggerOn = EPokerHandType.PerHighDie,
+                    valueThreshold = 5,
+                    description = "Deal 2 damage for each die showing 5 or higher.",
                 },
                 new EnemyIntentData
                 {

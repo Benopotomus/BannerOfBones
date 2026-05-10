@@ -52,6 +52,7 @@ namespace BannerOfBones.CardGame
             deck.Add(CreateLoadedBet());
             deck.Add(CreatePrecisionStrike());
             deck.Add(CreateCursedAura());
+            deck.Add(CreatePeakStrike());
             return deck;
         }
 
@@ -69,6 +70,7 @@ namespace BannerOfBones.CardGame
             return new List<CardData>
             {
                 // ── Damage ────────────────────────────────────────────────────────
+                CreatePeakStrike(),
                 CreateStrike(),
                 CreateIronShield(),
                 CreateSwiftSlash(),
@@ -875,6 +877,26 @@ namespace BannerOfBones.CardGame
                     effectType = EEffectType.AddTemporaryDie,
                     diceTarget = ECardTarget.PlayerDice,
                     dieSides = 10,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreatePeakStrike()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Peak Strike";
+            card.description = "Deal damage equal to your highest die roll.";
+            card.energyCost = 1;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DealDamage,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn  = EPokerHandType.HighestDieValue,
+                    magnitude  = 1,
                 },
             };
             return card;

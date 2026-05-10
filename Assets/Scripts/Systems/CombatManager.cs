@@ -88,7 +88,18 @@ namespace BannerOfBones.CardGame
                    && !HasPendingChoice
                    && card != null
                    && Player.Deck.Hand.Contains(card)
-                   && Player.Energy.CanAfford(card.energyCost);
+                   && Player.Energy.CanAfford(card.energyCost)
+                   && MeetsCardPlayRequirements(card);
+        }
+
+        private bool MeetsCardPlayRequirements(CardData card)
+        {
+            if (card == null || Player?.Dice == null) return false;
+
+            if (string.Equals(card.cardName, "Crushing Blow", StringComparison.OrdinalIgnoreCase))
+                return PokerEvaluator.CountFullHouses(Player.Dice.CurrentRoll) > 0;
+
+            return true;
         }
 
         public bool CanUseBaselineActions()

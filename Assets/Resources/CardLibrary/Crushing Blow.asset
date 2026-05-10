@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Crushing Blow
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Crushing Blow
-  description: Deal 8 damage per full house (triple + pair) rolled.
+  description: Playable only with a full house. Deal 8 damage per full house (triple + pair) rolled.
   energyCost: 1
   duration: 0
   targetsAllEnemies: 0

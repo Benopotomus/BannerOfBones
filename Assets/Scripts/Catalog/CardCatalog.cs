@@ -327,7 +327,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Crushing Blow";
-            card.description = "Deal 8 damage per full house (triple + pair) rolled.";
+            card.description = "Playable only with a full house. Deal 8 damage per full house (triple + pair) rolled.";
             card.energyCost  = 1;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>

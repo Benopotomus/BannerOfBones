@@ -31,6 +31,7 @@ namespace BannerOfBones.CardGame
             Focus,
             Scout,
             Tune,
+            Sunder,
         }
 
         public PlayerCombatant Player { get; private set; }
@@ -292,6 +293,12 @@ namespace BannerOfBones.CardGame
                     ClearPendingHandSelection();
                     break;
 
+                case PendingBaselineAction.Sunder:
+                    if (!IsAwaitingEnemySelection)
+                        return false;
+                    ClearPendingEnemySelection();
+                    break;
+
                 default:
                     return false;
             }
@@ -369,24 +376,28 @@ namespace BannerOfBones.CardGame
             if (!CanUseBaselineActions() || _sunderUsed)
                 return false;
 
-            var targetEnemy = GetFirstAliveEnemy();
-            if (targetEnemy == null)
+            if (!_enemies.Any(e => e.IsAlive))
                 return false;
 
-            int damage = Player.Dice.CurrentRoll.Count(value => value >= 4);
-            _sunderUsed = true;
-
-            if (damage > 0)
+            _pendingBaselineAction = PendingBaselineAction.Sunder;
+            QueueEnemySelection("Sunder: choose a target to damage.", enemyIndex =>
             {
-                targetEnemy.TakeDamage(damage);
-                Log($"Sunder hits {targetEnemy.Data.enemyName} for {damage} damage.");
-            }
-            else
-            {
-                Log($"Sunder finds no openings against {targetEnemy.Data.enemyName}.");
-            }
-
-            CheckForCombatEnd();
+                _pendingBaselineAction = PendingBaselineAction.None;
+                var targetEnemy = _enemies[enemyIndex];
+                int damage = Player.Dice.CurrentRoll.Count(value => value >= 4);
+                if (damage > 0)
+                {
+                    targetEnemy.TakeDamage(damage);
+                    Log($"Sunder hits {targetEnemy.Data.enemyName} for {damage} damage.");
+                }
+                else
+                {
+                    Log($"Sunder finds no openings against {targetEnemy.Data.enemyName}.");
+                }
+                CheckForCombatEnd();
+                _sunderUsed = true;
+                NotifyStateChanged();
+            });
             NotifyStateChanged();
             return true;
         }

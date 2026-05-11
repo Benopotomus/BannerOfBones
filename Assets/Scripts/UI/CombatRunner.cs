@@ -168,7 +168,7 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_braceButton, $"Brace: Costs {CombatManager.BraceEnergyCost} energy. Gain 2 block. Once per battle.");
             AttachHoverTooltip(_scoutButton, $"Scout: Costs {CombatManager.ScoutEnergyCost} energy. Discard 1 card, then draw 2. Once per battle.");
             AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
-            AttachHoverTooltip(_sunderButton, $"Sunder: Costs {CombatManager.SunderEnergyCost} energy. Deal 1 damage per player die showing 4+ to the front enemy. Once per battle.");
+            AttachHoverTooltip(_sunderButton, $"Sunder: Costs {CombatManager.SunderEnergyCost} energy. Deal 1 damage per player die showing 4+ to a chosen enemy. Once per battle.");
 
             _logToggleButton = MkButton(root, "Log ▸", new Vector2(0f, 0.94f), new Vector2(0.08f, 0.99f), C(0.10f, 0.10f, 0.18f), OnLogToggleClicked, fontSize: 12);
             _logPanel = MkPanel(root, "LogPanel", C(0.04f, 0.04f, 0.07f), 0f, 0.57f, 0.30f, 0.94f);

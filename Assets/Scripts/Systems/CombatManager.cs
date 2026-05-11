@@ -92,7 +92,10 @@ namespace BannerOfBones.CardGame
         private bool _sunderUsed;
         private PendingBaselineAction _pendingBaselineAction = PendingBaselineAction.None;
 
-        /// <summary>Initialises combat and begins the first round.</summary>
+        /// <summary>
+        /// Initialises combat and begins the first round.
+        /// Pass playerCurrentHealth as -1 to start at full playerMaxHealth.
+        /// </summary>
         public void StartCombat(IReadOnlyList<EnemyData> enemyData, List<CardData> playerDeck,
                                 int playerMaxHealth = 30, int playerCurrentHealth = -1, int playerEnergy = 3)
         {

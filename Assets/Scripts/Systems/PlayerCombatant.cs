@@ -23,6 +23,9 @@ namespace BannerOfBones.CardGame
         public List<PersistentCardRuntime> ActivePersistentCards { get; } = new List<PersistentCardRuntime>();
         public List<WagerData> ActiveWagers { get; } = new List<WagerData>();
 
+        /// <summary>
+        /// Creates player combat state. Pass currentHealth as -1 to start at full health.
+        /// </summary>
         public PlayerCombatant(int maxHealth, int maxEnergy, List<CardData> deck, int currentHealth = -1, int diceCount = 5)
         {
             MaxHealth    = Math.Max(1, maxHealth);

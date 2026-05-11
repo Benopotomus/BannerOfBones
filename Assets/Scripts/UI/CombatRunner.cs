@@ -147,8 +147,8 @@ namespace BannerOfBones.CardGame
             _handContainer = MkContainer(root, "HandCards", 0.04f, 0.12f, 0.96f, 0.34f, 6f, 2f, -6f, -2f);
 
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
-            { var b = MkButton(root, "View Deck", new Vector2(0f, 0.12f), new Vector2(0.04f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked); b.GetComponentInChildren<Text>().fontSize = 10; }
-            { var b = MkButton(root, "View Discard", new Vector2(0.96f, 0.12f), new Vector2(1f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked); b.GetComponentInChildren<Text>().fontSize = 10; }
+            MkButton(root, "View Deck", new Vector2(0f, 0.12f), new Vector2(0.04f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked, fontSize: 10);
+            MkButton(root, "View Discard", new Vector2(0.96f, 0.12f), new Vector2(1f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked, fontSize: 10);
             _focusButton = MkButton(root, FocusActionReadyLabel, new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
             _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
@@ -458,7 +458,7 @@ namespace BannerOfBones.CardGame
 
         private static Button MkButton(RectTransform parent, string label,
             Vector2 anchorMin, Vector2 anchorMax, Color bg,
-            UnityEngine.Events.UnityAction onClick)
+            UnityEngine.Events.UnityAction onClick, int fontSize = 15)
         {
             var go = new GameObject(label);
             go.transform.SetParent(parent, false);
@@ -480,7 +480,7 @@ namespace BannerOfBones.CardGame
             txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.text = label;
             txt.alignment = TextAnchor.MiddleCenter;
-            txt.fontSize = 15;
+            txt.fontSize = fontSize;
             txt.color = Color.white;
             return btn;
         }

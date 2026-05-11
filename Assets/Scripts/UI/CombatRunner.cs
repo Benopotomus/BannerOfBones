@@ -801,12 +801,29 @@ namespace BannerOfBones.CardGame
             ClearContainer(_pileViewCardsContainer);
 
             const int cols = 4;
-            const float rowHeight = 140f; // pixels per row -- gives cards room to breathe
+            const float cardHeight = 132f;
+            const float cardSpacing = 8f;
+            const float sidePadding = 8f;
             int rows = Mathf.CeilToInt(pile.Count / (float)cols);
-            float totalHeight = rows * rowHeight;
+            float totalHeight = rows > 0
+                ? (sidePadding * 2f) + (rows * cardHeight) + ((rows - 1) * cardSpacing)
+                : 0f;
 
             // Resize the content rect so ScrollRect knows how tall the list is
             _pileViewCardsContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, totalHeight);
+
+            var grid = _pileViewCardsContainer.GetComponent<GridLayoutGroup>();
+            if (grid == null)
+                grid = _pileViewCardsContainer.gameObject.AddComponent<GridLayoutGroup>();
+            grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = cols;
+            grid.spacing = new Vector2(cardSpacing, cardSpacing);
+            grid.padding = new RectOffset((int)sidePadding, (int)sidePadding, (int)sidePadding, (int)sidePadding);
+
+            float availableWidth = Mathf.Max(0f, _pileViewCardsContainer.rect.width - (sidePadding * 2f) - ((cols - 1) * cardSpacing));
+            float cardWidth = availableWidth > 0f ? availableWidth / cols : 200f;
+            grid.cellSize = new Vector2(cardWidth, cardHeight);
+            grid.childAlignment = TextAnchor.UpperLeft;
 
             // Reset scroll to top whenever we open the view
             _pileViewScrollRect.verticalNormalizedPosition = 1f;
@@ -814,20 +831,12 @@ namespace BannerOfBones.CardGame
             for (int i = 0; i < pile.Count; i++)
             {
                 var card = pile[i];
-                int row = i / cols;
-                int col = i % cols;
-
-                // Card panel anchored inside the content rect using absolute pixel positions
-                // Content pivot is top-left, so y increases downward
                 var cardGO = new GameObject($"PileCard{i}");
                 cardGO.transform.SetParent(_pileViewCardsContainer, false);
                 var cardRT = cardGO.AddComponent<RectTransform>();
-                cardRT.anchorMin = new Vector2(col / (float)cols, 1f);
-                cardRT.anchorMax = new Vector2((col + 1) / (float)cols, 1f);
+                cardRT.anchorMin = new Vector2(0f, 1f);
+                cardRT.anchorMax = new Vector2(0f, 1f);
                 cardRT.pivot = new Vector2(0f, 1f);
-                float yTop = row * rowHeight;
-                cardRT.offsetMin = new Vector2(4f, -(yTop + rowHeight - 4f));
-                cardRT.offsetMax = new Vector2(-4f, -yTop);
 
                 var cardPanel = cardGO;
                 cardPanel.AddComponent<Image>().color = C(0.18f, 0.18f, 0.18f);

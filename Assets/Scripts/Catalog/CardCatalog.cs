@@ -25,34 +25,17 @@ namespace BannerOfBones.CardGame
         public static List<CardData> CreateDefaultStarterDeck()
         {
             var deck = new List<CardData>();
-            for (int i = 0; i < 7; i++) deck.Add(CreateStrike());
-            for (int i = 0; i < 7; i++) deck.Add(CreateIronShield());
+            for (int i = 0; i < 5; i++) deck.Add(CreateStrike());
+            for (int i = 0; i < 5; i++) deck.Add(CreateIronShield());
             for (int i = 0; i < 2; i++) deck.Add(CreateBoneWard());
-            deck.Add(CreateTwinFangs());
             deck.Add(CreateLuckyReroll());
             deck.Add(CreateLuckyReroll());
-            deck.Add(CreateTacticalPivot());
-            deck.Add(CreateTacticalPivot());
+            deck.Add(CreateBorrowedDie());
+            deck.Add(CreateBorrowedDie());
             deck.Add(CreateScatterShot());
             deck.Add(CreateFocusedStrike());
-            deck.Add(CreateSpiritStrike());
-            deck.Add(CreateGamblersBlade());
-            deck.Add(CreateCrushingBlow());
-            deck.Add(CreateRuneForge());
-            deck.Add(CreateBorrowedDie());
-            deck.Add(CreateBorrowedDie());
-            deck.Add(CreateCrystalConduit());
-            deck.Add(CreateFullSend());
-            deck.Add(CreateHexCurse());
-            deck.Add(CreateChainLightning());
-            deck.Add(CreateCursedDice());
-            deck.Add(CreateWarDrums());
-            deck.Add(CreateRecklessSlash());
-            deck.Add(CreateLuckyCharm());
-            deck.Add(CreateLoadedBet());
-            deck.Add(CreatePrecisionStrike());
-            deck.Add(CreateCursedAura());
-            deck.Add(CreatePeakStrike());
+            deck.Add(CreateTwinFangs());
+            deck.Add(CreateTacticalPivot());
             return deck;
         }
 

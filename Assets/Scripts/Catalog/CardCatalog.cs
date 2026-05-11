@@ -132,7 +132,7 @@ namespace BannerOfBones.CardGame
         {
             var card = ScriptableObject.CreateInstance<CardData>();
             card.name = card.cardName = "Iron Shield";
-            card.description = "Block 1 damage for each [4] rolled.";
+            card.description = "Block 1 damage for each [4+] rolled.";
             card.energyCost  = 0;
             card.duration    = ECardDuration.Instant;
             card.effects = new List<CardEffectData>
@@ -141,8 +141,8 @@ namespace BannerOfBones.CardGame
                 {
                     effectType     = EEffectType.GainBlock,
                     diceTarget     = ECardTarget.PlayerDice,
-                    triggerOn      = EPokerHandType.PerDieValue,
-                    dieValue       = 4,
+                    triggerOn      = EPokerHandType.PerHighDie,
+                    valueThreshold = 4,
                     magnitude      = 1,
                 },
             };

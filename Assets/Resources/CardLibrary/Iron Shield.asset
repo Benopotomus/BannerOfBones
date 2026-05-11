@@ -13,16 +13,16 @@ MonoBehaviour:
   m_Name: Iron Shield
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Iron Shield
-  description: Block 1 damage for each [4] rolled.
+  description: Block 1 damage for each [4+] rolled.
   energyCost: 0
   duration: 0
   targetsAllEnemies: 0
   effects:
   - effectType: 3
     diceTarget: 0
-    triggerOn: 1
-    dieValue: 4
-    valueThreshold: 0
+    triggerOn: 4
+    dieValue: 0
+    valueThreshold: 4
     magnitude: 1
     altMagnitude: 0
     count: 0

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Hex Curse
   description: Reroll up to 2 of your dice. Then deal 2 damage for each [1] rolled.
-  energyCost: 1
+  energyCost: 0
   duration: 0
   targetsAllEnemies: 0
   effects:

@@ -71,7 +71,7 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: 91072fe0f21fdfb41afb3c8ff4050425, type: 2}
     copies: 1
   - card: {fileID: 11400000, guid: 397df9bc37fdc51438348cca38b4a10a, type: 2}
-    copies: 5
+    copies: 7
   - card: {fileID: 11400000, guid: 8d42188a4a4d89141b9c61367e6e7c62, type: 2}
     copies: 1
   - card: {fileID: 11400000, guid: 1557506c66b148c449a1d8be0fb08a28, type: 2}
@@ -89,7 +89,7 @@ MonoBehaviour:
   - card: {fileID: 11400000, guid: 15ea0704eb4242242a2d9f4552343427, type: 2}
     copies: 1
   - card: {fileID: 11400000, guid: d2f9fb5528b16ec4a959ace846fafb82, type: 2}
-    copies: 5
+    copies: 7
   - card: {fileID: 11400000, guid: 57fadc4bf9972b14f8c110b086359bd9, type: 2}
     copies: 2
   - card: {fileID: 11400000, guid: b46d3604019263441bf8cd1b0cac6556, type: 2}

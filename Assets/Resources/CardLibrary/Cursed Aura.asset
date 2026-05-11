@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Cursed Aura
   description: At the start of each round, reroll your lowest die.
-  energyCost: 1
+  energyCost: 0
   duration: 1
   targetsAllEnemies: 0
   effects:

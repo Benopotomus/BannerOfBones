@@ -804,7 +804,7 @@ namespace BannerOfBones.CardGame
             const float cardWidth = 200f;
             const float cardHeight = 132f;
             const float cardSpacing = 8f;
-            const float sidePadding = 8f;
+            const int sidePadding = 8;
             int rows = Mathf.CeilToInt(pile.Count / (float)cols);
             float totalHeight = rows > 0
                 ? (sidePadding * 2f) + (rows * cardHeight) + ((rows - 1) * cardSpacing)
@@ -819,8 +819,7 @@ namespace BannerOfBones.CardGame
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = cols;
             grid.spacing = new Vector2(cardSpacing, cardSpacing);
-            int padding = (int)sidePadding;
-            grid.padding = new RectOffset(padding, padding, padding, padding);
+            grid.padding = new RectOffset(sidePadding, sidePadding, sidePadding, sidePadding);
             grid.cellSize = new Vector2(cardWidth, cardHeight);
             grid.childAlignment = TextAnchor.UpperLeft;
 

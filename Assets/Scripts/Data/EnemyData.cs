@@ -15,5 +15,8 @@ namespace BannerOfBones.CardGame
 
         [Tooltip("Simple repeating action pattern shown to the player each round.")]
         public List<EnemyIntentData> roundIntents = new List<EnemyIntentData>();
+
+        [Tooltip("Passive abilities shown in enemy details and available for runtime hooks.")]
+        public List<EnemyPassiveEffectData> passiveEffects = new List<EnemyPassiveEffectData>();
     }
 }

@@ -1114,6 +1114,7 @@ namespace BannerOfBones.CardGame
 
         private string BuildEnemyActionText(EnemyCombatant enemy)
         {
+            var passives = enemy?.Data?.passiveEffects;
             if (enemy.CurrentIntent != null)
             {
                 var playerDiceRoll = _combat?.Player?.Dice?.CurrentRoll;
@@ -1122,12 +1123,39 @@ namespace BannerOfBones.CardGame
                 sb.AppendLine($"  {enemy.GetIntentSummary(playerDiceRoll)}");
 
                 if (enemy.NextIntent != null)
-                    sb.Append($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, playerDiceRoll)}</color>");
+                    sb.AppendLine($"<color=#AAAAAA>Next: {FormatIntentHeadline(enemy, enemy.NextIntent, playerDiceRoll)}</color>");
+
+                AppendPassiveText(sb, passives);
 
                 return sb.ToString().TrimEnd();
             }
 
+            if (passives != null && passives.Count > 0)
+            {
+                var sb = new StringBuilder();
+                AppendPassiveText(sb, passives);
+                return sb.ToString().TrimEnd();
+            }
+
             return "No action.";
+        }
+
+        private static void AppendPassiveText(StringBuilder sb, IList<EnemyPassiveEffectData> passives)
+        {
+            if (sb == null || passives == null || passives.Count == 0)
+                return;
+
+            sb.AppendLine("<color=#DDB8FF>Passives:</color>");
+            foreach (var passive in passives)
+            {
+                if (passive == null)
+                    continue;
+
+                string passiveText = string.IsNullOrWhiteSpace(passive.description)
+                    ? passive.effectType.ToString()
+                    : passive.description;
+                sb.AppendLine($"  • {passiveText}");
+            }
         }
 
         private static string FormatIntentHeadline(EnemyCombatant enemy, EnemyIntentData intent, int[] playerDiceRoll)

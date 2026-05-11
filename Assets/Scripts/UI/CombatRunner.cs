@@ -400,7 +400,6 @@ namespace BannerOfBones.CardGame
             var scrollbarRT = scrollbarGO.AddComponent<RectTransform>();
             scrollbarRT.anchorMin = new Vector2(1f, 0f);
             scrollbarRT.anchorMax = new Vector2(1f, 1f);
-            scrollbarRT.pivot = new Vector2(0.5f, 0.5f);
             scrollbarRT.offsetMin = new Vector2(-scrollbarWidth, 0f);
             scrollbarRT.offsetMax = Vector2.zero;
             scrollbarGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.10f, 0.9f);
@@ -901,8 +900,9 @@ namespace BannerOfBones.CardGame
             const int cols = 5;
             const float cardSpacing = 8f;
             const int sidePadding = 8;
+            const float fallbackCardWidth = 120f;
             float availableWidth = _pileViewScrollRect.viewport.rect.width - (sidePadding * 2f) - ((cols - 1) * cardSpacing);
-            float cardWidth = availableWidth > 0f ? availableWidth / cols : 120f;
+            float cardWidth = availableWidth > 0f ? availableWidth / cols : fallbackCardWidth;
             float cardHeight = cardWidth * 0.66f;
             int rows = Mathf.CeilToInt(pile.Count / (float)cols);
             float totalHeight = rows > 0

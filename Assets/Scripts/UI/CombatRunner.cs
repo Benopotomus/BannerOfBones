@@ -126,7 +126,7 @@ namespace BannerOfBones.CardGame
 
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.04f, 0.56f, 0.96f, 0.98f);
+            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.30f, 0.56f, 0.96f, 0.98f);
             var enemyLabel = MkText(_enemyAreaPanel, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             enemyLabel.text = "— E N E M I E S —";
             _enemyGroupContainer = MkContainer(_enemyAreaPanel, "EnemyGroup", 0f, 0f, 1f, 0.86f, 10f, 8f, -10f, -8f);
@@ -147,8 +147,8 @@ namespace BannerOfBones.CardGame
             _handContainer = MkContainer(root, "HandCards", 0.04f, 0.12f, 0.96f, 0.34f, 6f, 2f, -6f, -2f);
 
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
-            MkButton(root, "View Deck", new Vector2(0.05f, 0.04f), new Vector2(0.17f, 0.10f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
-            MkButton(root, "View Discard", new Vector2(0.18f, 0.04f), new Vector2(0.30f, 0.10f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
+            { var b = MkButton(root, "View Deck", new Vector2(0f, 0.12f), new Vector2(0.04f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked); b.GetComponentInChildren<Text>().fontSize = 10; }
+            { var b = MkButton(root, "View Discard", new Vector2(0.96f, 0.12f), new Vector2(1f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked); b.GetComponentInChildren<Text>().fontSize = 10; }
             _focusButton = MkButton(root, FocusActionReadyLabel, new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
             _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
@@ -164,8 +164,8 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_scoutButton, $"Scout: Costs {CombatManager.ScoutEnergyCost} energy. Discard 1 card, then draw 2. Once per battle.");
             AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
 
-            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
-            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
+            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0.56f, 0.29f, 0.98f);
+            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0.56f, 0.29f, 0.98f);
 
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);

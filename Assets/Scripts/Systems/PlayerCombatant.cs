@@ -23,10 +23,12 @@ namespace BannerOfBones.CardGame
         public List<PersistentCardRuntime> ActivePersistentCards { get; } = new List<PersistentCardRuntime>();
         public List<WagerData> ActiveWagers { get; } = new List<WagerData>();
 
-        public PlayerCombatant(int maxHealth, int maxEnergy, List<CardData> deck, int diceCount = 5)
+        public PlayerCombatant(int maxHealth, int maxEnergy, List<CardData> deck, int currentHealth = -1, int diceCount = 5)
         {
-            MaxHealth    = maxHealth;
-            CurrentHealth = maxHealth;
+            MaxHealth    = Math.Max(1, maxHealth);
+            CurrentHealth = currentHealth > 0
+                ? Math.Min(currentHealth, MaxHealth)
+                : MaxHealth;
             Dice   = new DiceManager(diceCount);
             Deck   = new DeckManager(deck);
             Energy = new EnergyManager(maxEnergy);

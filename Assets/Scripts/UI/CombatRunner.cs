@@ -237,7 +237,7 @@ namespace BannerOfBones.CardGame
 
             _runCombatIndex++;
             HideProgressionSelection();
-            _combat.StartCombat(enemies, deck, _runPlayerHealth, playerEnergy);
+            _combat.StartCombat(enemies, deck, playerHealth, playerEnergy, _runPlayerHealth);
 
             Log($"=== Combat {_runCombatIndex}/{GetRunTargetCombatCount()} — {enemies.Count} enemies appear! ===");
             foreach (var enemy in enemies)

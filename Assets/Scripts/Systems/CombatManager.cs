@@ -94,9 +94,9 @@ namespace BannerOfBones.CardGame
 
         /// <summary>Initialises combat and begins the first round.</summary>
         public void StartCombat(IReadOnlyList<EnemyData> enemyData, List<CardData> playerDeck,
-                                int playerHealth = 30, int playerEnergy = 3)
+                                int playerMaxHealth = 30, int playerEnergy = 3, int playerCurrentHealth = -1)
         {
-            Player = new PlayerCombatant(playerHealth, playerEnergy, playerDeck);
+            Player = new PlayerCombatant(playerMaxHealth, playerEnergy, playerDeck, playerCurrentHealth);
             _enemies.Clear();
             _focusUsed = false;
             _braceUsed = false;

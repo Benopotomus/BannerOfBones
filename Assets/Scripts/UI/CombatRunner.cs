@@ -365,10 +365,12 @@ namespace BannerOfBones.CardGame
             var vpGO = new GameObject("Viewport");
             vpGO.transform.SetParent(scrollGO.transform, false);
             var vpRT = vpGO.AddComponent<RectTransform>();
+            const float scrollbarWidth = 16f;
+            const float viewportScrollbarGap = 2f;
             vpRT.anchorMin = Vector2.zero;
             vpRT.anchorMax = Vector2.one;
             vpRT.offsetMin = Vector2.zero;
-            vpRT.offsetMax = new Vector2(-18f, 0f);
+            vpRT.offsetMax = new Vector2(-(scrollbarWidth + viewportScrollbarGap), 0f);
             vpGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             vpGO.AddComponent<Mask>().showMaskGraphic = false;
 
@@ -398,8 +400,8 @@ namespace BannerOfBones.CardGame
             var scrollbarRT = scrollbarGO.AddComponent<RectTransform>();
             scrollbarRT.anchorMin = new Vector2(1f, 0f);
             scrollbarRT.anchorMax = new Vector2(1f, 1f);
-            scrollbarRT.pivot = new Vector2(1f, 1f);
-            scrollbarRT.offsetMin = new Vector2(-16f, 0f);
+            scrollbarRT.pivot = new Vector2(0.5f, 0.5f);
+            scrollbarRT.offsetMin = new Vector2(-scrollbarWidth, 0f);
             scrollbarRT.offsetMax = Vector2.zero;
             scrollbarGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.10f, 0.9f);
 

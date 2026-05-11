@@ -154,9 +154,9 @@ namespace BannerOfBones.CardGame
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
             _actionTooltipText.text = string.Empty;
-            AttachHoverTooltip(_focusButton, "Focus: Costs 0 energy. Reroll up to 3 player dice. Once per battle.");
-            AttachHoverTooltip(_braceButton, "Brace: Costs 0 energy. Gain 2 block. Once per battle.");
-            AttachHoverTooltip(_scoutButton, "Scout: Costs 0 energy. Discard 1 card, then draw 2. Once per battle.");
+            AttachHoverTooltip(_focusButton, $"Focus: Costs {CombatManager.FocusEnergyCost} energy. Reroll up to 3 player dice. Once per battle.");
+            AttachHoverTooltip(_braceButton, $"Brace: Costs {CombatManager.BraceEnergyCost} energy. Gain 2 block. Once per battle.");
+            AttachHoverTooltip(_scoutButton, $"Scout: Costs {CombatManager.ScoutEnergyCost} energy. Discard 1 card, then draw 2. Once per battle.");
             AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
@@ -524,7 +524,7 @@ namespace BannerOfBones.CardGame
             bool scoutUsed = _combat.HasUsedScout;
             bool tuneUsed = _combat.HasUsedTune;
 
-            _focusButton.interactable = canUseActions && !focusUsed;
+            _focusButton.interactable = canUseActions && !focusUsed && p.Dice.DiceCount > 0;
             _braceButton.interactable = canUseActions && !braceUsed;
             _scoutButton.interactable = canUseActions && !scoutUsed && p.Deck.Hand.Count > 0;
             _tuneButton.interactable = canUseActions && !tuneUsed && p.Dice.DiceCount > 0;

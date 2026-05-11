@@ -258,8 +258,11 @@ namespace BannerOfBones.CardGame
             if (!CanUseBaselineActions() || _focusUsed)
                 return false;
 
+            int selectionLimit = Math.Min(3, Player.Dice.DiceCount);
+            if (selectionLimit <= 0) return false;
+
             _focusUsed = true;
-            QueueDiceSelection(ECardTarget.PlayerDice, 3, "Focus: choose up to 3 player dice to reroll.", indices =>
+            QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Focus: choose up to 3 player dice to reroll.", indices =>
             {
                 Player.Dice.RerollAtIndices(indices);
                 Log($"Focus rerolled {indices.Length} player dice.");

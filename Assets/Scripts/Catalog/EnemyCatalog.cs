@@ -98,8 +98,8 @@ namespace BannerOfBones.CardGame
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 2,
                     triggerOn = EPokerHandType.PerDieValue,
-                    dieValue = 5,
-                    description = "Deal 2 damage for each 5 in your roll.",
+                    dieValue = 1,
+                    description = "Deal 2 damage for each 1 in your roll.",
                 },
                 new EnemyIntentData
                 {
@@ -165,9 +165,11 @@ namespace BannerOfBones.CardGame
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Fade",
-                    intentType = EEnemyIntentType.Guard,
-                    magnitude = 2,
+                    intentName = "Mirror Cut",
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 1,
+                    triggerOn = EPokerHandType.PerMatchingDie,
+                    description = "Deal 1 damage for each die that matches another die.",
                 },
             };
             return enemy;

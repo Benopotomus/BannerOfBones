@@ -29,6 +29,7 @@
                 case EPokerHandType.PerFiveOfAKind:   return CountFiveOfAKind(dice);
                 case EPokerHandType.PerUniqueDieValue: return CountUniqueDieValues(dice);
                 case EPokerHandType.IfStraight:       return HasStraight(dice) ? 1 : 0;
+                case EPokerHandType.PerMatchingDie:   return CountMatchingDice(dice);
                 default:                              return 0;
             }
         }
@@ -172,6 +173,23 @@
             for (int i = 1; i < freq.Length; i++)
                 if (freq[i] > 0) unique++;
             return unique;
+        }
+
+        /// <summary>
+        /// Returns the number of dice that are part of a duplicate group (frequency >= 2).
+        /// Example: [1,1,2,3,4] returns 2 and [2,2,2,5,6] returns 3.
+        /// </summary>
+        public static int CountMatchingDice(int[] dice)
+        {
+            int[] freq = GetFrequencies(dice);
+            int matching = 0;
+            for (int i = 1; i < freq.Length; i++)
+            {
+                if (freq[i] >= 2)
+                    matching += freq[i];
+            }
+
+            return matching;
         }
 
         // ── Private Helpers ───────────────────────────────────────────────────────

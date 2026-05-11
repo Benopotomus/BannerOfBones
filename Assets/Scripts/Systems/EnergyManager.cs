@@ -36,5 +36,11 @@
         {
             PendingNextTurnPenalty += System.Math.Max(0, amount);
         }
+
+        public void GainEnergy(int amount)
+        {
+            if (amount <= 0) return;
+            CurrentEnergy = System.Math.Min(MaxEnergy, CurrentEnergy + amount);
+        }
     }
 }

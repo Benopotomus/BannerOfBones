@@ -47,5 +47,8 @@
 
         /// <summary>Trigger count = 1 if a 5-die straight exists (1-2-3-4-5 or 2-3-4-5-6), else 0.</summary>
         IfStraight,
+
+        /// <summary>Trigger count = number of dice that match at least one other die value.</summary>
+        PerMatchingDie,
     }
 }

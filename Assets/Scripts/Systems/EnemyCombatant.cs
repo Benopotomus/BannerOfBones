@@ -212,6 +212,8 @@ namespace BannerOfBones.CardGame
                     return $"{Math.Max(0, intent.magnitude)} damage per unique die value";
                 case EPokerHandType.IfStraight:
                     return $"{Math.Max(0, intent.magnitude)} damage if you roll a straight";
+                case EPokerHandType.PerMatchingDie:
+                    return $"{Math.Max(0, intent.magnitude)} damage per die matching another die";
                 default:
                     return "triggered by your roll";
             }

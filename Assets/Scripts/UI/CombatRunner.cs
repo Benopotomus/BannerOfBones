@@ -76,6 +76,8 @@ namespace BannerOfBones.CardGame
         private readonly List<RectTransform> _enemyDropTargets = new List<RectTransform>();
         private const int MaxLogLines = 8;
         private static readonly Vector2 DragPreviewSize = new Vector2(240f, 180f);
+        private static readonly Color ActionButtonReadyColor = C(0.18f, 0.38f, 0.14f);
+        private static readonly Color ActionButtonUsedColor = C(0.24f, 0.24f, 0.24f);
 
         private GameObject _activeDragCard;
 
@@ -142,20 +144,20 @@ namespace BannerOfBones.CardGame
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
             MkButton(root, "View Deck", new Vector2(0.05f, 0.04f), new Vector2(0.17f, 0.10f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
             MkButton(root, "View Discard", new Vector2(0.18f, 0.04f), new Vector2(0.30f, 0.10f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
-            _focusButton = MkButton(root, "Focus", new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), C(0.18f, 0.38f, 0.14f), OnFocusClicked);
-            _braceButton = MkButton(root, "Brace", new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), C(0.18f, 0.38f, 0.14f), OnBraceClicked);
-            _scoutButton = MkButton(root, "Scout", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
-            _tuneButton = MkButton(root, "Tune", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), C(0.18f, 0.38f, 0.14f), OnTuneClicked);
+            _focusButton = MkButton(root, "Focus (0)", new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
+            _braceButton = MkButton(root, "Brace (0)", new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
+            _scoutButton = MkButton(root, "Scout (0)", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
+            _tuneButton = MkButton(root, "Tune (0)", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), ActionButtonReadyColor, OnTuneClicked);
             _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             MkButton(root, "Options", new Vector2(0.71f, 0.04f), new Vector2(0.79f, 0.10f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
             _actionTooltipText.text = string.Empty;
-            AttachHoverTooltip(_focusButton, "Focus: Spend 1 energy to reroll up to 3 player dice.");
-            AttachHoverTooltip(_braceButton, "Brace: Spend 1 energy to gain 2 block.");
-            AttachHoverTooltip(_scoutButton, "Scout: Spend 2 energy to discard 1 card, then draw 2.");
-            AttachHoverTooltip(_tuneButton, $"Tune: Spend {CombatManager.TuneEnergyCost} energy to raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1.");
+            AttachHoverTooltip(_focusButton, "Focus: Costs 0 energy. Reroll up to 3 player dice. Once per battle.");
+            AttachHoverTooltip(_braceButton, "Brace: Costs 0 energy. Gain 2 block. Once per battle.");
+            AttachHoverTooltip(_scoutButton, "Scout: Costs 0 energy. Discard 1 card, then draw 2. Once per battle.");
+            AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
@@ -517,10 +519,20 @@ namespace BannerOfBones.CardGame
                 $"{prompt}";
 
             bool canUseActions = _combat.CanUseBaselineActions();
-            _focusButton.interactable = canUseActions && p.Energy.CanAfford(1);
-            _braceButton.interactable = canUseActions && p.Energy.CanAfford(1);
-            _scoutButton.interactable = canUseActions && p.Energy.CanAfford(2) && p.Deck.Hand.Count > 0;
-            _tuneButton.interactable = canUseActions && p.Energy.CanAfford(CombatManager.TuneEnergyCost);
+            bool focusUsed = _combat.HasUsedFocus;
+            bool braceUsed = _combat.HasUsedBrace;
+            bool scoutUsed = _combat.HasUsedScout;
+            bool tuneUsed = _combat.HasUsedTune;
+
+            _focusButton.interactable = canUseActions && !focusUsed;
+            _braceButton.interactable = canUseActions && !braceUsed;
+            _scoutButton.interactable = canUseActions && !scoutUsed && p.Deck.Hand.Count > 0;
+            _tuneButton.interactable = canUseActions && !tuneUsed && p.Dice.DiceCount > 0;
+
+            UpdateBaselineActionButtonVisual(_focusButton, "Focus (0)", focusUsed);
+            UpdateBaselineActionButtonVisual(_braceButton, "Brace (0)", braceUsed);
+            UpdateBaselineActionButtonVisual(_scoutButton, "Scout (0)", scoutUsed);
+            UpdateBaselineActionButtonVisual(_tuneButton, "Tune (0)", tuneUsed);
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
             _cancelButton.interactable = _combat.HasPendingCardPlay;
@@ -940,6 +952,17 @@ namespace BannerOfBones.CardGame
             var label = button.GetComponentInChildren<Text>();
             if (label != null)
                 label.text = text;
+        }
+
+        private static void UpdateBaselineActionButtonVisual(Button button, string readyLabel, bool used)
+        {
+            if (button == null)
+                return;
+
+            SetButtonLabel(button, used ? $"{readyLabel}\nUSED" : readyLabel);
+            var image = button.GetComponent<Image>();
+            if (image != null)
+                image.color = used ? ActionButtonUsedColor : ActionButtonReadyColor;
         }
 
         private bool TryResolveDraggedCard(CardData card, Vector2 screenPosition, Camera eventCamera)

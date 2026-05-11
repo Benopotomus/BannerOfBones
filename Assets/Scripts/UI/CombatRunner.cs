@@ -130,29 +130,29 @@ namespace BannerOfBones.CardGame
 
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.04f, 0.56f, 0.96f, 0.98f);
+            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.02f, 0.56f, 0.98f, 0.98f);
             var enemyLabel = MkText(_enemyAreaPanel, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             enemyLabel.text = "— E N E M I E S —";
             _enemyGroupContainer = MkContainer(_enemyAreaPanel, "EnemyGroup", 0f, 0f, 1f, 0.86f, 10f, 8f, -10f, -8f);
 
-            _playerAreaPanel = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0.04f, 0.40f, 0.34f, 0.54f);
+            _playerAreaPanel = MkPanel(root, "PlayerArea", C(0.08f, 0.12f, 0.18f), 0.02f, 0.40f, 0.34f, 0.54f);
             _playerHpText = MkText(_playerAreaPanel, 16, C(0.40f, 1f, 0.40f), TextAnchor.UpperLeft, 0f, 0.48f, 0.50f, 1f);
             _playerBlockText = MkText(_playerAreaPanel, 14, C(0.50f, 0.8f, 1f), TextAnchor.UpperLeft, 0.50f, 0.48f, 1f, 1f);
             _playerEnergyText = MkText(_playerAreaPanel, 14, C(0.40f, 0.6f, 1f), TextAnchor.UpperLeft, 0f, 0.22f, 1f, 0.54f);
             _stateText = MkText(_playerAreaPanel, 10, C(0.7f, 0.7f, 0.7f), TextAnchor.UpperLeft, 0f, 0f, 1f, 0.30f);
 
-            var playerDicePanel = MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.36f, 0.40f, 0.96f, 0.54f);
+            var playerDicePanel = MkPanel(root, "PlayerDiceBg", C(0.06f, 0.06f, 0.10f), 0.36f, 0.40f, 0.98f, 0.54f);
             _playerDiceText = MkText(playerDicePanel, 13, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.72f, 1f, 1f);
             _playerDiceButtonsContainer = MkContainer(playerDicePanel, "PlayerDiceButtons", 0f, 0f, 1f, 0.74f, 10f, 6f, -10f, -6f);
 
-            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0.04f, 0.12f, 0.96f, 0.38f);
-            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0.14f, 0.34f, 0.86f, 0.38f);
+            MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0.02f, 0.12f, 0.98f, 0.38f);
+            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0.12f, 0.34f, 0.88f, 0.38f);
             handLabel.text = "— H A N D —";
-            _handContainer = MkContainer(root, "HandCards", 0.14f, 0.12f, 0.86f, 0.34f, 6f, 2f, -6f, -2f);
+            _handContainer = MkContainer(root, "HandCards", 0.12f, 0.12f, 0.88f, 0.34f, 6f, 2f, -6f, -2f);
 
-            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
-            MkButton(root, "View\nDeck", new Vector2(0.04f, 0.12f), new Vector2(0.13f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked, fontSize: 9);
-            MkButton(root, "View\nDiscard", new Vector2(0.87f, 0.12f), new Vector2(0.96f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked, fontSize: 9);
+            MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.02f, 0.03f, 0.98f, 0.11f);
+            MkButton(root, "View\nDeck", new Vector2(0.02f, 0.12f), new Vector2(0.11f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked, fontSize: 9);
+            MkButton(root, "View\nDiscard", new Vector2(0.89f, 0.12f), new Vector2(0.98f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked, fontSize: 9);
             _focusButton = MkButton(root, FocusActionReadyLabel, new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
             _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
@@ -161,8 +161,8 @@ namespace BannerOfBones.CardGame
             _cancelButton = MkButton(root, "Cancel", new Vector2(0.71f, 0.04f), new Vector2(0.78f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             MkButton(root, "Options", new Vector2(0.89f, 0.94f), new Vector2(0.98f, 0.99f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
-            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
-            _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
+            _endTurnButton = MkButton(root, "End Turn", new Vector2(0.93f, 0.03f), new Vector2(0.98f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
+            _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.02f, 0.105f, 0.98f, 0.125f);
             _actionTooltipText.text = string.Empty;
             AttachHoverTooltip(_focusButton, $"Focus: Costs {CombatManager.FocusEnergyCost} energy. Reroll up to 3 player dice. Once per battle.");
             AttachHoverTooltip(_braceButton, $"Brace: Costs {CombatManager.BraceEnergyCost} energy. Gain 2 block. Once per battle.");

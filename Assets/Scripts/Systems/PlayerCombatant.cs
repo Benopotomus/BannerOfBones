@@ -17,6 +17,7 @@ namespace BannerOfBones.CardGame
         public DeckManager  Deck   { get; }
         public EnergyManager Energy { get; }
         public int PendingNextTurnDieLoss { get; private set; }
+        private readonly List<int> _temporarilySuppressedDieSides = new List<int>();
 
         /// <summary>Cards with Persistent duration currently in play.</summary>
         public List<PersistentCardRuntime> ActivePersistentCards { get; } = new List<PersistentCardRuntime>();
@@ -66,9 +67,14 @@ namespace BannerOfBones.CardGame
         /// </summary>
         public void StartRound()
         {
+            // Restore one-turn die suppression first so this round starts from the true persistent pool.
+            RestoreTemporarilySuppressedDice();
             Dice.RemoveTemporaryDice();
             for (int i = 0; i < PendingNextTurnDieLoss; i++)
-                Dice.RemoveDie();
+            {
+                if (Dice.TryRemoveDie(out var removedDie))
+                    _temporarilySuppressedDieSides.Add(removedDie.Sides);
+            }
             PendingNextTurnDieLoss = 0;
             ClearBlock();
             Energy.ResetEnergy();
@@ -80,6 +86,17 @@ namespace BannerOfBones.CardGame
         public void ApplyNextTurnDieLoss(int amount)
         {
             PendingNextTurnDieLoss += Math.Max(0, amount);
+        }
+
+        private void RestoreTemporarilySuppressedDice()
+        {
+            if (_temporarilySuppressedDieSides.Count == 0)
+                return;
+
+            foreach (var sides in _temporarilySuppressedDieSides)
+                Dice.AddDie(sides);
+
+            _temporarilySuppressedDieSides.Clear();
         }
     }
 }

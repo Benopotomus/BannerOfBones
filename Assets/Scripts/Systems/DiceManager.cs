@@ -124,6 +124,21 @@ namespace BannerOfBones.CardGame
             _dice.RemoveAt(GetIndicesSortedAscendingByValue()[0]);
         }
 
+        /// <summary>
+        /// Removes the lowest-valued die from the pool and returns it.
+        /// Returns false if the pool cannot be reduced below one die.
+        /// </summary>
+        public bool TryRemoveDie(out Die removedDie)
+        {
+            removedDie = default;
+            if (_dice.Count <= 1) return false;
+
+            int index = GetIndicesSortedAscendingByValue()[0];
+            removedDie = _dice[index];
+            _dice.RemoveAt(index);
+            return true;
+        }
+
         /// <summary>Removes all temporary dice from the pool before a new round begins.
         /// Guarantees at least 1 permanent die remains.
         /// </summary>

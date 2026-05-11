@@ -92,8 +92,8 @@ namespace BannerOfBones.CardGame
             if (_temporarilySuppressedDieSides.Count == 0)
                 return;
 
-            for (int i = 0; i < _temporarilySuppressedDieSides.Count; i++)
-                Dice.AddDie(_temporarilySuppressedDieSides[i]);
+            foreach (var sides in _temporarilySuppressedDieSides)
+                Dice.AddDie(sides);
 
             _temporarilySuppressedDieSides.Clear();
         }

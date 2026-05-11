@@ -371,9 +371,12 @@ namespace BannerOfBones.CardGame
             var vpGO = new GameObject("Viewport");
             vpGO.transform.SetParent(scrollGO.transform, false);
             var vpRT = vpGO.AddComponent<RectTransform>();
+            const float scrollbarWidth = 16f;
+            const float viewportScrollbarGap = 2f;
             vpRT.anchorMin = Vector2.zero;
             vpRT.anchorMax = Vector2.one;
-            vpRT.offsetMin = vpRT.offsetMax = Vector2.zero;
+            vpRT.offsetMin = Vector2.zero;
+            vpRT.offsetMax = new Vector2(-(scrollbarWidth + viewportScrollbarGap), 0f);
             vpGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
             vpGO.AddComponent<Mask>().showMaskGraphic = false;
 
@@ -395,6 +398,40 @@ namespace BannerOfBones.CardGame
             sr.vertical = true;
             sr.scrollSensitivity = 20f;
             sr.movementType = ScrollRect.MovementType.Clamped;
+            sr.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+            // Vertical scrollbar
+            var scrollbarGO = new GameObject("ScrollbarVertical");
+            scrollbarGO.transform.SetParent(scrollGO.transform, false);
+            var scrollbarRT = scrollbarGO.AddComponent<RectTransform>();
+            scrollbarRT.anchorMin = new Vector2(1f, 0f);
+            scrollbarRT.anchorMax = new Vector2(1f, 1f);
+            scrollbarRT.offsetMin = new Vector2(-scrollbarWidth, 0f);
+            scrollbarRT.offsetMax = Vector2.zero;
+            scrollbarGO.AddComponent<Image>().color = new Color(0.08f, 0.08f, 0.10f, 0.9f);
+
+            var slidingAreaGO = new GameObject("Sliding Area");
+            slidingAreaGO.transform.SetParent(scrollbarGO.transform, false);
+            var slidingAreaRT = slidingAreaGO.AddComponent<RectTransform>();
+            slidingAreaRT.anchorMin = Vector2.zero;
+            slidingAreaRT.anchorMax = Vector2.one;
+            slidingAreaRT.offsetMin = new Vector2(2f, 2f);
+            slidingAreaRT.offsetMax = new Vector2(-2f, -2f);
+
+            var handleGO = new GameObject("Handle");
+            handleGO.transform.SetParent(slidingAreaGO.transform, false);
+            var handleRT = handleGO.AddComponent<RectTransform>();
+            handleRT.anchorMin = Vector2.zero;
+            handleRT.anchorMax = Vector2.one;
+            handleRT.offsetMin = handleRT.offsetMax = Vector2.zero;
+            var handleImage = handleGO.AddComponent<Image>();
+            handleImage.color = new Color(0.7f, 0.7f, 0.8f, 1f);
+
+            var scrollbar = scrollbarGO.AddComponent<Scrollbar>();
+            scrollbar.direction = Scrollbar.Direction.BottomToTop;
+            scrollbar.targetGraphic = handleImage;
+            scrollbar.handleRect = handleRT;
+            sr.verticalScrollbar = scrollbar;
 
             return (sr, contentRT);
         }
@@ -871,15 +908,21 @@ namespace BannerOfBones.CardGame
 
         private void ShowPileView(string title, IReadOnlyList<CardData> pile)
         {
+            _pileViewPanel.gameObject.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_pileViewPanel);
             _pileViewTitleText.text = $"{title}  ({pile.Count} cards)";
 
             ClearContainer(_pileViewCardsContainer);
 
-            const int cols = 4;
-            const float cardWidth = 200f;
-            const float cardHeight = 132f;
+            const int cols = 5;
             const float cardSpacing = 8f;
             const int sidePadding = 8;
+            // Used on the first frame if viewport width is not yet resolved by layout.
+            const float fallbackCardWidth = 120f;
+            float availableWidth = _pileViewScrollRect.viewport.rect.width - (sidePadding * 2f) - ((cols - 1) * cardSpacing);
+            float cardWidth = availableWidth > 0f ? availableWidth / cols : fallbackCardWidth;
+            float cardHeight = cardWidth * 0.66f;
             int rows = Mathf.CeilToInt(pile.Count / (float)cols);
             float totalHeight = rows > 0
                 ? (sidePadding * 2f) + (rows * cardHeight) + ((rows - 1) * cardSpacing)
@@ -897,9 +940,6 @@ namespace BannerOfBones.CardGame
             grid.padding = new RectOffset(sidePadding, sidePadding, sidePadding, sidePadding);
             grid.cellSize = new Vector2(cardWidth, cardHeight);
             grid.childAlignment = TextAnchor.UpperLeft;
-
-            // Reset scroll to top whenever we open the view
-            _pileViewScrollRect.verticalNormalizedPosition = 1f;
 
             for (int i = 0; i < pile.Count; i++)
             {
@@ -935,7 +975,8 @@ namespace BannerOfBones.CardGame
                 bodyTxt.text = body;
             }
 
-            _pileViewPanel.gameObject.SetActive(true);
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_pileViewCardsContainer);
+            _pileViewScrollRect.verticalNormalizedPosition = 1f;
         }
 
         private void ClosePileView()

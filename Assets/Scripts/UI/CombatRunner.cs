@@ -750,13 +750,13 @@ namespace BannerOfBones.CardGame
 
         private void OnOptionsClicked()
         {
-            if (_optionsPanel == null)
+            var optionsPanel = _optionsPanel;
+            if (optionsPanel == null)
                 return;
 
-            bool showPanel = !_optionsPanel.gameObject.activeSelf;
-            _optionsPanel.gameObject.SetActive(showPanel);
-            if (!showPanel)
-                HideCloseGameConfirmation();
+            HideCloseGameConfirmation();
+            bool showPanel = !optionsPanel.gameObject.activeSelf;
+            optionsPanel.gameObject.SetActive(showPanel);
         }
 
         private void CloseOptionsPanel()

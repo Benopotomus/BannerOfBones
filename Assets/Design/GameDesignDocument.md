@@ -229,11 +229,10 @@ Excess damage is applied to the player's health.
 ---
 
 ## Deck Building Guidelines (Starter Deck)
-The current prototype starter deck is an expanded 32-card list that includes:
-- Core damage and defense staples for consistency.
-- Multiple cards that scale off doubles, triples, full houses, and straights.
-- Dice-tier upgrades/downgrades and temporary-die generation.
-- Enemy-dice interaction cards, including all-enemy reroll/payoff effects.
+The current prototype starter deck is a tighter 20-card list that includes:
+- About 8 core damaging cards, led by Strike plus a few simple payoff attacks.
+- Core defense staples for consistency.
+- A small set of dice-reroll, draw, and temporary-die tools.
 
 ---
 

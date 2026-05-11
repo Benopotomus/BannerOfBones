@@ -89,9 +89,10 @@ Any persistent cards already in play apply their recurring effects:
 ### 3. Player Turn
 The player may spend energy on any number of cards or baseline actions during their turn:
 - **Play cards** from hand.
-- **Focus** (1 energy): Reroll up to 3 chosen player dice.
-- **Brace** (1 energy): Gain 2 block.
-- **Scout** (2 energy): Discard 1 card, then draw 2 cards.
+- **Focus** (0 energy, once per battle): Reroll up to 3 chosen player dice.
+- **Brace** (0 energy, once per battle): Gain 2 block.
+- **Scout** (0 energy, once per battle): Discard 1 card, then draw 2 cards.
+- **Tune** (0 energy, once per battle): Raise up to 2 chosen player dice by 1.
 - **Retain**: Mark 1 card in hand to keep for the next round instead of discarding it.
 
 Card effects resolve immediately in play order:

@@ -10,8 +10,12 @@ namespace BannerOfBones.CardGame
     /// </summary>
     public class CombatManager
     {
-        public const int TuneEnergyCost = 1;
+        public const int TuneEnergyCost = 0;
         public const int TuneMaxDiceTargets = 2;
+        public const int FocusEnergyCost = 0;
+        public const int FocusMaxDiceTargets = 3;
+        public const int BraceEnergyCost = 0;
+        public const int ScoutEnergyCost = 0;
 
         private enum PendingHandAction
         {
@@ -35,6 +39,10 @@ namespace BannerOfBones.CardGame
         public string PendingPrompt { get; private set; }
         public int SelectedDiceCount => _selectedDiceIndices.Count;
         public int PendingDiceSelectionLimit => _pendingDiceSelectionLimit;
+        public bool HasUsedFocus => _focusUsed;
+        public bool HasUsedBrace => _braceUsed;
+        public bool HasUsedScout => _scoutUsed;
+        public bool HasUsedTune => _tuneUsed;
 
         /// <summary>Fired whenever the combat state changes or a prompt updates.</summary>
         public event Action<ECombatState> OnStateChanged;
@@ -65,6 +73,10 @@ namespace BannerOfBones.CardGame
         private int _resolvingTargetEnemyIndex = -1;
         private bool _resolvingTargetsAllEnemies;
         private string _resolvingSourceName;
+        private bool _focusUsed;
+        private bool _braceUsed;
+        private bool _scoutUsed;
+        private bool _tuneUsed;
 
         /// <summary>Initialises combat and begins the first round.</summary>
         public void StartCombat(IReadOnlyList<EnemyData> enemyData, List<CardData> playerDeck,
@@ -72,6 +84,10 @@ namespace BannerOfBones.CardGame
         {
             Player = new PlayerCombatant(playerHealth, playerEnergy, playerDeck);
             _enemies.Clear();
+            _focusUsed = false;
+            _braceUsed = false;
+            _scoutUsed = false;
+            _tuneUsed = false;
 
             if (enemyData != null)
             {
@@ -240,10 +256,14 @@ namespace BannerOfBones.CardGame
 
         public bool TryUseFocus()
         {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+            if (!CanUseBaselineActions() || _focusUsed)
                 return false;
 
-            QueueDiceSelection(ECardTarget.PlayerDice, 3, "Focus: choose up to 3 player dice to reroll.", indices =>
+            int selectionLimit = Math.Min(FocusMaxDiceTargets, Player.Dice.DiceCount);
+            if (selectionLimit <= 0) return false;
+
+            _focusUsed = true;
+            QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, $"Focus: choose up to {FocusMaxDiceTargets} player dice to reroll.", indices =>
             {
                 Player.Dice.RerollAtIndices(indices);
                 Log($"Focus rerolled {indices.Length} player dice.");
@@ -253,9 +273,10 @@ namespace BannerOfBones.CardGame
 
         public bool TryUseBrace()
         {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(1))
+            if (!CanUseBaselineActions() || _braceUsed)
                 return false;
 
+            _braceUsed = true;
             Player.GainBlock(2);
             Log("Brace gained 2 block.");
             NotifyStateChanged();
@@ -266,21 +287,23 @@ namespace BannerOfBones.CardGame
         {
             if (!CanUseBaselineActions()
                 || Player.Deck.Hand.Count == 0
-                || !Player.Energy.TrySpendEnergy(2))
+                || _scoutUsed)
                 return false;
 
+            _scoutUsed = true;
             QueueHandSelection(PendingHandAction.Scout, 2, "Scout: choose 1 card to discard, then draw 2.");
             return true;
         }
 
         public bool TryUseTune()
         {
-            if (!CanUseBaselineActions() || !Player.Energy.TrySpendEnergy(TuneEnergyCost))
+            if (!CanUseBaselineActions() || _tuneUsed)
                 return false;
 
             int selectionLimit = Math.Min(TuneMaxDiceTargets, Player.Dice.DiceCount);
             if (selectionLimit <= 0) return false;
 
+            _tuneUsed = true;
             QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Tune: choose up to 2 player dice to raise by 1.", indices =>
             {
                 foreach (int index in indices)

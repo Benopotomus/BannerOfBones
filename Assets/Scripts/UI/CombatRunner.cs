@@ -512,18 +512,23 @@ namespace BannerOfBones.CardGame
             var enemies = _combat.Enemies;
             if (enemies == null || enemies.Count == 0) return;
 
-            float width = 1f / Mathf.Max(1, enemies.Count);
+            const float enemySlotWidth = 0.25f;   // each enemy occupies 25% of the container width
+            const float enemyInnerPad = 0.005f;  // visual gap inside each slot
+            float totalGroupWidth = enemies.Count * enemySlotWidth;
+            float groupStartX = Mathf.Max(0f, (1f - totalGroupWidth) / 2f);
+
             for (int i = 0; i < enemies.Count; i++)
             {
                 int enemyIndex = i;
                 var enemy = enemies[i];
                 bool selectable = _combat.CanSelectEnemy(i);
 
+                float slotStart = groupStartX + i * enemySlotWidth;
                 var panel = MkPanel(_enemyGroupContainer, $"Enemy{i}",
                     enemy.IsAlive
                         ? selectable ? C(0.48f, 0.23f, 0.13f) : C(0.28f, 0.12f, 0.12f)
                         : C(0.14f, 0.10f, 0.10f),
-                    i * width + 0.01f, 0.02f, (i + 1) * width - 0.01f, 0.98f);
+                    slotStart + enemyInnerPad, 0.02f, slotStart + enemySlotWidth - enemyInnerPad, 0.98f);
                 _enemyDropTargets.Add(panel);
 
                 if (selectable)

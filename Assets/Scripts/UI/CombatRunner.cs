@@ -75,7 +75,7 @@ namespace BannerOfBones.CardGame
         private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
         private readonly List<RectTransform> _enemyDropTargets = new List<RectTransform>();
         private const int MaxLogLines = 8;
-        private const float DragPreviewBodyTopAnchor = 0.80f;
+        private const float DragPreviewBodyMaxY = 0.80f;
         private static readonly Vector2 DragPreviewSize = new Vector2(240f, 180f);
         private static readonly Color ActionButtonReadyColor = C(0.18f, 0.38f, 0.14f);
         private static readonly Color ActionButtonUsedColor = C(0.24f, 0.24f, 0.24f);
@@ -1079,7 +1079,7 @@ namespace BannerOfBones.CardGame
             costText.fontStyle = FontStyle.Bold;
             costText.text = card.energyCost.ToString();
 
-            var body = MkText(rectTransform, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, DragPreviewBodyTopAnchor);
+            var body = MkText(rectTransform, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, DragPreviewBodyMaxY);
             body.supportRichText = true;
             body.text = BuildDragPreviewText(card);
 

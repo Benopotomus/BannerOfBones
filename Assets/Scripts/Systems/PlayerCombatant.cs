@@ -26,7 +26,7 @@ namespace BannerOfBones.CardGame
         public PlayerCombatant(int maxHealth, int maxEnergy, List<CardData> deck, int currentHealth = -1, int diceCount = 5)
         {
             MaxHealth    = Math.Max(1, maxHealth);
-            CurrentHealth = currentHealth > 0
+            CurrentHealth = currentHealth >= 0
                 ? Math.Min(currentHealth, MaxHealth)
                 : MaxHealth;
             Dice   = new DiceManager(diceCount);

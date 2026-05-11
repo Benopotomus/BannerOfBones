@@ -67,6 +67,7 @@ namespace BannerOfBones.CardGame
         /// </summary>
         public void StartRound()
         {
+            // Restore one-turn die suppression first so this round starts from the true persistent pool.
             RestoreTemporarilySuppressedDice();
             Dice.RemoveTemporaryDice();
             for (int i = 0; i < PendingNextTurnDieLoss; i++)

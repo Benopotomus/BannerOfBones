@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Swift Slash
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Swift Slash
-  description: Deal 1 damage for each [1] rolled.
+  description: Deal 3 damage for each [1] rolled.
   energyCost: 0
   duration: 0
   targetsAllEnemies: 0
@@ -23,7 +23,7 @@ MonoBehaviour:
     triggerOn: 1
     dieValue: 1
     valueThreshold: 0
-    magnitude: 1
+    magnitude: 3
     altMagnitude: 0
     count: 0
     drawCount: 0

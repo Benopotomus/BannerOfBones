@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 199d73fdcc19409cb9a975f0667af65f, type: 3}
+  m_Name: Goblin Scout
+  m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.EnemyData
+  enemyName: Goblin Scout
+  description: A dirty skirmisher that disrupts your setup before darting in.
+  maxHealth: 8
+  roundIntents:
+  - intentType: 3
+    intentName: Pocket Sand
+    description: 
+    magnitude: 1
+    count: 1
+    triggerOn: 0
+    dieValue: 0
+    valueThreshold: 0
+  - intentType: 0
+    intentName: Needle Storm
+    description: Deal 2 damage for each 5 in your roll.
+    magnitude: 2
+    count: 1
+    triggerOn: 1
+    dieValue: 5
+    valueThreshold: 0
+  - intentType: 2
+    intentName: Hamstring
+    description: 
+    magnitude: 4
+    count: 1
+    triggerOn: 0
+    dieValue: 0
+    valueThreshold: 0
+  passiveEffects: []

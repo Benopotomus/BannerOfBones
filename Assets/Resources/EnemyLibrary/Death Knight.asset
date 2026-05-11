@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 199d73fdcc19409cb9a975f0667af65f, type: 3}
+  m_Name: Death Knight
+  m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.EnemyData
+  enemyName: Death Knight
+  description: An elite controller that drains your tempo before execution hits.
+  maxHealth: 18
+  roundIntents:
+  - intentType: 3
+    intentName: Soul Rend
+    description: 
+    magnitude: 1
+    count: 1
+    triggerOn: 0
+    dieValue: 0
+    valueThreshold: 0
+  - intentType: 0
+    intentName: Death Sentence
+    description: Deal 2 damage for each die showing 5 or higher.
+    magnitude: 2
+    count: 1
+    triggerOn: 4
+    dieValue: 0
+    valueThreshold: 5
+  - intentType: 1
+    intentName: Dark Bulwark
+    description: 
+    magnitude: 5
+    count: 1
+    triggerOn: 0
+    dieValue: 0
+    valueThreshold: 0
+  passiveEffects: []

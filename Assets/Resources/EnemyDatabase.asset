@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f20fbf58a2c4eaf9f238d52392f5093, type: 3}
+  m_Name: EnemyDatabase
+  m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.EnemyDatabase
+  allEnemies:
+  - {fileID: 11400000, guid: 5ca96f28e9be8c74bba4d6942b2ced74, type: 2}
+  - {fileID: 11400000, guid: f69b55de1dd96cb4c8ce3cd520b754ac, type: 2}
+  - {fileID: 11400000, guid: 8fdc3311a2461594ea38a83d72a0f21d, type: 2}
+  - {fileID: 11400000, guid: f0e995d22e9c3b14c83c1501d4706483, type: 2}
+  - {fileID: 11400000, guid: a4a1d8bebca524e43998a6df089cb600, type: 2}

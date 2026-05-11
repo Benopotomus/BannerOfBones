@@ -16,12 +16,21 @@ namespace BannerOfBones.CardGame
         public const int FocusMaxDiceTargets = 3;
         public const int BraceEnergyCost = 0;
         public const int ScoutEnergyCost = 0;
+        public const int SunderEnergyCost = 0;
 
         private enum PendingHandAction
         {
             None,
             Scout,
             Cycle,
+        }
+
+        private enum PendingBaselineAction
+        {
+            None,
+            Focus,
+            Scout,
+            Tune,
         }
 
         public PlayerCombatant Player { get; private set; }
@@ -43,6 +52,8 @@ namespace BannerOfBones.CardGame
         public bool HasUsedBrace => _braceUsed;
         public bool HasUsedScout => _scoutUsed;
         public bool HasUsedTune => _tuneUsed;
+        public bool HasUsedSunder => _sunderUsed;
+        public bool HasPendingCancelableChoice => HasPendingCardPlay || _pendingBaselineAction != PendingBaselineAction.None;
 
         /// <summary>Fired whenever the combat state changes or a prompt updates.</summary>
         public event Action<ECombatState> OnStateChanged;
@@ -77,6 +88,8 @@ namespace BannerOfBones.CardGame
         private bool _braceUsed;
         private bool _scoutUsed;
         private bool _tuneUsed;
+        private bool _sunderUsed;
+        private PendingBaselineAction _pendingBaselineAction = PendingBaselineAction.None;
 
         /// <summary>Initialises combat and begins the first round.</summary>
         public void StartCombat(IReadOnlyList<EnemyData> enemyData, List<CardData> playerDeck,
@@ -88,6 +101,8 @@ namespace BannerOfBones.CardGame
             _braceUsed = false;
             _scoutUsed = false;
             _tuneUsed = false;
+            _sunderUsed = false;
+            _pendingBaselineAction = PendingBaselineAction.None;
 
             if (enemyData != null)
             {
@@ -254,6 +269,38 @@ namespace BannerOfBones.CardGame
             return true;
         }
 
+        public bool CancelPendingAction()
+        {
+            if (HasPendingCardPlay)
+                return CancelPendingCardPlay();
+
+            if (_pendingBaselineAction == PendingBaselineAction.None)
+                return false;
+
+            switch (_pendingBaselineAction)
+            {
+                case PendingBaselineAction.Focus:
+                case PendingBaselineAction.Tune:
+                    if (!IsAwaitingDiceSelection)
+                        return false;
+                    ClearPendingDiceSelection();
+                    break;
+
+                case PendingBaselineAction.Scout:
+                    if (!IsAwaitingHandSelection)
+                        return false;
+                    ClearPendingHandSelection();
+                    break;
+
+                default:
+                    return false;
+            }
+
+            _pendingBaselineAction = PendingBaselineAction.None;
+            NotifyStateChanged();
+            return true;
+        }
+
         public bool TryUseFocus()
         {
             if (!CanUseBaselineActions() || _focusUsed)
@@ -262,9 +309,11 @@ namespace BannerOfBones.CardGame
             int selectionLimit = Math.Min(FocusMaxDiceTargets, Player.Dice.DiceCount);
             if (selectionLimit <= 0) return false;
 
-            _focusUsed = true;
+            _pendingBaselineAction = PendingBaselineAction.Focus;
             QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, $"Focus: choose up to {FocusMaxDiceTargets} player dice to reroll.", indices =>
             {
+                _focusUsed = true;
+                _pendingBaselineAction = PendingBaselineAction.None;
                 Player.Dice.RerollAtIndices(indices);
                 Log($"Focus rerolled {indices.Length} player dice.");
             });
@@ -290,7 +339,7 @@ namespace BannerOfBones.CardGame
                 || _scoutUsed)
                 return false;
 
-            _scoutUsed = true;
+            _pendingBaselineAction = PendingBaselineAction.Scout;
             QueueHandSelection(PendingHandAction.Scout, 2, "Scout: choose 1 card to discard, then draw 2.");
             return true;
         }
@@ -303,13 +352,42 @@ namespace BannerOfBones.CardGame
             int selectionLimit = Math.Min(TuneMaxDiceTargets, Player.Dice.DiceCount);
             if (selectionLimit <= 0) return false;
 
-            _tuneUsed = true;
+            _pendingBaselineAction = PendingBaselineAction.Tune;
             QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Tune: choose up to 2 player dice to raise by 1.", indices =>
             {
+                _tuneUsed = true;
+                _pendingBaselineAction = PendingBaselineAction.None;
                 foreach (int index in indices)
                     Player.Dice.AdjustDieValue(index, 1);
                 Log($"Tune raised {indices.Length} player dice by 1.");
             });
+            return true;
+        }
+
+        public bool TryUseSunder()
+        {
+            if (!CanUseBaselineActions() || _sunderUsed)
+                return false;
+
+            var targetEnemy = GetFirstAliveEnemy();
+            if (targetEnemy == null)
+                return false;
+
+            int damage = Player.Dice.CurrentRoll.Count(value => value >= 4);
+            _sunderUsed = true;
+
+            if (damage > 0)
+            {
+                targetEnemy.TakeDamage(damage);
+                Log($"Sunder hits {targetEnemy.Data.enemyName} for {damage} damage.");
+            }
+            else
+            {
+                Log($"Sunder finds no openings against {targetEnemy.Data.enemyName}.");
+            }
+
+            CheckForCombatEnd();
+            NotifyStateChanged();
             return true;
         }
 
@@ -626,6 +704,8 @@ namespace BannerOfBones.CardGame
             switch (_pendingHandAction)
             {
                 case PendingHandAction.Scout:
+                    _scoutUsed = true;
+                    _pendingBaselineAction = PendingBaselineAction.None;
                     Player.Deck.DrawSpecificCount(_pendingDrawCount);
                     Log($"Scout cycled {card.cardName} into {_pendingDrawCount} new cards.");
                     break;
@@ -710,6 +790,7 @@ namespace BannerOfBones.CardGame
             ClearPendingHandSelection();
             ClearPendingConfirmation();
             ClearPendingCardPlay();
+            _pendingBaselineAction = PendingBaselineAction.None;
             IsSelectingRetain = false;
         }
 

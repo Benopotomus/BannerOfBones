@@ -56,6 +56,7 @@ namespace BannerOfBones.CardGame
         private Button _braceButton;
         private Button _scoutButton;
         private Button _tuneButton;
+        private Button _sunderButton;
         private Button _cancelButton;
         private Button _confirmDiceButton;
         private Button _endTurnButton;
@@ -83,6 +84,7 @@ namespace BannerOfBones.CardGame
         private const string BraceActionReadyLabel = "Brace (0)";
         private const string ScoutActionReadyLabel = "Scout (0)";
         private const string TuneActionReadyLabel = "Tune (0)";
+        private const string SunderActionReadyLabel = "Sunder (0)";
 
         private GameObject _activeDragCard;
 
@@ -153,7 +155,8 @@ namespace BannerOfBones.CardGame
             _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
             _tuneButton = MkButton(root, TuneActionReadyLabel, new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), ActionButtonReadyColor, OnTuneClicked);
-            _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
+            _sunderButton = MkButton(root, SunderActionReadyLabel, new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), ActionButtonReadyColor, OnSunderClicked);
+            _cancelButton = MkButton(root, "Cancel", new Vector2(0.71f, 0.04f), new Vector2(0.78f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             MkButton(root, "Options", new Vector2(0.89f, 0.94f), new Vector2(0.98f, 0.99f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
@@ -163,6 +166,7 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_braceButton, $"Brace: Costs {CombatManager.BraceEnergyCost} energy. Gain 2 block. Once per battle.");
             AttachHoverTooltip(_scoutButton, $"Scout: Costs {CombatManager.ScoutEnergyCost} energy. Discard 1 card, then draw 2. Once per battle.");
             AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
+            AttachHoverTooltip(_sunderButton, $"Sunder: Costs {CombatManager.SunderEnergyCost} energy. Deal 1 damage per player die showing 4+ to the front enemy. Once per battle.");
 
             MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0.04f, 0f, 0.96f, 0.03f);
             _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0.04f, 0f, 0.96f, 0.03f);
@@ -564,19 +568,22 @@ namespace BannerOfBones.CardGame
             bool braceUsed = _combat.HasUsedBrace;
             bool scoutUsed = _combat.HasUsedScout;
             bool tuneUsed = _combat.HasUsedTune;
+            bool sunderUsed = _combat.HasUsedSunder;
 
             _focusButton.interactable = canUseActions && !focusUsed && p.Dice.DiceCount > 0;
             _braceButton.interactable = canUseActions && !braceUsed;
             _scoutButton.interactable = canUseActions && !scoutUsed && p.Deck.Hand.Count > 0;
             _tuneButton.interactable = canUseActions && !tuneUsed && p.Dice.DiceCount > 0;
+            _sunderButton.interactable = canUseActions && !sunderUsed && p.Dice.DiceCount > 0 && _combat.Enemy != null && _combat.Enemy.IsAlive;
 
             UpdateBaselineActionButtonVisual(_focusButton, FocusActionReadyLabel, focusUsed);
             UpdateBaselineActionButtonVisual(_braceButton, BraceActionReadyLabel, braceUsed);
             UpdateBaselineActionButtonVisual(_scoutButton, ScoutActionReadyLabel, scoutUsed);
             UpdateBaselineActionButtonVisual(_tuneButton, TuneActionReadyLabel, tuneUsed);
+            UpdateBaselineActionButtonVisual(_sunderButton, SunderActionReadyLabel, sunderUsed);
 
-            _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
-            _cancelButton.interactable = _combat.HasPendingCardPlay;
+            _cancelButton.gameObject.SetActive(_combat.HasPendingCancelableChoice);
+            _cancelButton.interactable = _combat.HasPendingCancelableChoice;
 
             bool showConfirmButton = _combat.IsAwaitingDiceSelection || _combat.IsAwaitingCardConfirmation;
             _confirmDiceButton.gameObject.SetActive(showConfirmButton);
@@ -793,9 +800,15 @@ namespace BannerOfBones.CardGame
                 RefreshUI();
         }
 
+        private void OnSunderClicked()
+        {
+            if (_combat.TryUseSunder())
+                RefreshUI();
+        }
+
         private void OnCancelClicked()
         {
-            if (_combat.CancelPendingCardPlay())
+            if (_combat.CancelPendingAction())
                 RefreshUI();
         }
 

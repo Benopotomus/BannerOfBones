@@ -378,8 +378,7 @@ namespace BannerOfBones.CardGame
             vpRT.anchorMax = Vector2.one;
             vpRT.offsetMin = Vector2.zero;
             vpRT.offsetMax = new Vector2(-(scrollbarWidth + viewportScrollbarGap), 0f);
-            vpGO.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0f);
-            vpGO.AddComponent<Mask>().showMaskGraphic = false;
+            vpGO.AddComponent<RectMask2D>();
 
             // Content (grows vertically to fit all cards)
             var contentGO = new GameObject("Content");
@@ -715,7 +714,11 @@ namespace BannerOfBones.CardGame
         private static void ClearContainer(RectTransform container)
         {
             for (int i = container.childCount - 1; i >= 0; i--)
-                Destroy(container.GetChild(i).gameObject);
+            {
+                var child = container.GetChild(i);
+                child.SetParent(null, false); // remove from container immediately so layout groups ignore it
+                Destroy(child.gameObject);
+            }
         }
 
         private void OnRoundStarted()
@@ -915,6 +918,7 @@ namespace BannerOfBones.CardGame
             _pileViewTitleText.text = $"{title}  ({pile.Count} cards)";
 
             ClearContainer(_pileViewCardsContainer);
+            _pileViewCardsContainer.anchoredPosition = Vector2.zero;
 
             const int cols = 5;
             const float cardSpacing = 8f;

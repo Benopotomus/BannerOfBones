@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace BannerOfBones.CardGame
@@ -10,6 +11,15 @@ namespace BannerOfBones.CardGame
     public static class EnemyCatalog
     {
         public static List<EnemyData> CreateAllEnemies()
+        {
+            var database = LoadDatabase();
+            if (database != null && database.HasEnemies)
+                return database.CreateAllRuntimeEnemies();
+
+            return CreateDefaultEnemyLibrary();
+        }
+
+        public static List<EnemyData> CreateDefaultEnemyLibrary()
         {
             return new List<EnemyData>
             {
@@ -23,14 +33,10 @@ namespace BannerOfBones.CardGame
 
         public static List<EnemyData> CreateEncounterGroup(int maxEnemies = 4)
         {
-            var candidates = new List<(EnemyData enemy, int cost)>
-            {
-                (CreateGoblinScout(), 1),
-                (CreateOrcWarrior(), 1),
-                (CreateShadowWraith(), 1),
-                (CreateStoneGolem(), 2),
-                (CreateDeathKnight(), 2),
-            };
+            var candidates = CreateAllEnemies()
+                .Where(enemy => enemy != null)
+                .Select(enemy => (enemy, cost: GetEncounterCost(enemy)))
+                .ToList();
 
             int budget = BoBRandom.Range(2, maxEnemies + 1);
             var encounter = new List<EnemyData>();
@@ -52,9 +58,23 @@ namespace BannerOfBones.CardGame
             }
 
             if (encounter.Count == 0)
-                encounter.Add(CreateGoblinScout());
+                encounter.Add(candidates.Count > 0 ? candidates[0].enemy : CreateGoblinScout());
 
             return encounter;
+        }
+
+        private static EnemyDatabase LoadDatabase()
+        {
+            return Resources.Load<EnemyDatabase>(EnemyDatabase.ResourcesPath);
+        }
+
+        private static int GetEncounterCost(EnemyData enemy)
+        {
+            var enemyName = enemy.enemyName ?? string.Empty;
+            if (enemyName == "Stone Golem" || enemyName == "Death Knight")
+                return 2;
+
+            return enemy.maxHealth >= 15 ? 2 : 1;
         }
 
         private static EnemyData CreateGoblinScout()

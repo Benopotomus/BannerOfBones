@@ -71,6 +71,8 @@ namespace BannerOfBones.CardGame
         private RectTransform _progressionOptionsContainer;
         private RectTransform _optionsPanel;
         private RectTransform _closeGameConfirmPanel;
+        private RectTransform _logPanel;
+        private Button _logToggleButton;
 
         private readonly List<string> _log = new List<string>();
         private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
@@ -128,7 +130,7 @@ namespace BannerOfBones.CardGame
 
             MkPanel(root, "Bg", C(0.08f, 0.07f, 0.12f), 0f, 0f, 1f, 1f);
 
-            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.30f, 0.56f, 0.96f, 0.98f);
+            _enemyAreaPanel = MkPanel(root, "EnemyArea", C(0.18f, 0.08f, 0.08f), 0.04f, 0.56f, 0.96f, 0.98f);
             var enemyLabel = MkText(_enemyAreaPanel, 18, C(1f, 0.40f, 0.40f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             enemyLabel.text = "— E N E M I E S —";
             _enemyGroupContainer = MkContainer(_enemyAreaPanel, "EnemyGroup", 0f, 0f, 1f, 0.86f, 10f, 8f, -10f, -8f);
@@ -144,13 +146,13 @@ namespace BannerOfBones.CardGame
             _playerDiceButtonsContainer = MkContainer(playerDicePanel, "PlayerDiceButtons", 0f, 0f, 1f, 0.74f, 10f, 6f, -10f, -6f);
 
             MkPanel(root, "HandBg", C(0.07f, 0.12f, 0.07f), 0.04f, 0.12f, 0.96f, 0.38f);
-            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0.04f, 0.34f, 0.96f, 0.38f);
+            var handLabel = MkText(root, 12, Color.white, TextAnchor.MiddleCenter, 0.14f, 0.34f, 0.86f, 0.38f);
             handLabel.text = "— H A N D —";
-            _handContainer = MkContainer(root, "HandCards", 0.04f, 0.12f, 0.96f, 0.34f, 6f, 2f, -6f, -2f);
+            _handContainer = MkContainer(root, "HandCards", 0.14f, 0.12f, 0.86f, 0.34f, 6f, 2f, -6f, -2f);
 
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
-            MkButton(root, "View Deck", new Vector2(0f, 0.12f), new Vector2(0.04f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked, fontSize: 10);
-            MkButton(root, "View Discard", new Vector2(0.96f, 0.12f), new Vector2(1f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked, fontSize: 10);
+            MkButton(root, "View\nDeck", new Vector2(0.04f, 0.12f), new Vector2(0.13f, 0.38f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked, fontSize: 9);
+            MkButton(root, "View\nDiscard", new Vector2(0.87f, 0.12f), new Vector2(0.96f, 0.38f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked, fontSize: 9);
             _focusButton = MkButton(root, FocusActionReadyLabel, new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
             _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
@@ -168,8 +170,10 @@ namespace BannerOfBones.CardGame
             AttachHoverTooltip(_tuneButton, $"Tune: Costs {CombatManager.TuneEnergyCost} energy. Raise up to {CombatManager.TuneMaxDiceTargets} player dice by 1. Once per battle.");
             AttachHoverTooltip(_sunderButton, $"Sunder: Costs {CombatManager.SunderEnergyCost} energy. Deal 1 damage per player die showing 4+ to the front enemy. Once per battle.");
 
-            MkPanel(root, "LogBg", C(0.04f, 0.04f, 0.07f), 0f, 0.56f, 0.29f, 0.98f);
-            _logText = MkText(root, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0.56f, 0.29f, 0.98f);
+            _logToggleButton = MkButton(root, "Log ▸", new Vector2(0f, 0.94f), new Vector2(0.08f, 0.99f), C(0.10f, 0.10f, 0.18f), OnLogToggleClicked, fontSize: 12);
+            _logPanel = MkPanel(root, "LogPanel", C(0.04f, 0.04f, 0.07f), 0f, 0.57f, 0.30f, 0.94f);
+            _logPanel.gameObject.SetActive(false);
+            _logText = MkText(_logPanel, 11, C(0.75f, 0.75f, 0.75f), TextAnchor.UpperLeft, 0f, 0f, 1f, 1f);
 
             _pileViewPanel = MkPanel(root, "PileViewPanel", C(0.05f, 0.05f, 0.10f), 0.1f, 0.15f, 0.9f, 0.90f);
             _pileViewPanel.gameObject.SetActive(false);
@@ -1001,6 +1005,14 @@ namespace BannerOfBones.CardGame
         {
             _pileViewPanel.gameObject.SetActive(false);
             ClearContainer(_pileViewCardsContainer);
+        }
+
+        private void OnLogToggleClicked()
+        {
+            if (_logPanel == null) return;
+            bool show = !_logPanel.gameObject.activeSelf;
+            _logPanel.gameObject.SetActive(show);
+            SetButtonLabel(_logToggleButton, show ? "Log ▾" : "Log ▸");
         }
 
         private void Log(string line)

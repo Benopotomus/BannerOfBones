@@ -834,9 +834,6 @@ namespace BannerOfBones.CardGame
                 var cardGO = new GameObject($"PileCard{i}");
                 cardGO.transform.SetParent(_pileViewCardsContainer, false);
                 var cardRT = cardGO.AddComponent<RectTransform>();
-                cardRT.anchorMin = new Vector2(0f, 1f);
-                cardRT.anchorMax = new Vector2(0f, 1f);
-                cardRT.pivot = new Vector2(0f, 1f);
 
                 var cardPanel = cardGO;
                 cardPanel.AddComponent<Image>().color = C(0.18f, 0.18f, 0.18f);

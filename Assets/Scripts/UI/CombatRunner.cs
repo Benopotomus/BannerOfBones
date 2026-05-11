@@ -801,6 +801,7 @@ namespace BannerOfBones.CardGame
             ClearContainer(_pileViewCardsContainer);
 
             const int cols = 4;
+            const float cardWidth = 200f;
             const float cardHeight = 132f;
             const float cardSpacing = 8f;
             const float sidePadding = 8f;
@@ -818,10 +819,8 @@ namespace BannerOfBones.CardGame
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = cols;
             grid.spacing = new Vector2(cardSpacing, cardSpacing);
-            grid.padding = new RectOffset((int)sidePadding, (int)sidePadding, (int)sidePadding, (int)sidePadding);
-
-            float availableWidth = Mathf.Max(0f, _pileViewCardsContainer.rect.width - (sidePadding * 2f) - ((cols - 1) * cardSpacing));
-            float cardWidth = availableWidth > 0f ? availableWidth / cols : 200f;
+            int padding = (int)sidePadding;
+            grid.padding = new RectOffset(padding, padding, padding, padding);
             grid.cellSize = new Vector2(cardWidth, cardHeight);
             grid.childAlignment = TextAnchor.UpperLeft;
 

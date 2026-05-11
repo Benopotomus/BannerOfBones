@@ -13,6 +13,7 @@ namespace BannerOfBones.CardGame
         public const int TuneEnergyCost = 0;
         public const int TuneMaxDiceTargets = 2;
         public const int FocusEnergyCost = 0;
+        public const int FocusMaxDiceTargets = 3;
         public const int BraceEnergyCost = 0;
         public const int ScoutEnergyCost = 0;
 
@@ -258,11 +259,11 @@ namespace BannerOfBones.CardGame
             if (!CanUseBaselineActions() || _focusUsed)
                 return false;
 
-            int selectionLimit = Math.Min(3, Player.Dice.DiceCount);
+            int selectionLimit = Math.Min(FocusMaxDiceTargets, Player.Dice.DiceCount);
             if (selectionLimit <= 0) return false;
 
             _focusUsed = true;
-            QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, "Focus: choose up to 3 player dice to reroll.", indices =>
+            QueueDiceSelection(ECardTarget.PlayerDice, selectionLimit, $"Focus: choose up to {FocusMaxDiceTargets} player dice to reroll.", indices =>
             {
                 Player.Dice.RerollAtIndices(indices);
                 Log($"Focus rerolled {indices.Length} player dice.");

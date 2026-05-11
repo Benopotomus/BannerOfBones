@@ -78,6 +78,10 @@ namespace BannerOfBones.CardGame
         private static readonly Vector2 DragPreviewSize = new Vector2(240f, 180f);
         private static readonly Color ActionButtonReadyColor = C(0.18f, 0.38f, 0.14f);
         private static readonly Color ActionButtonUsedColor = C(0.24f, 0.24f, 0.24f);
+        private const string FocusActionReadyLabel = "Focus (0)";
+        private const string BraceActionReadyLabel = "Brace (0)";
+        private const string ScoutActionReadyLabel = "Scout (0)";
+        private const string TuneActionReadyLabel = "Tune (0)";
 
         private GameObject _activeDragCard;
 
@@ -144,10 +148,10 @@ namespace BannerOfBones.CardGame
             MkPanel(root, "ActionBar", C(0.04f, 0.04f, 0.04f), 0.04f, 0.03f, 0.96f, 0.11f);
             MkButton(root, "View Deck", new Vector2(0.05f, 0.04f), new Vector2(0.17f, 0.10f), C(0.15f, 0.35f, 0.55f), OnViewDeckClicked);
             MkButton(root, "View Discard", new Vector2(0.18f, 0.04f), new Vector2(0.30f, 0.10f), C(0.35f, 0.20f, 0.45f), OnViewDiscardClicked);
-            _focusButton = MkButton(root, "Focus (0)", new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
-            _braceButton = MkButton(root, "Brace (0)", new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
-            _scoutButton = MkButton(root, "Scout (0)", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
-            _tuneButton = MkButton(root, "Tune (0)", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), ActionButtonReadyColor, OnTuneClicked);
+            _focusButton = MkButton(root, FocusActionReadyLabel, new Vector2(0.31f, 0.04f), new Vector2(0.38f, 0.10f), ActionButtonReadyColor, OnFocusClicked);
+            _braceButton = MkButton(root, BraceActionReadyLabel, new Vector2(0.39f, 0.04f), new Vector2(0.46f, 0.10f), ActionButtonReadyColor, OnBraceClicked);
+            _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
+            _tuneButton = MkButton(root, TuneActionReadyLabel, new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), ActionButtonReadyColor, OnTuneClicked);
             _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
             MkButton(root, "Options", new Vector2(0.71f, 0.04f), new Vector2(0.79f, 0.10f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
@@ -529,10 +533,10 @@ namespace BannerOfBones.CardGame
             _scoutButton.interactable = canUseActions && !scoutUsed && p.Deck.Hand.Count > 0;
             _tuneButton.interactable = canUseActions && !tuneUsed && p.Dice.DiceCount > 0;
 
-            UpdateBaselineActionButtonVisual(_focusButton, "Focus (0)", focusUsed);
-            UpdateBaselineActionButtonVisual(_braceButton, "Brace (0)", braceUsed);
-            UpdateBaselineActionButtonVisual(_scoutButton, "Scout (0)", scoutUsed);
-            UpdateBaselineActionButtonVisual(_tuneButton, "Tune (0)", tuneUsed);
+            UpdateBaselineActionButtonVisual(_focusButton, FocusActionReadyLabel, focusUsed);
+            UpdateBaselineActionButtonVisual(_braceButton, BraceActionReadyLabel, braceUsed);
+            UpdateBaselineActionButtonVisual(_scoutButton, ScoutActionReadyLabel, scoutUsed);
+            UpdateBaselineActionButtonVisual(_tuneButton, TuneActionReadyLabel, tuneUsed);
 
             _cancelButton.gameObject.SetActive(_combat.HasPendingCardPlay);
             _cancelButton.interactable = _combat.HasPendingCardPlay;

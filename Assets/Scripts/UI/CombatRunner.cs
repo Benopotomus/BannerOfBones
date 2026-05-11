@@ -68,6 +68,8 @@ namespace BannerOfBones.CardGame
         private RectTransform _progressionPanel;
         private Text _progressionTitleText;
         private RectTransform _progressionOptionsContainer;
+        private RectTransform _optionsPanel;
+        private RectTransform _closeGameConfirmPanel;
 
         private readonly List<string> _log = new List<string>();
         private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
@@ -145,6 +147,7 @@ namespace BannerOfBones.CardGame
             _scoutButton = MkButton(root, "Scout", new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), C(0.18f, 0.38f, 0.14f), OnScoutClicked);
             _tuneButton = MkButton(root, "Tune", new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), C(0.18f, 0.38f, 0.14f), OnTuneClicked);
             _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
+            MkButton(root, "Options", new Vector2(0.71f, 0.04f), new Vector2(0.79f, 0.10f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
@@ -167,6 +170,22 @@ namespace BannerOfBones.CardGame
             _progressionPanel.gameObject.SetActive(false);
             _progressionTitleText = MkText(_progressionPanel, 18, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
             _progressionOptionsContainer = MkContainer(_progressionPanel, "ProgressionOptions", 0.06f, 0.12f, 0.94f, 0.84f);
+
+            _optionsPanel = MkPanel(root, "OptionsPanel", C(0.05f, 0.05f, 0.10f), 0.34f, 0.24f, 0.66f, 0.52f);
+            _optionsPanel.gameObject.SetActive(false);
+            var optionsTitle = MkText(_optionsPanel, 18, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.70f, 1f, 1f);
+            optionsTitle.text = "Options";
+            MkButton(_optionsPanel, "Close Game", new Vector2(0.20f, 0.30f), new Vector2(0.80f, 0.56f), C(0.55f, 0.18f, 0.14f), OnCloseGameSelected);
+            MkButton(_optionsPanel, "Back", new Vector2(0.20f, 0.08f), new Vector2(0.80f, 0.24f), C(0.22f, 0.22f, 0.30f), CloseOptionsPanel);
+
+            _closeGameConfirmPanel = MkPanel(root, "CloseGameConfirmPanel", C(0f, 0f, 0f), 0f, 0f, 1f, 1f);
+            _closeGameConfirmPanel.gameObject.SetActive(false);
+            _closeGameConfirmPanel.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.68f);
+            var confirmDialog = MkPanel(_closeGameConfirmPanel, "CloseGameDialog", C(0.12f, 0.08f, 0.10f), 0.30f, 0.34f, 0.70f, 0.66f);
+            var confirmText = MkText(confirmDialog, 16, Color.white, TextAnchor.MiddleCenter, 0.08f, 0.44f, 0.92f, 0.88f);
+            confirmText.text = "Close the game?";
+            MkButton(confirmDialog, "Cancel", new Vector2(0.10f, 0.12f), new Vector2(0.46f, 0.34f), C(0.25f, 0.25f, 0.30f), HideCloseGameConfirmation);
+            MkButton(confirmDialog, "Close Game", new Vector2(0.54f, 0.12f), new Vector2(0.90f, 0.34f), C(0.55f, 0.18f, 0.14f), ConfirmCloseGame);
 
             _dragLayer = MkContainer(root, "DragLayer", 0f, 0f, 1f, 1f);
             _dragLayer.SetAsLastSibling();
@@ -727,6 +746,46 @@ namespace BannerOfBones.CardGame
         {
             if (_combat.ConfirmPendingChoice())
                 RefreshUI();
+        }
+
+        private void OnOptionsClicked()
+        {
+            var optionsPanel = _optionsPanel;
+            if (optionsPanel == null)
+                return;
+
+            HideCloseGameConfirmation();
+            bool showPanel = !optionsPanel.gameObject.activeSelf;
+            optionsPanel.gameObject.SetActive(showPanel);
+        }
+
+        private void CloseOptionsPanel()
+        {
+            if (_optionsPanel != null)
+                _optionsPanel.gameObject.SetActive(false);
+
+            HideCloseGameConfirmation();
+        }
+
+        private void OnCloseGameSelected()
+        {
+            if (_closeGameConfirmPanel != null)
+                _closeGameConfirmPanel.gameObject.SetActive(true);
+        }
+
+        private void HideCloseGameConfirmation()
+        {
+            if (_closeGameConfirmPanel != null)
+                _closeGameConfirmPanel.gameObject.SetActive(false);
+        }
+
+        private void ConfirmCloseGame()
+        {
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
         }
 
         private void OnHandCardClicked(CardData card)

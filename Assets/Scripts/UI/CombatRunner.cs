@@ -153,7 +153,7 @@ namespace BannerOfBones.CardGame
             _scoutButton = MkButton(root, ScoutActionReadyLabel, new Vector2(0.47f, 0.04f), new Vector2(0.54f, 0.10f), ActionButtonReadyColor, OnScoutClicked);
             _tuneButton = MkButton(root, TuneActionReadyLabel, new Vector2(0.55f, 0.04f), new Vector2(0.62f, 0.10f), ActionButtonReadyColor, OnTuneClicked);
             _cancelButton = MkButton(root, "Cancel", new Vector2(0.63f, 0.04f), new Vector2(0.70f, 0.10f), C(0.50f, 0.15f, 0.10f), OnCancelClicked);
-            MkButton(root, "Options", new Vector2(0.71f, 0.04f), new Vector2(0.79f, 0.10f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
+            MkButton(root, "Options", new Vector2(0.89f, 0.94f), new Vector2(0.98f, 0.99f), C(0.22f, 0.22f, 0.30f), OnOptionsClicked);
             _confirmDiceButton = MkButton(root, "Confirm Dice", new Vector2(0.80f, 0.04f), new Vector2(0.90f, 0.10f), C(0.16f, 0.28f, 0.44f), OnConfirmDiceClicked);
             _endTurnButton = MkButton(root, "End Turn", new Vector2(0.91f, 0.03f), new Vector2(0.96f, 0.11f), C(0.60f, 0.15f, 0.10f), OnEndTurnClicked);
             _actionTooltipText = MkText(root, 11, C(0.9f, 0.9f, 0.95f), TextAnchor.MiddleCenter, 0.04f, 0.105f, 0.96f, 0.125f);
@@ -1078,7 +1078,7 @@ namespace BannerOfBones.CardGame
             costText.fontStyle = FontStyle.Bold;
             costText.text = card.energyCost.ToString();
 
-            var body = MkText(rectTransform, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 1f);
+            var body = MkText(rectTransform, 11, Color.white, TextAnchor.UpperLeft, 0f, 0f, 1f, 0.80f);
             body.supportRichText = true;
             body.text = BuildDragPreviewText(card);
 

@@ -76,6 +76,22 @@ namespace BannerOfBones.CardGame
                 case EEffectType.CycleHand:
                 case EEffectType.AddWager:
                     break;
+
+                case EEffectType.GainEnergy:
+                {
+                    int triggers = PokerEvaluator.EvaluateTriggerCount(
+                        effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                    player.Energy.GainEnergy(triggers * effect.magnitude);
+                    break;
+                }
+
+                case EEffectType.DrawCards:
+                {
+                    int triggers = PokerEvaluator.EvaluateTriggerCount(
+                        effect.triggerOn, player.Dice.CurrentRoll, effect.dieValue, effect.valueThreshold);
+                    player.Deck.DrawSpecificCount(triggers * effect.magnitude);
+                    break;
+                }
             }
         }
 

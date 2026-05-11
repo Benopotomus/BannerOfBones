@@ -32,12 +32,12 @@ MonoBehaviour:
     triggerOn: 0
     dieValue: 0
     valueThreshold: 0
-  - intentType: 1
-    intentName: Fade
-    description: 
-    magnitude: 2
+  - intentType: 0
+    intentName: Mirror Cut
+    description: Deal 1 damage for each die that matches another die.
+    magnitude: 1
     count: 1
-    triggerOn: 0
+    triggerOn: 14
     dieValue: 0
     valueThreshold: 0
   passiveEffects: []

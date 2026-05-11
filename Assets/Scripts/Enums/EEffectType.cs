@@ -55,5 +55,11 @@
 
         /// <summary>Queue a one-shot delayed payoff that resolves at the start of the next round.</summary>
         AddWager,
+
+        /// <summary>Player gains (magnitude * triggerCount) energy, capped at max energy.</summary>
+        GainEnergy,
+
+        /// <summary>Draw (magnitude * triggerCount) cards.</summary>
+        DrawCards,
     }
 }

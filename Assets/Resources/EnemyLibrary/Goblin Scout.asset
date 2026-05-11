@@ -26,11 +26,11 @@ MonoBehaviour:
     valueThreshold: 0
   - intentType: 0
     intentName: Needle Storm
-    description: Deal 2 damage for each 5 in your roll.
+    description: Deal 2 damage for each 1 in your roll.
     magnitude: 2
     count: 1
     triggerOn: 1
-    dieValue: 5
+    dieValue: 1
     valueThreshold: 0
   - intentType: 2
     intentName: Hamstring

@@ -47,6 +47,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 520d61989eb514245ba705dc868a6527, type: 2}
   - {fileID: 11400000, guid: b46d3604019263441bf8cd1b0cac6556, type: 2}
   - {fileID: 11400000, guid: 3ac6cc75c7bb4004dad384af2144e2bf, type: 2}
+  - {fileID: 11400000, guid: 80961180941c445caea4e131215be5aa, type: 2}
+  - {fileID: 11400000, guid: fd7f8f4fb2914d2fb3fecc35fe370233, type: 2}
   starterDeck:
   - card: {fileID: 11400000, guid: fbec22610e0ad97498ea08d8d8e919c5, type: 2}
     copies: 2
@@ -116,3 +118,7 @@ MonoBehaviour:
     copies: 1
   - card: {fileID: 11400000, guid: 520d61989eb514245ba705dc868a6527, type: 2}
     copies: 1
+  - card: {fileID: 11400000, guid: 80961180941c445caea4e131215be5aa, type: 2}
+    copies: 0
+  - card: {fileID: 11400000, guid: fd7f8f4fb2914d2fb3fecc35fe370233, type: 2}
+    copies: 0

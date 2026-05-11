@@ -86,6 +86,8 @@ namespace BannerOfBones.CardGame
                 CreateLuckyCharm(),
                 CreateTacticalPivot(),
                 CreateLoadedBet(),
+                CreateSixthWind(),
+                CreateLuckyStreak(),
                 CreateLastStand(),
                 CreateSacrifice(),
 
@@ -732,6 +734,48 @@ namespace BannerOfBones.CardGame
                     diceTarget = ECardTarget.PlayerDice,
                     triggerOn = EPokerHandType.PerPair,
                     magnitude = 6,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateSixthWind()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Sixth Wind";
+            card.description = "Gain 1 energy for each die showing 6+.";
+            card.energyCost = 0;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.GainEnergy,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.PerHighDie,
+                    valueThreshold = 6,
+                    magnitude = 1,
+                },
+            };
+            return card;
+        }
+
+        private static CardData CreateLuckyStreak()
+        {
+            var card = ScriptableObject.CreateInstance<CardData>();
+            card.name = card.cardName = "Lucky Streak";
+            card.description = "Draw 1 card for each die showing 6+.";
+            card.energyCost = 0;
+            card.duration = ECardDuration.Instant;
+            card.effects = new List<CardEffectData>
+            {
+                new CardEffectData
+                {
+                    effectType = EEffectType.DrawCards,
+                    diceTarget = ECardTarget.PlayerDice,
+                    triggerOn = EPokerHandType.PerHighDie,
+                    valueThreshold = 6,
+                    magnitude = 1,
                 },
             };
             return card;

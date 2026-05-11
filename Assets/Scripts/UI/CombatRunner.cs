@@ -893,6 +893,8 @@ namespace BannerOfBones.CardGame
         private void ShowPileView(string title, IReadOnlyList<CardData> pile)
         {
             _pileViewPanel.gameObject.SetActive(true);
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_pileViewPanel);
             _pileViewTitleText.text = $"{title}  ({pile.Count} cards)";
 
             ClearContainer(_pileViewCardsContainer);
@@ -900,6 +902,7 @@ namespace BannerOfBones.CardGame
             const int cols = 5;
             const float cardSpacing = 8f;
             const int sidePadding = 8;
+            // Used on the first frame if viewport width is not yet resolved by layout.
             const float fallbackCardWidth = 120f;
             float availableWidth = _pileViewScrollRect.viewport.rect.width - (sidePadding * 2f) - ((cols - 1) * cardSpacing);
             float cardWidth = availableWidth > 0f ? availableWidth / cols : fallbackCardWidth;

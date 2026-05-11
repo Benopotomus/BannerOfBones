@@ -49,9 +49,12 @@ namespace BannerOfBones.CardGame
 
             // ── Size / position ───────────────────────────────────────────────────
             var rt = GetComponent<RectTransform>();
-            float w = 1f / Mathf.Max(1, total);
-            rt.anchorMin = new Vector2(index * w + 0.005f, 0.05f);
-            rt.anchorMax = new Vector2((index + 1) * w - 0.005f, 0.95f);
+            float width = Mathf.Min(1f / 6f, 1f / Mathf.Max(1, total));
+            float usedWidth = width * total;
+            float leftOffset = (1f - usedWidth) * 0.5f;
+            float horizontalPadding = Mathf.Min(0.005f, width * 0.2f);
+            rt.anchorMin = new Vector2(leftOffset + (index * width) + horizontalPadding, 0.05f);
+            rt.anchorMax = new Vector2(leftOffset + ((index + 1) * width) - horizontalPadding, 0.95f);
             rt.offsetMin = rt.offsetMax = Vector2.zero;
 
             // ── Background ────────────────────────────────────────────────────────

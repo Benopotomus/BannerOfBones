@@ -165,11 +165,11 @@ namespace BannerOfBones.CardGame
                 },
                 new EnemyIntentData
                 {
-                    intentName = "Mirror Cut",
+                    intentName = "Fracture",
                     intentType = EEnemyIntentType.AttackFlat,
                     magnitude = 1,
-                    triggerOn = EPokerHandType.PerMatchingDie,
-                    description = "Deal 1 damage for each die that matches another die.",
+                    triggerOn = EPokerHandType.PerUniqueDieValue,
+                    description = "Deal 1 damage for each unique die value in your roll.",
                 },
             };
             return enemy;

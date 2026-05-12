@@ -33,11 +33,11 @@ MonoBehaviour:
     dieValue: 0
     valueThreshold: 0
   - intentType: 0
-    intentName: Mirror Cut
-    description: Deal 1 damage for each die that matches another die.
+    intentName: Fracture
+    description: Deal 1 damage for each unique die value in your roll.
     magnitude: 1
     count: 1
-    triggerOn: 14
+    triggerOn: 12
     dieValue: 0
     valueThreshold: 0
   passiveEffects: []

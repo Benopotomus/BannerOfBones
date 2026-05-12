@@ -112,6 +112,8 @@ namespace BannerOfBones.CardGame
         private const int ShopRemoveCost = 30;
         private const int TreasureChoiceCount = 3;
         private const int ShopCardCount = 4;
+        private const float SkirmishProgressThreshold = 1f / 3f;
+        private const float BattleProgressThreshold = 2f / 3f;
 
         private GameObject _activeDragCard;
 
@@ -381,7 +383,7 @@ namespace BannerOfBones.CardGame
 
                 // Icon + label text
                 string icon  = NodeTypeIcon(node.Type, node.IsBoss);
-                string label = isCurrent ? "YOU\nARE\nHERE" : (node.IsBoss ? "BOSS" : node.Type.ToString().ToUpper());
+                string label = GetMapNodeLabel(node, isCurrent);
                 var txt = MkText(nodePanelRT, 10, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
                 txt.text   = $"{icon}\n{label}";
                 txt.fontStyle = FontStyle.Bold;
@@ -667,6 +669,24 @@ namespace BannerOfBones.CardGame
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
+
+        private string GetMapNodeLabel(MapNode node, bool isCurrent)
+        {
+            if (isCurrent) return "YOU\nARE\nHERE";
+            if (node.IsBoss) return "BOSS";
+
+            if (node.Type != EMapNodeType.Fight)
+                return node.Type.ToString().ToUpper();
+
+            // TotalLayers includes the final boss layer, so subtract 1 to normalize
+            // progression across non-boss path depth.
+            int traversableLayerCount = Mathf.Max(1, (_worldMap?.TotalLayers ?? 1) - 1);
+            float progress = Mathf.Clamp01((float)node.Layer / traversableLayerCount);
+
+            if (progress < SkirmishProgressThreshold) return "SKIRMISH";
+            if (progress < BattleProgressThreshold) return "BATTLE";
+            return "WAR";
+        }
 
         private static Color NodeTypeColor(EMapNodeType type, bool isBoss)
         {

@@ -36,7 +36,7 @@ namespace BannerOfBones.CardGame
                 bool isFirst = layer == 0;
                 bool isLast  = layer == totalLayers - 1;
 
-                int nodeCount = (isFirst || isLast) ? 1 : BoBRandom.Range(2, 4); // exclusive upper bound → 2 or 3 middle nodes
+                int nodeCount = (isFirst || isLast) ? 1 : BoBRandom.Range(3, 5); // exclusive upper bound → 3 or 4 middle nodes
 
                 float xFrac = totalLayers == 1
                     ? 0.5f

@@ -17,6 +17,7 @@ namespace BannerOfBones.CardGame
         public DeckManager  Deck   { get; }
         public EnergyManager Energy { get; }
         public int PendingNextTurnDieLoss { get; private set; }
+        public bool IsBurning { get; private set; }
         private readonly List<int> _temporarilySuppressedDieSides = new List<int>();
 
         /// <summary>Cards with Persistent duration currently in play.</summary>
@@ -91,6 +92,16 @@ namespace BannerOfBones.CardGame
         public void ApplyNextTurnDieLoss(int amount)
         {
             PendingNextTurnDieLoss += Math.Max(0, amount);
+        }
+
+        public void ApplyBurning()
+        {
+            IsBurning = true;
+        }
+
+        public void ClearBurning()
+        {
+            IsBurning = false;
         }
 
         private void RestoreTemporarilySuppressedDice()

@@ -28,6 +28,7 @@ namespace BannerOfBones.CardGame
                 CreateShadowWraith(),
                 CreateStoneGolem(),
                 CreateDeathKnight(),
+                CreateEmberImp(),
             };
         }
 
@@ -234,6 +235,47 @@ namespace BannerOfBones.CardGame
                     intentName = "Dark Bulwark",
                     intentType = EEnemyIntentType.Guard,
                     magnitude = 5,
+                },
+            };
+            return enemy;
+        }
+
+        private static EnemyData CreateEmberImp()
+        {
+            var enemy = ScriptableObject.CreateInstance<EnemyData>();
+            enemy.name = enemy.enemyName = "Ember Imp";
+            enemy.description = "A mischievous fire sprite that ignites its prey, leaving them smoldering.";
+            enemy.maxHealth = 10;
+            enemy.roundIntents = new List<EnemyIntentData>
+            {
+                new EnemyIntentData
+                {
+                    intentName = "Ignite",
+                    intentType = EEnemyIntentType.ApplyBurning,
+                    magnitude = 0,
+                    description = "Apply Burning. Each round end deals 3 damage; removed if you have a die showing 1.",
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Ember Spit",
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 4,
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Ignite",
+                    intentType = EEnemyIntentType.ApplyBurning,
+                    magnitude = 0,
+                    description = "Apply Burning. Each round end deals 3 damage; removed if you have a die showing 1.",
+                },
+                new EnemyIntentData
+                {
+                    intentName = "Scorch",
+                    intentType = EEnemyIntentType.AttackFlat,
+                    magnitude = 2,
+                    triggerOn = EPokerHandType.PerLowDie,
+                    valueThreshold = 2,
+                    description = "Deal 2 damage for each die showing 2 or less.",
                 },
             };
             return enemy;

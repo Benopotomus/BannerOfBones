@@ -17,6 +17,7 @@ namespace BannerOfBones.CardGame
         public const int BraceEnergyCost = 0;
         public const int ScoutEnergyCost = 0;
         public const int SunderEnergyCost = 0;
+        public const int BurningDamagePerRound = 3;
 
         private enum PendingHandAction
         {
@@ -581,7 +582,34 @@ namespace BannerOfBones.CardGame
                 return;
             }
 
+            ApplyBurningTick();
+
+            if (!Player.IsAlive)
+            {
+                EndCombat(false);
+                return;
+            }
+
             BeginRound();
+        }
+
+        private void ApplyBurningTick()
+        {
+            if (!Player.IsBurning) return;
+
+            int[] roll = Player.Dice.CurrentRoll;
+            bool hasOne = roll != null && System.Array.IndexOf(roll, 1) >= 0;
+
+            if (hasOne)
+            {
+                Player.ClearBurning();
+                Log("Burning fizzles out — a die showing 1 extinguishes the flames!");
+            }
+            else
+            {
+                Player.TakeDamage(BurningDamagePerRound);
+                Log($"Burning deals {BurningDamagePerRound} damage!");
+            }
         }
 
         private void BeginEffectSequence(string sourceName, IReadOnlyList<CardEffectData> effects,

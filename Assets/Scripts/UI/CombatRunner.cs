@@ -19,6 +19,12 @@ namespace BannerOfBones.CardGame
             Progression,
         }
 
+        public enum ProgressionStartEncounter
+        {
+            WorldMap,
+            Shop,
+        }
+
         [Header("Player Settings")]
         public int playerHealth = 30;
         public int playerEnergy = 3;
@@ -31,6 +37,11 @@ namespace BannerOfBones.CardGame
         [Min(1)]
         [Tooltip("Controls map length in progression mode (number of node layers plus a boss layer).")]
         public int progressionCombatCount = 3;
+        [Min(0)]
+        [Tooltip("Starting gold in progression mode. Useful for debugging shop flows.")]
+        public int progressionStartingGold = 0;
+        [Tooltip("Choose where a progression run starts. Set to Shop to debug shop encounters immediately.")]
+        public ProgressionStartEncounter progressionStartEncounter = ProgressionStartEncounter.WorldMap;
 
         [Header("Prefabs")]
         [Tooltip("Optional CardButton prefab. Assign for custom card styling; leave empty to use the built-in fallback.")]
@@ -134,18 +145,44 @@ namespace BannerOfBones.CardGame
             BuildUI();
             _runCombatIndex = 0;
             _runPlayerHealth = Mathf.Max(1, playerHealth);
-            _runGold = 0;
+            _runGold = runMode == RunMode.Progression ? Mathf.Max(0, progressionStartingGold) : 0;
             _runDeck = CardCatalog.CreateStarterDeck();
 
             if (runMode == RunMode.Progression)
             {
                 _worldMap = WorldMapGenerator.Generate(progressionCombatCount);
-                ShowWorldMap();
+                if (progressionStartEncounter == ProgressionStartEncounter.Shop)
+                {
+                    int shopNodeId = GetInitialShopNodeIdForDebug();
+                    if (shopNodeId >= 0)
+                        ShowShopPanel(shopNodeId);
+                    else
+                    {
+                        Log("No shop node found in generated world map. Showing world map instead.");
+                        ShowWorldMap();
+                    }
+                }
+                else
+                    ShowWorldMap();
             }
             else
             {
                 StartEncounter(EnemyCatalog.CreateEncounterGroup(GetInitialEncounterMaxEnemies()));
             }
+        }
+
+        private int GetInitialShopNodeIdForDebug()
+        {
+            if (_worldMap?.Nodes == null || _worldMap.Nodes.Count == 0)
+                return -1;
+
+            foreach (var node in _worldMap.Nodes)
+            {
+                if (node.Type == EMapNodeType.Shop)
+                    return node.Id;
+            }
+
+            return -1;
         }
 
         private void BuildUI()

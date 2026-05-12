@@ -172,7 +172,8 @@ namespace BannerOfBones.CardGame
                     return node.Id;
             }
 
-            return _worldMap.Nodes[0].Id;
+            Log("No shop node found in generated map. Opening debug shop with fallback inventory seed.");
+            return -1;
         }
 
         private void BuildUI()

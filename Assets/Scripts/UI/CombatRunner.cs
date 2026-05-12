@@ -603,12 +603,14 @@ namespace BannerOfBones.CardGame
         {
             _pendingShopNodeId = nodeId;
             _shopTitleText.text = "$ Shop";
-            RefreshShopPanel();
             _shopPanel.gameObject.SetActive(true);
+            RefreshShopPanel();
         }
 
         private void RefreshShopPanel()
         {
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_shopPanel);
             _shopGoldText.text = $"Gold: {_runGold}";
 
             // ── Buy cards ─────────────────────────────────────────────────────
@@ -653,12 +655,18 @@ namespace BannerOfBones.CardGame
             // ── Remove cards ──────────────────────────────────────────────────
             ClearContainer(_shopRemoveCardsContainer);
             _shopRemoveCardsContainer.anchoredPosition = Vector2.zero;
-            bool canRemove = _runGold >= ShopRemoveCost && _runDeck.Count > 1;
-            _shopRemoveHeaderText.text = canRemove
-                ? $"Remove a card from your deck ({ShopRemoveCost} gold):"
-                : $"Remove a card from your deck ({ShopRemoveCost} gold): [need gold or more cards]";
-
+            bool hasCardsToShow = _runDeck.Count > 0;
+            bool hasEnoughGoldToRemove = _runGold >= ShopRemoveCost;
+            bool canRemove = hasEnoughGoldToRemove && _runDeck.Count > 1;
+            string removeHeader = $"Remove a card from your deck ({ShopRemoveCost} gold):";
             if (canRemove)
+                _shopRemoveHeaderText.text = removeHeader;
+            else if (_runDeck.Count <= 1)
+                _shopRemoveHeaderText.text = $"{removeHeader} [can't remove your last card]";
+            else
+                _shopRemoveHeaderText.text = $"{removeHeader} [need more gold]";
+
+            if (hasCardsToShow)
             {
                 const int rmCols = 5;
                 const float rmSpacing = 8f;
@@ -714,7 +722,7 @@ namespace BannerOfBones.CardGame
                     var rmBtn = MkButton(cardRT, "Remove",
                         new Vector2(0.05f, 0.02f), new Vector2(0.95f, 0.26f),
                         C(0.45f, 0.12f, 0.10f), () => OnShopRemoveCard(card));
-                    rmBtn.interactable = true;
+                    rmBtn.interactable = canRemove;
                 }
 
                 LayoutRebuilder.ForceRebuildLayoutImmediate(_shopRemoveCardsContainer);

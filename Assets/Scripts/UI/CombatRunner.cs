@@ -112,6 +112,8 @@ namespace BannerOfBones.CardGame
         private const int ShopRemoveCost = 30;
         private const int TreasureChoiceCount = 3;
         private const int ShopCardCount = 4;
+        private const float SkirmishProgressThreshold = 1f / 3f;
+        private const float BattleProgressThreshold = 2f / 3f;
 
         private GameObject _activeDragCard;
 
@@ -680,8 +682,8 @@ namespace BannerOfBones.CardGame
                 ? 0f
                 : (float)node.Layer / (_worldMap.TotalLayers - 1);
 
-            if (progress < 0.34f) return "SKIRMISH";
-            if (progress < 0.67f) return "BATTLE";
+            if (progress < SkirmishProgressThreshold) return "SKIRMISH";
+            if (progress < BattleProgressThreshold) return "BATTLE";
             return "WAR";
         }
 

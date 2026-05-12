@@ -37,6 +37,9 @@ namespace BannerOfBones.CardGame
         [Min(1)]
         [Tooltip("Controls map length in progression mode (number of node layers plus a boss layer).")]
         public int progressionCombatCount = 3;
+        [Min(1)]
+        [Tooltip("Minimum number of combat (Fight) encounters guaranteed on every path through the progression map.")]
+        public int minCombatEncounters = 3;
         [Min(0)]
         [Tooltip("Starting gold in progression mode. Useful for debugging shop flows.")]
         public int progressionStartingGold = 0;
@@ -150,7 +153,7 @@ namespace BannerOfBones.CardGame
 
             if (runMode == RunMode.Progression)
             {
-                _worldMap = WorldMapGenerator.Generate(progressionCombatCount);
+                _worldMap = WorldMapGenerator.Generate(progressionCombatCount, minCombatEncounters);
                 if (progressionStartEncounter == ProgressionStartEncounter.Shop)
                 {
                     int shopNodeId = GetInitialShopNodeIdForDebug();

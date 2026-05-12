@@ -22,10 +22,32 @@ namespace BannerOfBones.CardGame
         /// Corresponds to <c>progressionCombatCount</c> – controls how many layers
         /// (and therefore how long) the run is.
         /// </param>
-        public static WorldMap Generate(int combatLayers)
+        /// <param name="minCombatEncounters">
+        /// Minimum number of Fight nodes guaranteed on every possible path through the map.
+        /// Middle layers are locked to all-Fight as needed to satisfy this constraint.
+        /// </param>
+        public static WorldMap Generate(int combatLayers, int minCombatEncounters = 3)
         {
             int totalLayers = Mathf.Max(2, combatLayers + 1);
             var map = new WorldMap { TotalLayers = totalLayers };
+
+            // First and last layers are always fights. Calculate how many additional
+            // fight-guaranteed layers are required in the middle so that every path
+            // visits at least minCombatEncounters Fight nodes.
+            int guaranteedFights  = 2; // layer 0 and last layer
+            int extraFightsNeeded = Mathf.Max(0, minCombatEncounters - guaranteedFights);
+            int middleLayers      = totalLayers - 2; // layers 1 .. totalLayers-2
+            int forcedCount       = Mathf.Min(extraFightsNeeded, middleLayers);
+
+            // Distribute forced-fight layers evenly across the middle section.
+            // Using floor(i * middleLayers / forcedCount) guarantees unique, in-range indices
+            // for any forcedCount <= middleLayers.
+            var forcedFightLayers = new HashSet<int>();
+            for (int i = 0; i < forcedCount; i++)
+            {
+                int layerIdx = 1 + (int)(i * middleLayers / (float)forcedCount);
+                forcedFightLayers.Add(layerIdx);
+            }
 
             int nodeId = 0;
             var layerNodes = new List<List<MapNode>>();
@@ -52,7 +74,7 @@ namespace BannerOfBones.CardGame
                     var node = new MapNode
                     {
                         Id           = nodeId++,
-                        Type         = DetermineNodeType(layer, isFirst, isLast),
+                        Type         = DetermineNodeType(layer, isFirst, isLast, forcedFightLayers.Contains(layer)),
                         Layer        = layer,
                         SlotInLayer  = slot,
                         IsBoss       = isLast,
@@ -123,9 +145,9 @@ namespace BannerOfBones.CardGame
             coveredNext.Add(to.Id);
         }
 
-        private static EMapNodeType DetermineNodeType(int layer, bool isFirst, bool isLast)
+        private static EMapNodeType DetermineNodeType(int layer, bool isFirst, bool isLast, bool forceFight = false)
         {
-            if (isFirst || isLast)
+            if (isFirst || isLast || forceFight)
                 return EMapNodeType.Fight;
 
             // Middle nodes: ~40% fight, ~35% treasure, ~25% shop

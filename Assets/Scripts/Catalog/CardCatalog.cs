@@ -209,11 +209,10 @@ namespace BannerOfBones.CardGame
             {
                 new CardEffectData
                 {
-                    effectType   = EEffectType.ConditionalDamage,
+                    effectType   = EEffectType.DealDamage,
                     diceTarget   = ECardTarget.PlayerDice,
                     triggerOn    = EPokerHandType.PerUniqueDieValue,
                     magnitude    = 10,
-                    altMagnitude = 0,
                 },
             };
             return card;

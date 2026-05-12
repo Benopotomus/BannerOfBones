@@ -13,14 +13,14 @@ MonoBehaviour:
   m_Name: Gamblers Blade
   m_EditorClassIdentifier: Assembly-CSharp::BannerOfBones.CardGame.CardData
   cardName: Gambler's Blade
-  description: If you have a straight, deal 10 damage.
+  description: Deal 10 damage for each unique die value showing.
   energyCost: 1
   duration: 0
   targetsAllEnemies: 0
   effects:
-  - effectType: 1
+  - effectType: 0
     diceTarget: 0
-    triggerOn: 13
+    triggerOn: 11
     dieValue: 0
     valueThreshold: 0
     magnitude: 10

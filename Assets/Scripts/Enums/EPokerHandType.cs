@@ -33,9 +33,6 @@
         /// <summary>Trigger count = number of groups of exactly 3 matching dice.</summary>
         PerTriple,
 
-        /// <summary>Trigger count = 1 if pool contains a triple and a separate pair, else 0.</summary>
-        PerFullHouse,
-
         /// <summary>Trigger count = number of groups of exactly 4 matching dice.</summary>
         PerFourOfAKind,
 
@@ -44,9 +41,6 @@
 
         /// <summary>Trigger count = number of distinct die values showing in the pool.</summary>
         PerUniqueDieValue,
-
-        /// <summary>Trigger count = 1 if a 5-die straight exists (1-2-3-4-5 or 2-3-4-5-6), else 0.</summary>
-        IfStraight,
 
         /// <summary>Trigger count = number of dice that match at least one other die value.</summary>
         PerMatchingDie,

@@ -202,16 +202,12 @@ namespace BannerOfBones.CardGame
                     return $"{Math.Max(0, intent.magnitude)} damage per pair rolled";
                 case EPokerHandType.PerTriple:
                     return $"{Math.Max(0, intent.magnitude)} damage per triple rolled";
-                case EPokerHandType.PerFullHouse:
-                    return $"{Math.Max(0, intent.magnitude)} damage if you roll a full house";
                 case EPokerHandType.PerFourOfAKind:
                     return $"{Math.Max(0, intent.magnitude)} damage per four of a kind";
                 case EPokerHandType.PerFiveOfAKind:
                     return $"{Math.Max(0, intent.magnitude)} damage per five of a kind";
                 case EPokerHandType.PerUniqueDieValue:
                     return $"{Math.Max(0, intent.magnitude)} damage per unique die value";
-                case EPokerHandType.IfStraight:
-                    return $"{Math.Max(0, intent.magnitude)} damage if you roll a straight";
                 case EPokerHandType.PerMatchingDie:
                     return $"{Math.Max(0, intent.magnitude)} damage per die matching another die";
                 default:

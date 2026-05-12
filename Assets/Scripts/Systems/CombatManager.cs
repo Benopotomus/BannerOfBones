@@ -131,9 +131,6 @@ namespace BannerOfBones.CardGame
         {
             if (card == null || Player?.Dice == null) return false;
 
-            if (string.Equals(card.cardName, "Crushing Blow", StringComparison.OrdinalIgnoreCase))
-                return PokerEvaluator.CountFullHouses(Player.Dice.CurrentRoll) > 0;
-
             return true;
         }
 

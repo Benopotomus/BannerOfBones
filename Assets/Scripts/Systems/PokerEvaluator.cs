@@ -24,11 +24,9 @@
                 case EPokerHandType.HighestDieValue:  return HighestDie(dice);
                 case EPokerHandType.PerPair:          return CountPairs(dice);
                 case EPokerHandType.PerTriple:        return CountTriples(dice);
-                case EPokerHandType.PerFullHouse:     return CountFullHouses(dice);
                 case EPokerHandType.PerFourOfAKind:   return CountFourOfAKind(dice);
                 case EPokerHandType.PerFiveOfAKind:   return CountFiveOfAKind(dice);
                 case EPokerHandType.PerUniqueDieValue: return CountUniqueDieValues(dice);
-                case EPokerHandType.IfStraight:       return HasStraight(dice) ? 1 : 0;
                 case EPokerHandType.PerMatchingDie:   return CountMatchingDice(dice);
                 default:                              return 0;
             }
@@ -71,22 +69,6 @@
             return triples;
         }
 
-        /// <summary>
-        /// Returns 1 if the dice contain both exactly one triple and exactly one pair (full house),
-        /// otherwise 0. Works for any die type.
-        /// </summary>
-        public static int CountFullHouses(int[] dice)
-        {
-            int[] freq = GetFrequencies(dice);
-            bool hasTriple = false, hasPair = false;
-            for (int i = 1; i < freq.Length; i++)
-            {
-                if (freq[i] == 3) hasTriple = true;
-                else if (freq[i] == 2) hasPair = true;
-            }
-            return (hasTriple && hasPair) ? 1 : 0;
-        }
-
         /// <summary>Returns the number of groups of exactly 4 matching dice. Works for any die type.</summary>
         public static int CountFourOfAKind(int[] dice)
         {
@@ -105,19 +87,6 @@
             for (int i = 1; i < freq.Length; i++)
                 if (freq[i] == 5) count++;
             return count;
-        }
-
-        /// <summary>
-        /// Returns true if the pool of 5+ dice contains a straight (1-2-3-4-5 or 2-3-4-5-6).
-        /// Returns false if fewer than 5 dice are present.
-        /// </summary>
-        public static bool HasStraight(int[] dice)
-        {
-            if (dice.Length < 5) return false;
-            int[] freq = GetFrequencies(dice);
-            bool low  = freq[1] >= 1 && freq[2] >= 1 && freq[3] >= 1 && freq[4] >= 1 && freq[5] >= 1;
-            bool high = freq[2] >= 1 && freq[3] >= 1 && freq[4] >= 1 && freq[5] >= 1 && freq[6] >= 1;
-            return low || high;
         }
 
         /// <summary>Returns the number of dice showing an odd value (1, 3, 5).</summary>

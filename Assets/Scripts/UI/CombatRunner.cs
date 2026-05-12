@@ -1838,7 +1838,7 @@ namespace BannerOfBones.CardGame
 
         /// <summary>
         /// Returns a short label describing the best hand in the dice pool
-        /// (e.g. "Pair of 3s", "Triple 5s", "Full House"), or an empty string if
+        /// (e.g. "Pair of 3s", "Triple 5s"), or an empty string if
         /// no recognisable pattern is present.
         /// </summary>
         private static string BuildDiceHandLabel(int[] roll)
@@ -1851,9 +1851,6 @@ namespace BannerOfBones.CardGame
             if (PokerEvaluator.CountFourOfAKind(roll) > 0)
                 return $"Four {FindGroupValue(roll, 4)}s";
 
-            if (PokerEvaluator.CountFullHouses(roll) > 0)
-                return "Full House";
-
             if (PokerEvaluator.CountTriples(roll) > 0)
                 return $"Triple {FindGroupValue(roll, 3)}s";
 
@@ -1862,9 +1859,6 @@ namespace BannerOfBones.CardGame
                 return "Two Pairs";
             if (pairs == 1)
                 return $"Pair of {FindGroupValue(roll, 2)}s";
-
-            if (PokerEvaluator.HasStraight(roll))
-                return "Straight";
 
             return string.Empty;
         }

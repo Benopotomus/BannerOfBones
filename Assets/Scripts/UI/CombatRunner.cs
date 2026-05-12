@@ -658,11 +658,13 @@ namespace BannerOfBones.CardGame
             bool hasCardsToShow = _runDeck.Count > 0;
             bool hasEnoughGoldToRemove = _runGold >= ShopRemoveCost;
             bool canRemove = hasEnoughGoldToRemove && _runDeck.Count > 1;
-            _shopRemoveHeaderText.text = canRemove
-                ? $"Remove a card from your deck ({ShopRemoveCost} gold):"
-                : _runDeck.Count <= 1
-                    ? $"Remove a card from your deck ({ShopRemoveCost} gold): [can't remove your last card]"
-                    : $"Remove a card from your deck ({ShopRemoveCost} gold): [need more gold]";
+            string removeHeader = $"Remove a card from your deck ({ShopRemoveCost} gold):";
+            if (canRemove)
+                _shopRemoveHeaderText.text = removeHeader;
+            else if (_runDeck.Count <= 1)
+                _shopRemoveHeaderText.text = $"{removeHeader} [can't remove your last card]";
+            else
+                _shopRemoveHeaderText.text = $"{removeHeader} [need more gold]";
 
             if (hasCardsToShow)
             {

@@ -427,12 +427,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c04b475c3a2b41f8b9d0e1f2a3c4d578, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerHealth: 30
+  playerHealth: 18
   playerEnergy: 3
-  seed: 10
+  seed: 0
   runMode: 1
-  progressionCombatCount: 3
-  progressionPathChoices: 3
+  progressionCombatCount: 4
+  progressionPathChoices: 4
   _cardButtonPrefab: {fileID: 0}
 --- !u!1 &832575517
 GameObject:

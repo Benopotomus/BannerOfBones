@@ -16,16 +16,16 @@ MonoBehaviour:
   description: A bruiser that builds guard, then smashes through defenses.
   maxHealth: 12
   roundIntents:
-  - intentType: 1
-    intentName: Hunker
+  - intentType: 0
+    intentName: Cleave
     description: 
     magnitude: 3
     count: 1
     triggerOn: 0
     dieValue: 0
     valueThreshold: 0
-  - intentType: 0
-    intentName: Cleave
+  - intentType: 1
+    intentName: Hunker
     description: 
     magnitude: 3
     count: 1

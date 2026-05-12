@@ -84,6 +84,7 @@ namespace BannerOfBones.CardGame
         private Text _shopGoldText;
         private RectTransform _shopBuyCardsContainer;
         private RectTransform _shopRemoveCardsContainer;
+        private ScrollRect _shopRemoveScrollRect;
         private Text _shopRemoveHeaderText;
         private int _pendingShopNodeId = -1;
 
@@ -237,15 +238,15 @@ namespace BannerOfBones.CardGame
             // ── Shop panel ────────────────────────────────────────────────────
             _shopPanel = MkPanel(root, "ShopPanel", C(0.02f, 0.04f, 0.08f), 0.05f, 0.04f, 0.95f, 0.96f);
             _shopPanel.gameObject.SetActive(false);
-            _shopTitleText = MkText(_shopPanel, 20, C(1f, 0.90f, 0.30f), TextAnchor.MiddleLeft, 0.02f, 0.90f, 0.72f, 1f);
-            _shopGoldText = MkText(_shopPanel, 16, C(1f, 0.85f, 0.15f), TextAnchor.MiddleRight, 0.72f, 0.90f, 0.98f, 1f);
-            MkText(_shopPanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleLeft, 0.02f, 0.81f, 0.80f, 0.89f).text
+            _shopTitleText = MkText(_shopPanel, 20, C(1f, 0.90f, 0.30f), TextAnchor.MiddleLeft, 0.02f, 0.92f, 0.72f, 1f);
+            _shopGoldText = MkText(_shopPanel, 16, C(1f, 0.85f, 0.15f), TextAnchor.MiddleRight, 0.72f, 0.92f, 0.98f, 1f);
+            MkText(_shopPanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleLeft, 0.02f, 0.84f, 0.80f, 0.91f).text
                 = $"Buy a card ({ShopBuyCost} gold):";
-            _shopBuyCardsContainer = MkContainer(_shopPanel, "ShopBuyCards", 0.02f, 0.52f, 0.98f, 0.81f);
+            _shopBuyCardsContainer = MkContainer(_shopPanel, "ShopBuyCards", 0.02f, 0.56f, 0.98f, 0.84f);
             _shopRemoveHeaderText = MkText(_shopPanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleLeft,
-                0.02f, 0.43f, 0.80f, 0.51f);
+                0.02f, 0.48f, 0.80f, 0.55f);
             _shopRemoveHeaderText.text = $"Remove a card from your deck ({ShopRemoveCost} gold):";
-            _shopRemoveCardsContainer = MkContainer(_shopPanel, "ShopRemoveCards", 0.02f, 0.07f, 0.98f, 0.43f);
+            (_shopRemoveScrollRect, _shopRemoveCardsContainer) = MkScrollView(_shopPanel, "ShopRemoveCards", 0.02f, 0.07f, 0.98f, 0.48f);
             MkButton(_shopPanel, "Leave Shop", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.06f),
                 C(0.40f, 0.18f, 0.10f), OnLeaveShop);
 
@@ -614,6 +615,7 @@ namespace BannerOfBones.CardGame
 
             // ── Remove cards ──────────────────────────────────────────────────
             ClearContainer(_shopRemoveCardsContainer);
+            _shopRemoveCardsContainer.anchoredPosition = Vector2.zero;
             bool canRemove = _runGold >= ShopRemoveCost && _runDeck.Count > 1;
             _shopRemoveHeaderText.text = canRemove
                 ? $"Remove a card from your deck ({ShopRemoveCost} gold):"
@@ -621,21 +623,65 @@ namespace BannerOfBones.CardGame
 
             if (canRemove)
             {
-                float w = 1f / Mathf.Max(1, _runDeck.Count);
+                const int rmCols = 5;
+                const float rmSpacing = 8f;
+                const int rmPadding = 8;
+                const float rmFallbackWidth = 120f;
+                float rmAvailWidth = _shopRemoveScrollRect.viewport.rect.width
+                    - (rmPadding * 2f) - ((rmCols - 1) * rmSpacing);
+                float rmCardWidth = rmAvailWidth > 0f ? rmAvailWidth / rmCols : rmFallbackWidth;
+                float rmCardHeight = rmCardWidth * 1.1f;
+                int rmRows = Mathf.CeilToInt(_runDeck.Count / (float)rmCols);
+                float rmTotalHeight = rmRows > 0
+                    ? (rmPadding * 2f) + (rmRows * rmCardHeight) + ((rmRows - 1) * rmSpacing)
+                    : 0f;
+                _shopRemoveCardsContainer.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, rmTotalHeight);
+
+                var grid = _shopRemoveCardsContainer.GetComponent<GridLayoutGroup>();
+                if (grid == null)
+                    grid = _shopRemoveCardsContainer.gameObject.AddComponent<GridLayoutGroup>();
+                grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+                grid.constraintCount = rmCols;
+                grid.spacing = new Vector2(rmSpacing, rmSpacing);
+                grid.padding = new RectOffset(rmPadding, rmPadding, rmPadding, rmPadding);
+                grid.cellSize = new Vector2(rmCardWidth, rmCardHeight);
+                grid.childAlignment = TextAnchor.UpperLeft;
+
                 for (int i = 0; i < _runDeck.Count; i++)
                 {
                     var card = _runDeck[i];
-                    float x0 = i * w + 0.003f;
-                    float x1 = (i + 1) * w - 0.003f;
+                    var cardGO = new GameObject($"RemoveCard{i}");
+                    cardGO.transform.SetParent(_shopRemoveCardsContainer, false);
+                    var cardRT = cardGO.AddComponent<RectTransform>();
+                    cardGO.AddComponent<Image>().color = C(0.20f, 0.10f, 0.10f);
 
-                    var cardPanel = MkPanel(_shopRemoveCardsContainer, $"RemoveCard{i}",
-                        C(0.20f, 0.10f, 0.10f), x0, 0f, x1, 1f);
-                    MkText(cardPanel, 9, Color.white, TextAnchor.MiddleCenter, 0f, 0.35f, 1f, 1f).text =
-                        $"<b>{card.cardName}</b>";
-                    var rmBtn = MkButton(cardPanel, "Remove", new Vector2(0.05f, 0.04f),
-                        new Vector2(0.95f, 0.34f), C(0.45f, 0.12f, 0.10f), () => OnShopRemoveCard(card));
+                    // Energy cost badge (upper left)
+                    var badgeGO = new GameObject("CostBadge");
+                    badgeGO.transform.SetParent(cardRT, false);
+                    var badgeRT = badgeGO.AddComponent<RectTransform>();
+                    badgeRT.anchorMin = new Vector2(0f, 0.72f);
+                    badgeRT.anchorMax = new Vector2(0.24f, 1f);
+                    badgeRT.offsetMin = new Vector2(3f, -3f);
+                    badgeRT.offsetMax = new Vector2(-1f, -3f);
+                    badgeGO.AddComponent<Image>().color = new Color(0.10f, 0.16f, 0.32f);
+                    var badgeTxt = MkText(badgeRT, 13, new Color(0.9f, 0.85f, 0.30f), TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
+                    badgeTxt.fontStyle = FontStyle.Bold;
+                    badgeTxt.text = card.energyCost.ToString();
+
+                    // Card name + description
+                    var bodyTxt = MkText(cardRT, 10, Color.white, TextAnchor.UpperLeft, 0f, 0.28f, 1f, 0.72f);
+                    bodyTxt.supportRichText = true;
+                    bodyTxt.text = $"<b>{card.cardName}</b>\n{card.description}";
+
+                    // Remove button
+                    var rmBtn = MkButton(cardRT, "Remove",
+                        new Vector2(0.05f, 0.02f), new Vector2(0.95f, 0.26f),
+                        C(0.45f, 0.12f, 0.10f), () => OnShopRemoveCard(card));
                     rmBtn.interactable = true;
                 }
+
+                LayoutRebuilder.ForceRebuildLayoutImmediate(_shopRemoveCardsContainer);
+                _shopRemoveScrollRect.verticalNormalizedPosition = 1f;
             }
         }
 

@@ -253,7 +253,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Ignite",
                     intentType = EEnemyIntentType.ApplyBurning,
                     magnitude = 0,
-                    description = "Apply Burning. Each round end deals 3 damage; removed if you have a die showing 1.",
+                    description = $"Apply Burning. Each round end deals {CombatManager.BurningDamagePerRound} damage; removed if you have a die showing 1.",
                 },
                 new EnemyIntentData
                 {
@@ -266,7 +266,7 @@ namespace BannerOfBones.CardGame
                     intentName = "Ignite",
                     intentType = EEnemyIntentType.ApplyBurning,
                     magnitude = 0,
-                    description = "Apply Burning. Each round end deals 3 damage; removed if you have a die showing 1.",
+                    description = $"Apply Burning. Each round end deals {CombatManager.BurningDamagePerRound} damage; removed if you have a die showing 1.",
                 },
                 new EnemyIntentData
                 {

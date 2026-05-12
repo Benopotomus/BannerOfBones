@@ -153,7 +153,7 @@ namespace BannerOfBones.CardGame
                         : $"{CurrentIntent.intentName}: lose {dieText} next turn.";
                     break;
                 case EEnemyIntentType.ApplyBurning:
-                    fallback = $"{CurrentIntent.intentName}: apply Burning. (3 damage/round; removed by a die showing 1.)";
+                    fallback = $"{CurrentIntent.intentName}: apply Burning. ({CombatManager.BurningDamagePerRound} damage/round; removed by a die showing 1.)";
                     break;
                 default:
                     fallback = CurrentIntent.intentName;

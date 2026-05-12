@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -25,14 +26,11 @@ namespace BannerOfBones.CardGame
         [Header("Run Settings")]
         [Tooltip("Set a fixed seed for reproducible runs. Leave 0 to keep an existing external seed, or use a random seed if none exists.")]
         public int seed = 0;
-        [Tooltip("SingleCombat starts one fight. Progression chains fights and offers path choices after each victory.")]
+        [Tooltip("SingleCombat starts one fight. Progression chains fights on a world map with treasures and shops.")]
         public RunMode runMode = RunMode.SingleCombat;
         [Min(1)]
-        [Tooltip("How many combats to clear in progression mode.")]
+        [Tooltip("Controls map length in progression mode (number of node layers plus a boss layer).")]
         public int progressionCombatCount = 3;
-        [Range(2, 4)]
-        [Tooltip("How many path options to offer between combats in progression mode.")]
-        public int progressionPathChoices = 3;
 
         [Header("Prefabs")]
         [Tooltip("Optional CardButton prefab. Assign for custom card styling; leave empty to use the built-in fallback.")]
@@ -66,16 +64,35 @@ namespace BannerOfBones.CardGame
         private Text _pileViewTitleText;
         private RectTransform _pileViewCardsContainer;
         private ScrollRect _pileViewScrollRect;
-        private RectTransform _progressionPanel;
-        private Text _progressionTitleText;
-        private RectTransform _progressionOptionsContainer;
+
+        // ── World map (Progression mode) ──────────────────────────────────────
+        private RectTransform _worldMapPanel;
+        private Text _worldMapTitleText;
+        private Text _worldMapGoldText;
+        private RectTransform _worldMapNodesContainer;
+        private readonly Dictionary<int, RectTransform> _mapNodeRects = new Dictionary<int, RectTransform>();
+
+        // ── Treasure panel ────────────────────────────────────────────────────
+        private RectTransform _treasurePanel;
+        private Text _treasureTitleText;
+        private RectTransform _treasureCardsContainer;
+        private int _pendingTreasureNodeId = -1;
+
+        // ── Shop panel ────────────────────────────────────────────────────────
+        private RectTransform _shopPanel;
+        private Text _shopTitleText;
+        private Text _shopGoldText;
+        private RectTransform _shopBuyCardsContainer;
+        private RectTransform _shopRemoveCardsContainer;
+        private Text _shopRemoveHeaderText;
+        private int _pendingShopNodeId = -1;
+
         private RectTransform _optionsPanel;
         private RectTransform _closeGameConfirmPanel;
         private RectTransform _logPanel;
         private Button _logToggleButton;
 
         private readonly List<string> _log = new List<string>();
-        private readonly List<ProgressionOption> _progressionOptions = new List<ProgressionOption>();
         private readonly List<RectTransform> _enemyDropTargets = new List<RectTransform>();
         private const int MaxLogLines = 8;
         private const float DragPreviewBodyMaxY = 0.80f;
@@ -88,16 +105,21 @@ namespace BannerOfBones.CardGame
         private const string TuneActionReadyLabel = "Tune (0)";
         private const string SunderActionReadyLabel = "Sunder (0)";
 
+        // ── Gold / economy constants ───────────────────────────────────────────
+        private const int GoldPerCombatBase = 15;
+        private const int GoldPerEnemy = 5;
+        private const int ShopBuyCost = 25;
+        private const int ShopRemoveCost = 30;
+        private const int TreasureChoiceCount = 3;
+        private const int ShopCardCount = 4;
+
         private GameObject _activeDragCard;
 
         private int _runCombatIndex;
         private int _runPlayerHealth;
-
-        private struct ProgressionOption
-        {
-            public string Label;
-            public int MaxEnemies;
-        }
+        private int _runGold;
+        private List<CardData> _runDeck;
+        private WorldMap _worldMap;
 
         private void Start()
         {
@@ -109,8 +131,18 @@ namespace BannerOfBones.CardGame
             BuildUI();
             _runCombatIndex = 0;
             _runPlayerHealth = Mathf.Max(1, playerHealth);
+            _runGold = 0;
+            _runDeck = CardCatalog.CreateStarterDeck();
 
-            StartEncounter(EnemyCatalog.CreateEncounterGroup(GetInitialEncounterMaxEnemies()));
+            if (runMode == RunMode.Progression)
+            {
+                _worldMap = WorldMapGenerator.Generate(progressionCombatCount);
+                ShowWorldMap();
+            }
+            else
+            {
+                StartEncounter(EnemyCatalog.CreateEncounterGroup(GetInitialEncounterMaxEnemies()));
+            }
         }
 
         private void BuildUI()
@@ -181,10 +213,39 @@ namespace BannerOfBones.CardGame
             (_pileViewScrollRect, _pileViewCardsContainer) = MkScrollView(_pileViewPanel, "PileCards", 0f, 0.08f, 1f, 0.92f, 8f, 4f, -8f, -4f);
             MkButton(_pileViewPanel, "Close", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.07f), C(0.50f, 0.15f, 0.10f), ClosePileView);
 
-            _progressionPanel = MkPanel(root, "ProgressionPanel", C(0.05f, 0.05f, 0.10f), 0.20f, 0.20f, 0.80f, 0.78f);
-            _progressionPanel.gameObject.SetActive(false);
-            _progressionTitleText = MkText(_progressionPanel, 18, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.86f, 1f, 1f);
-            _progressionOptionsContainer = MkContainer(_progressionPanel, "ProgressionOptions", 0.06f, 0.12f, 0.94f, 0.84f);
+            // ── World map panel ───────────────────────────────────────────────────
+            _worldMapPanel = MkPanel(root, "WorldMapPanel", C(0.04f, 0.04f, 0.09f), 0.02f, 0.03f, 0.98f, 0.97f);
+            _worldMapPanel.gameObject.SetActive(false);
+            _worldMapTitleText = MkText(_worldMapPanel, 20, C(1f, 0.90f, 0.30f), TextAnchor.MiddleLeft, 0.02f, 0.92f, 0.70f, 1f);
+            _worldMapGoldText = MkText(_worldMapPanel, 16, C(1f, 0.85f, 0.15f), TextAnchor.MiddleRight, 0.70f, 0.92f, 0.98f, 1f);
+            var mapLegendText = MkText(_worldMapPanel, 11, C(0.7f, 0.7f, 0.75f), TextAnchor.MiddleCenter, 0.02f, 0.01f, 0.98f, 0.06f);
+            mapLegendText.text = "⚔ Fight   ★ Treasure   $ Shop   [Boss]   (Click a reachable node to travel there)";
+            _worldMapNodesContainer = MkContainer(_worldMapPanel, "MapNodes", 0.01f, 0.06f, 0.99f, 0.92f);
+
+            // ── Treasure panel ────────────────────────────────────────────────
+            _treasurePanel = MkPanel(root, "TreasurePanel", C(0.06f, 0.05f, 0.02f), 0.10f, 0.08f, 0.90f, 0.92f);
+            _treasurePanel.gameObject.SetActive(false);
+            _treasureTitleText = MkText(_treasurePanel, 20, C(1f, 0.90f, 0.30f), TextAnchor.MiddleCenter, 0f, 0.88f, 1f, 1f);
+            MkText(_treasurePanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleCenter, 0f, 0.81f, 1f, 0.88f).text
+                = "Pick one card to add to your deck:";
+            _treasureCardsContainer = MkContainer(_treasurePanel, "TreasureCards", 0.04f, 0.12f, 0.96f, 0.81f);
+            MkButton(_treasurePanel, "Skip", new Vector2(0.35f, 0.02f), new Vector2(0.65f, 0.10f),
+                C(0.40f, 0.18f, 0.10f), OnTreasureSkipped);
+
+            // ── Shop panel ────────────────────────────────────────────────────
+            _shopPanel = MkPanel(root, "ShopPanel", C(0.02f, 0.04f, 0.08f), 0.05f, 0.04f, 0.95f, 0.96f);
+            _shopPanel.gameObject.SetActive(false);
+            _shopTitleText = MkText(_shopPanel, 20, C(1f, 0.90f, 0.30f), TextAnchor.MiddleLeft, 0.02f, 0.90f, 0.72f, 1f);
+            _shopGoldText = MkText(_shopPanel, 16, C(1f, 0.85f, 0.15f), TextAnchor.MiddleRight, 0.72f, 0.90f, 0.98f, 1f);
+            MkText(_shopPanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleLeft, 0.02f, 0.81f, 0.80f, 0.89f).text
+                = $"Buy a card ({ShopBuyCost} gold):";
+            _shopBuyCardsContainer = MkContainer(_shopPanel, "ShopBuyCards", 0.02f, 0.52f, 0.98f, 0.81f);
+            _shopRemoveHeaderText = MkText(_shopPanel, 14, C(0.85f, 0.85f, 0.85f), TextAnchor.MiddleLeft,
+                0.02f, 0.43f, 0.80f, 0.51f);
+            _shopRemoveHeaderText.text = $"Remove a card from your deck ({ShopRemoveCost} gold):";
+            _shopRemoveCardsContainer = MkContainer(_shopPanel, "ShopRemoveCards", 0.02f, 0.07f, 0.98f, 0.43f);
+            MkButton(_shopPanel, "Leave Shop", new Vector2(0.35f, 0.01f), new Vector2(0.65f, 0.06f),
+                C(0.40f, 0.18f, 0.10f), OnLeaveShop);
 
             _optionsPanel = MkPanel(root, "OptionsPanel", C(0.05f, 0.05f, 0.10f), 0.34f, 0.24f, 0.66f, 0.52f);
             _optionsPanel.gameObject.SetActive(false);
@@ -206,13 +267,6 @@ namespace BannerOfBones.CardGame
             _dragLayer.SetAsLastSibling();
         }
 
-        private int GetRunTargetCombatCount()
-        {
-            return runMode == RunMode.Progression
-                ? Mathf.Max(1, progressionCombatCount)
-                : 1;
-        }
-
         private int GetInitialEncounterMaxEnemies()
         {
             return runMode == RunMode.Progression ? 2 : 4;
@@ -228,7 +282,11 @@ namespace BannerOfBones.CardGame
                 _combat.OnLogMessage -= Log;
             }
 
-            var deck = CardCatalog.CreateStarterDeck();
+            // In Progression mode use the run's evolving deck; otherwise use a fresh starter deck.
+            var deck = (runMode == RunMode.Progression && _runDeck != null)
+                ? _runDeck.Select(c => Instantiate(c)).ToList()
+                : CardCatalog.CreateStarterDeck();
+
             _combat = new CombatManager();
             _combat.OnStateChanged += OnCombatStateChanged;
             _combat.OnRoundStarted += OnRoundStarted;
@@ -236,11 +294,11 @@ namespace BannerOfBones.CardGame
             _combat.OnLogMessage += Log;
 
             _runCombatIndex++;
-            HideProgressionSelection();
+            HideWorldMap();
             int playerMaxHealth = playerHealth;
             _combat.StartCombat(enemies, deck, playerMaxHealth, _runPlayerHealth, playerEnergy);
 
-            Log($"=== Combat {_runCombatIndex}/{GetRunTargetCombatCount()} — {enemies.Count} enemies appear! ===");
+            Log($"=== Combat {_runCombatIndex} — {enemies.Count} {(enemies.Count == 1 ? "enemy" : "enemies")} appear! ===");
             foreach (var enemy in enemies)
                 Log($"• {enemy.enemyName}: {enemy.description}");
             RefreshUI();
@@ -251,74 +309,387 @@ namespace BannerOfBones.CardGame
             RefreshUI();
         }
 
-        private void ShowProgressionSelection()
+        // ── World map ─────────────────────────────────────────────────────────
+
+        private void ShowWorldMap()
         {
-            if (runMode != RunMode.Progression || _progressionPanel == null)
+            if (runMode != RunMode.Progression || _worldMapPanel == null || _worldMap == null)
                 return;
 
-            int remainingCombats = Mathf.Max(0, GetRunTargetCombatCount() - _runCombatIndex);
-            if (remainingCombats <= 0)
-                return;
+            var reachable = new HashSet<int>(_worldMap.GetReachableNodeIds());
+            bool anyReachable = reachable.Count > 0;
 
-            _progressionTitleText.text = $"Choose your path ({remainingCombats} combat{(remainingCombats == 1 ? string.Empty : "s")} left)";
-            _progressionOptions.Clear();
+            _worldMapTitleText.text = anyReachable
+                ? "⚔ Choose your next destination"
+                : "No more destinations — the run is complete!";
+            _worldMapGoldText.text = $"Gold: {_runGold}";
 
-            int choices = Mathf.Clamp(progressionPathChoices, 2, 4);
-            int baseThreat = Mathf.Clamp(2 + (_runCombatIndex / 2), 2, 4);
-            for (int i = 0; i < choices; i++)
+            // Activate the panel first so Canvas.ForceUpdateCanvases() resolves layout
+            // before BuildWorldMapUI reads actual positions for line drawing.
+            _worldMapPanel.gameObject.SetActive(true);
+            BuildWorldMapUI(reachable);
+        }
+
+        private void HideWorldMap()
+        {
+            if (_worldMapPanel == null) return;
+            _worldMapPanel.gameObject.SetActive(false);
+            if (_worldMapNodesContainer != null)
+                ClearContainer(_worldMapNodesContainer);
+            _mapNodeRects.Clear();
+        }
+
+        private void BuildWorldMapUI(HashSet<int> reachableIds)
+        {
+            ClearContainer(_worldMapNodesContainer);
+            _mapNodeRects.Clear();
+
+            const float nodeHalf = 0.045f; // half-size of node button in normalised coords
+
+            // ── Place node buttons ────────────────────────────────────────────
+            foreach (var node in _worldMap.Nodes)
             {
-                int maxEnemies = Mathf.Clamp(baseThreat + i - 1, 2, 4);
-                string threatLabel = maxEnemies <= 2 ? "Skirmish" : maxEnemies == 3 ? "Battle" : "Gauntlet";
-                _progressionOptions.Add(new ProgressionOption
+                float cx = node.NormX;
+                float cy = node.NormY;
+
+                bool isReachable = reachableIds.Contains(node.Id);
+                bool isCurrent   = node.Id == _worldMap.CurrentNodeId;
+
+                Color bg = NodeTypeColor(node.Type, node.IsBoss);
+                if (isCurrent)
+                    bg = C(0.90f, 0.80f, 0.15f);     // bright gold = player is here
+                else if (node.IsVisited)
+                    bg = new Color(bg.r * 0.40f, bg.g * 0.40f, bg.b * 0.40f); // dimmed visited
+                else if (!isReachable)
+                    bg = new Color(bg.r * 0.22f, bg.g * 0.22f, bg.b * 0.22f); // very dim
+
+                float s = nodeHalf;
+                float bigS = nodeHalf + 0.006f;
+                float halfW = isCurrent ? bigS : s;
+                float halfH = isCurrent ? bigS * 1.2f : s * 1.1f;
+
+                var nodePanelRT = MkPanel(_worldMapNodesContainer, $"Node{node.Id}",
+                    bg, cx - halfW, cy - halfH, cx + halfW, cy + halfH);
+                _mapNodeRects[node.Id] = nodePanelRT;
+
+                // Border highlight for reachable nodes
+                if (isReachable && !isCurrent)
                 {
-                    Label = $"Path {i + 1}: {threatLabel} ({Mathf.Max(1, maxEnemies - 1)}-{maxEnemies} foes)",
-                    MaxEnemies = maxEnemies,
-                });
+                    var border = MkPanel(nodePanelRT, "Border", C(0.90f, 0.90f, 0.30f), -0.08f, -0.08f, 1.08f, 1.08f);
+                    border.SetAsFirstSibling();
+                }
+
+                // Icon + label text
+                string icon  = NodeTypeIcon(node.Type, node.IsBoss);
+                string label = isCurrent ? "YOU\nARE\nHERE" : (node.IsBoss ? "BOSS" : node.Type.ToString().ToUpper());
+                var txt = MkText(nodePanelRT, 10, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
+                txt.text   = $"{icon}\n{label}";
+                txt.fontStyle = FontStyle.Bold;
+
+                // Make reachable nodes clickable
+                if (isReachable)
+                {
+                    int nodeId = node.Id;
+                    var btn = nodePanelRT.gameObject.AddComponent<Button>();
+                    btn.onClick.AddListener(() => OnMapNodeClicked(nodeId));
+                }
             }
 
-            BuildProgressionOptionButtons();
-            _progressionPanel.gameObject.SetActive(true);
-        }
+            // ── Draw connection lines (after positions are committed) ──────────
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_worldMapNodesContainer);
 
-        private void BuildProgressionOptionButtons()
-        {
-            ClearContainer(_progressionOptionsContainer);
-
-            int count = Mathf.Max(1, _progressionOptions.Count);
-            for (int i = 0; i < _progressionOptions.Count; i++)
+            foreach (var node in _worldMap.Nodes)
             {
-                int optionIndex = i;
-                float yTop = 1f - (i * (1f / count));
-                float yBottom = 1f - ((i + 1) * (1f / count)) + 0.03f;
+                if (!_mapNodeRects.TryGetValue(node.Id, out var fromRT)) continue;
 
-                MkButton(_progressionOptionsContainer,
-                    _progressionOptions[i].Label,
-                    new Vector2(0f, yBottom),
-                    new Vector2(1f, yTop),
-                    C(0.20f, 0.26f, 0.40f),
-                    () => OnProgressionOptionSelected(optionIndex));
+                foreach (int nextId in node.NextNodeIds)
+                {
+                    if (!_mapNodeRects.TryGetValue(nextId, out var toRT)) continue;
+
+                    // World positions of node centres
+                    Vector3 fromWorld = fromRT.TransformPoint(fromRT.rect.center);
+                    Vector3 toWorld   = toRT.TransformPoint(toRT.rect.center);
+
+                    // Convert to container-local space
+                    Vector2 fromLocal = _worldMapNodesContainer.InverseTransformPoint(fromWorld);
+                    Vector2 toLocal   = _worldMapNodesContainer.InverseTransformPoint(toWorld);
+
+                    bool lineReachable = reachableIds.Contains(nextId) ||
+                                        node.Id == _worldMap.CurrentNodeId ||
+                                        node.IsVisited;
+                    DrawMapLine(_worldMapNodesContainer, fromLocal, toLocal,
+                        lineReachable ? C(0.55f, 0.55f, 0.60f) : C(0.20f, 0.20f, 0.22f));
+                }
+            }
+
+            // Push all lines behind nodes
+            int lineCount = 0;
+            foreach (Transform child in _worldMapNodesContainer)
+            {
+                if (child.name.StartsWith("MapLine"))
+                {
+                    child.SetSiblingIndex(lineCount);
+                    lineCount++;
+                }
             }
         }
 
-        private void OnProgressionOptionSelected(int optionIndex)
+        private static void DrawMapLine(RectTransform container, Vector2 fromLocal, Vector2 toLocal, Color color)
         {
-            if (optionIndex < 0 || optionIndex >= _progressionOptions.Count)
-                return;
+            Vector2 dir      = toLocal - fromLocal;
+            float   distance = dir.magnitude;
+            if (distance < 1f) return;
 
-            var option = _progressionOptions[optionIndex];
-            Log($"Path chosen: {option.Label}");
-            StartEncounter(EnemyCatalog.CreateEncounterGroup(option.MaxEnemies));
+            float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            Vector2 mid = (fromLocal + toLocal) * 0.5f;
+
+            var go = new GameObject("MapLine");
+            go.transform.SetParent(container, false);
+            var rt = go.AddComponent<RectTransform>();
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot      = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = mid;
+            rt.sizeDelta  = new Vector2(distance, 4f);
+            rt.localEulerAngles = new Vector3(0f, 0f, angle);
+            go.AddComponent<Image>().color = color;
         }
 
-        private void HideProgressionSelection()
+        private void OnMapNodeClicked(int nodeId)
         {
-            if (_progressionPanel == null)
-                return;
+            var node = _worldMap?.GetNode(nodeId);
+            if (node == null) return;
 
-            _progressionPanel.gameObject.SetActive(false);
-            if (_progressionOptionsContainer != null)
-                ClearContainer(_progressionOptionsContainer);
-            _progressionOptions.Clear();
+            _worldMap.CurrentNodeId = nodeId;
+            node.IsVisited = true;
+            HideWorldMap();
+
+            switch (node.Type)
+            {
+                case EMapNodeType.Fight:
+                {
+                    int maxEnemies = node.IsBoss
+                        ? 4
+                        : Mathf.Clamp(2 + node.Layer / 2, 2, 3);
+                    StartEncounter(EnemyCatalog.CreateEncounterGroup(maxEnemies));
+                    break;
+                }
+                case EMapNodeType.Treasure:
+                    ShowTreasurePanel(nodeId);
+                    break;
+                case EMapNodeType.Shop:
+                    ShowShopPanel(nodeId);
+                    break;
+            }
+        }
+
+        // ── Treasure panel ────────────────────────────────────────────────────
+
+        private void ShowTreasurePanel(int nodeId)
+        {
+            _pendingTreasureNodeId = nodeId;
+            _treasureTitleText.text = "★ Treasure! ★";
+
+            var allCards  = CardCatalog.CreateAllCards();
+            var deckNames = new HashSet<string>(_runDeck.Select(c => c.cardName));
+            var available = allCards.Where(c => !deckNames.Contains(c.cardName)).ToList();
+
+            var choices = new List<CardData>();
+            for (int i = 0; i < TreasureChoiceCount && available.Count > 0; i++)
+            {
+                int pick = BoBRandom.Range(0, available.Count);
+                choices.Add(available[pick]);
+                available.RemoveAt(pick);
+            }
+
+            BuildTreasureChoices(choices);
+            _treasurePanel.gameObject.SetActive(true);
+        }
+
+        private void BuildTreasureChoices(List<CardData> choices)
+        {
+            ClearContainer(_treasureCardsContainer);
+            if (choices.Count == 0) return;
+
+            float width = 1f / choices.Count;
+            for (int i = 0; i < choices.Count; i++)
+            {
+                int idx  = i;
+                var card = choices[i];
+                float x0 = i * width + 0.01f;
+                float x1 = (i + 1) * width - 0.01f;
+
+                var cardPanel = MkPanel(_treasureCardsContainer, $"TrCard{i}",
+                    C(0.18f, 0.14f, 0.08f), x0, 0f, x1, 1f);
+
+                // Cost badge
+                var badgeRT = MkPanel(cardPanel, "Badge", C(0.10f, 0.16f, 0.32f), 0f, 0.82f, 0.28f, 1f);
+                MkText(badgeRT, 14, C(0.9f, 0.85f, 0.30f), TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f).text = card.energyCost.ToString();
+
+                // Card body
+                MkText(cardPanel, 11, Color.white, TextAnchor.UpperLeft, 0f, 0.35f, 1f, 0.82f).text =
+                    $"<b>{card.cardName}</b>\n{card.description}";
+
+                MkButton(cardPanel, "Add to Deck", new Vector2(0.08f, 0.04f), new Vector2(0.92f, 0.20f),
+                    C(0.18f, 0.38f, 0.14f), () => OnTreasureCardPicked(card));
+            }
+        }
+
+        private void OnTreasureCardPicked(CardData card)
+        {
+            _runDeck.Add(Instantiate(card));
+            Log($"★ Added {card.cardName} to your deck.");
+            CloseTreasurePanel();
+        }
+
+        private void OnTreasureSkipped()
+        {
+            Log("★ Skipped treasure.");
+            CloseTreasurePanel();
+        }
+
+        private void CloseTreasurePanel()
+        {
+            if (_treasurePanel != null) _treasurePanel.gameObject.SetActive(false);
+            ClearContainer(_treasureCardsContainer);
+            _pendingTreasureNodeId = -1;
+            ShowWorldMap();
+            RefreshLog();
+        }
+
+        // ── Shop panel ────────────────────────────────────────────────────────
+
+        private void ShowShopPanel(int nodeId)
+        {
+            _pendingShopNodeId = nodeId;
+            _shopTitleText.text = "$ Shop";
+            RefreshShopPanel();
+            _shopPanel.gameObject.SetActive(true);
+        }
+
+        private void RefreshShopPanel()
+        {
+            _shopGoldText.text = $"Gold: {_runGold}";
+
+            // ── Buy cards ─────────────────────────────────────────────────────
+            ClearContainer(_shopBuyCardsContainer);
+            var allCards  = CardCatalog.CreateAllCards();
+            var deckNames = new HashSet<string>(_runDeck.Select(c => c.cardName));
+            var available = allCards.Where(c => !deckNames.Contains(c.cardName)).ToList();
+
+            // Deterministic shuffle keyed to the node ID so the same shop always shows the same cards.
+            // Use System.Random seeded by nodeId to guarantee unique selections.
+            var rng = new System.Random(_pendingShopNodeId);
+            for (int i = available.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                var tmp = available[i]; available[i] = available[j]; available[j] = tmp;
+            }
+            var shopCards = available.Take(ShopCardCount).ToList();
+
+            float cardWidth = 1f / Mathf.Max(1, shopCards.Count);
+            for (int i = 0; i < shopCards.Count; i++)
+            {
+                var card = shopCards[i];
+                float x0 = i * cardWidth + 0.005f;
+                float x1 = (i + 1) * cardWidth - 0.005f;
+
+                var cardPanel = MkPanel(_shopBuyCardsContainer, $"ShopCard{i}",
+                    C(0.10f, 0.12f, 0.20f), x0, 0f, x1, 1f);
+
+                var badgeRT = MkPanel(cardPanel, "Badge", C(0.10f, 0.16f, 0.32f), 0f, 0.80f, 0.28f, 1f);
+                MkText(badgeRT, 13, C(0.9f, 0.85f, 0.30f), TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f).text
+                    = card.energyCost.ToString();
+
+                MkText(cardPanel, 10, Color.white, TextAnchor.UpperLeft, 0f, 0.32f, 1f, 0.80f).text =
+                    $"<b>{card.cardName}</b>\n{card.description}";
+
+                Color buyBtnColor = _runGold >= ShopBuyCost ? C(0.18f, 0.38f, 0.14f) : C(0.28f, 0.20f, 0.20f);
+                var buyBtn = MkButton(cardPanel, $"Buy ({ShopBuyCost}g)", new Vector2(0.05f, 0.04f),
+                    new Vector2(0.95f, 0.22f), buyBtnColor, () => OnShopBuyCard(card));
+                buyBtn.interactable = _runGold >= ShopBuyCost;
+            }
+
+            // ── Remove cards ──────────────────────────────────────────────────
+            ClearContainer(_shopRemoveCardsContainer);
+            bool canRemove = _runGold >= ShopRemoveCost && _runDeck.Count > 1;
+            _shopRemoveHeaderText.text = canRemove
+                ? $"Remove a card from your deck ({ShopRemoveCost} gold):"
+                : $"Remove a card from your deck ({ShopRemoveCost} gold): [need gold or more cards]";
+
+            if (canRemove)
+            {
+                float w = 1f / Mathf.Max(1, _runDeck.Count);
+                for (int i = 0; i < _runDeck.Count; i++)
+                {
+                    var card = _runDeck[i];
+                    float x0 = i * w + 0.003f;
+                    float x1 = (i + 1) * w - 0.003f;
+
+                    var cardPanel = MkPanel(_shopRemoveCardsContainer, $"RemoveCard{i}",
+                        C(0.20f, 0.10f, 0.10f), x0, 0f, x1, 1f);
+                    MkText(cardPanel, 9, Color.white, TextAnchor.MiddleCenter, 0f, 0.35f, 1f, 1f).text =
+                        $"<b>{card.cardName}</b>";
+                    var rmBtn = MkButton(cardPanel, "Remove", new Vector2(0.05f, 0.04f),
+                        new Vector2(0.95f, 0.34f), C(0.45f, 0.12f, 0.10f), () => OnShopRemoveCard(card));
+                    rmBtn.interactable = true;
+                }
+            }
+        }
+
+        private void OnShopBuyCard(CardData card)
+        {
+            if (_runGold < ShopBuyCost) return;
+            _runGold -= ShopBuyCost;
+            _runDeck.Add(Instantiate(card));
+            Log($"$ Bought {card.cardName} for {ShopBuyCost} gold.");
+            RefreshShopPanel();
+        }
+
+        private void OnShopRemoveCard(CardData card)
+        {
+            if (_runGold < ShopRemoveCost || _runDeck.Count <= 1) return;
+            _runGold -= ShopRemoveCost;
+            // card is a direct reference from _runDeck, so remove it by reference.
+            _runDeck.Remove(card);
+            Log($"$ Removed {card.cardName} from your deck for {ShopRemoveCost} gold.");
+            RefreshShopPanel();
+        }
+
+        private void OnLeaveShop()
+        {
+            if (_shopPanel != null) _shopPanel.gameObject.SetActive(false);
+            ClearContainer(_shopBuyCardsContainer);
+            ClearContainer(_shopRemoveCardsContainer);
+            _pendingShopNodeId = -1;
+            ShowWorldMap();
+            RefreshLog();
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────────
+
+        private static Color NodeTypeColor(EMapNodeType type, bool isBoss)
+        {
+            if (isBoss) return C(0.55f, 0.10f, 0.10f);
+            switch (type)
+            {
+                case EMapNodeType.Fight:    return C(0.40f, 0.12f, 0.12f);
+                case EMapNodeType.Treasure: return C(0.38f, 0.30f, 0.04f);
+                case EMapNodeType.Shop:     return C(0.10f, 0.22f, 0.40f);
+                default:                    return C(0.20f, 0.20f, 0.20f);
+            }
+        }
+
+        private static string NodeTypeIcon(EMapNodeType type, bool isBoss)
+        {
+            if (isBoss) return "☠";
+            switch (type)
+            {
+                case EMapNodeType.Fight:    return "⚔";
+                case EMapNodeType.Treasure: return "★";
+                case EMapNodeType.Shop:     return "$";
+                default:                    return "?";
+            }
         }
 
         private static void EnsureEventSystem()
@@ -569,8 +940,9 @@ namespace BannerOfBones.CardGame
             _playerDiceText.text = string.IsNullOrEmpty(playerHandLabel)
                 ? "Player Dice"
                 : $"Player Dice  — {playerHandLabel}";
+            string goldLabel = runMode == RunMode.Progression ? $"  Gold {_runGold}" : string.Empty;
             _stateText.text =
-                $"[{_combat.State}]  Run {_runCombatIndex}/{GetRunTargetCombatCount()}  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}  Wagers {p.ActiveWagers.Count}\n" +
+                $"[{_combat.State}]  Combat {_runCombatIndex}{goldLabel}  Enemies {CountAliveEnemies()} / {_combat.Enemies.Count}  Draw {p.Deck.DrawPile.Count}  Discard {p.Deck.DiscardPile.Count}  Exhaust {p.Deck.ExhaustPile.Count}  Wagers {p.ActiveWagers.Count}\n" +
                 $"{prompt}";
 
             bool canUseActions = _combat.CanUseBaselineActions();
@@ -754,30 +1126,37 @@ namespace BannerOfBones.CardGame
 
             if (!playerWon)
             {
-                HideProgressionSelection();
                 RefreshLog();
                 return;
             }
 
             if (runMode != RunMode.Progression)
             {
-                HideProgressionSelection();
                 RefreshLog();
                 return;
             }
 
             _runPlayerHealth = Mathf.Max(1, _combat.Player.CurrentHealth);
-            if (_runCombatIndex >= GetRunTargetCombatCount())
+
+            // Award gold for the fight
+            int enemyCount  = _combat.Enemies.Count;
+            int goldEarned  = GoldPerCombatBase + enemyCount * GoldPerEnemy;
+            _runGold += goldEarned;
+            Log($"Gained {goldEarned} gold! (Total: {_runGold})");
+
+            // Check if the completed node was the boss / end of the map
+            var currentNode  = _worldMap?.GetNode(_worldMap.CurrentNodeId);
+            bool hasMoreNodes = currentNode != null && currentNode.NextNodeIds.Count > 0;
+
+            if (!hasMoreNodes)
             {
-                HideProgressionSelection();
                 Log("★★ RUN COMPLETE! ★★");
                 RefreshLog();
                 return;
             }
 
-            ShowProgressionSelection();
-            Log("Choose a path to begin the next combat.");
             RefreshLog();
+            ShowWorldMap();
         }
 
         private void OnEndTurnClicked()

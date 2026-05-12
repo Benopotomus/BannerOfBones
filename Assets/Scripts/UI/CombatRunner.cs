@@ -151,7 +151,16 @@ namespace BannerOfBones.CardGame
             {
                 _worldMap = WorldMapGenerator.Generate(progressionCombatCount);
                 if (progressionStartEncounter == ProgressionStartEncounter.Shop)
-                    ShowShopPanel(GetInitialShopNodeIdForDebug());
+                {
+                    int shopNodeId = GetInitialShopNodeIdForDebug();
+                    if (shopNodeId >= 0)
+                        ShowShopPanel(shopNodeId);
+                    else
+                    {
+                        Log("No shop node found in generated map. Showing world map instead.");
+                        ShowWorldMap();
+                    }
+                }
                 else
                     ShowWorldMap();
             }
@@ -172,7 +181,6 @@ namespace BannerOfBones.CardGame
                     return node.Id;
             }
 
-            Log("No shop node found in generated map. Opening debug shop with fallback inventory seed.");
             return -1;
         }
 

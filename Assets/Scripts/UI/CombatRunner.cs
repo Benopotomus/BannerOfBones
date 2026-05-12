@@ -577,16 +577,15 @@ namespace BannerOfBones.CardGame
             var deckNames = new HashSet<string>(_runDeck.Select(c => c.cardName));
             var available = allCards.Where(c => !deckNames.Contains(c.cardName)).ToList();
 
-            // Use a seeded pick so the shop doesn't re-roll every refresh
-            var shopCards = new List<CardData>();
-            var tempAvail = new List<CardData>(available);
-            for (int i = 0; i < ShopCardCount && tempAvail.Count > 0; i++)
+            // Deterministic shuffle keyed to the node ID so the same shop always shows the same cards.
+            // Use System.Random seeded by nodeId to guarantee unique selections.
+            var rng = new System.Random(_pendingShopNodeId);
+            for (int i = available.Count - 1; i > 0; i--)
             {
-                // deterministic within the node: pick by nodeId offset
-                int pick = (_pendingShopNodeId * 7 + i * 13) % tempAvail.Count;
-                shopCards.Add(tempAvail[pick]);
-                tempAvail.RemoveAt(pick);
+                int j = rng.Next(i + 1);
+                var tmp = available[i]; available[i] = available[j]; available[j] = tmp;
             }
+            var shopCards = available.Take(ShopCardCount).ToList();
 
             float cardWidth = 1f / Mathf.Max(1, shopCards.Count);
             for (int i = 0; i < shopCards.Count; i++)

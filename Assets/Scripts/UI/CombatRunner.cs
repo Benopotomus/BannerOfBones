@@ -381,7 +381,7 @@ namespace BannerOfBones.CardGame
 
                 // Icon + label text
                 string icon  = NodeTypeIcon(node.Type, node.IsBoss);
-                string label = isCurrent ? "YOU\nARE\nHERE" : (node.IsBoss ? "BOSS" : node.Type.ToString().ToUpper());
+                string label = GetMapNodeLabel(node, isCurrent);
                 var txt = MkText(nodePanelRT, 10, Color.white, TextAnchor.MiddleCenter, 0f, 0f, 1f, 1f);
                 txt.text   = $"{icon}\n{label}";
                 txt.fontStyle = FontStyle.Bold;
@@ -667,6 +667,23 @@ namespace BannerOfBones.CardGame
         }
 
         // ── Helpers ────────────────────────────────────────────────────────────
+
+        private string GetMapNodeLabel(MapNode node, bool isCurrent)
+        {
+            if (isCurrent) return "YOU\nARE\nHERE";
+            if (node.IsBoss) return "BOSS";
+
+            if (node.Type != EMapNodeType.Fight)
+                return node.Type.ToString().ToUpper();
+
+            float progress = _worldMap == null || _worldMap.TotalLayers <= 1
+                ? 0f
+                : (float)node.Layer / (_worldMap.TotalLayers - 1);
+
+            if (progress < 0.34f) return "SKIRMISH";
+            if (progress < 0.67f) return "BATTLE";
+            return "WAR";
+        }
 
         private static Color NodeTypeColor(EMapNodeType type, bool isBoss)
         {

@@ -678,6 +678,8 @@ namespace BannerOfBones.CardGame
             if (node.Type != EMapNodeType.Fight)
                 return node.Type.ToString().ToUpper();
 
+            // TotalLayers includes the final boss layer, so subtract 1 to normalize
+            // progression across non-boss path depth.
             int traversableLayerCount = Mathf.Max(1, (_worldMap?.TotalLayers ?? 1) - 1);
             float progress = Mathf.Clamp01((float)node.Layer / traversableLayerCount);
 

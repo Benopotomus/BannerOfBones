@@ -157,7 +157,7 @@ namespace BannerOfBones.CardGame
                         ShowShopPanel(shopNodeId);
                     else
                     {
-                        Log("No shop node found in generated map. Showing world map instead.");
+                        Log("No shop node found in generated world map. Showing world map instead.");
                         ShowWorldMap();
                     }
                 }

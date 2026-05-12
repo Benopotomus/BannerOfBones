@@ -678,9 +678,8 @@ namespace BannerOfBones.CardGame
             if (node.Type != EMapNodeType.Fight)
                 return node.Type.ToString().ToUpper();
 
-            float progress = _worldMap == null || _worldMap.TotalLayers <= 1
-                ? 0f
-                : (float)node.Layer / (_worldMap.TotalLayers - 1);
+            int traversableLayerCount = Mathf.Max(1, (_worldMap?.TotalLayers ?? 1) - 1);
+            float progress = Mathf.Clamp01((float)node.Layer / traversableLayerCount);
 
             if (progress < SkirmishProgressThreshold) return "SKIRMISH";
             if (progress < BattleProgressThreshold) return "BATTLE";

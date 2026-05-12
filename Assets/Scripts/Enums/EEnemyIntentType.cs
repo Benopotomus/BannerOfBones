@@ -6,5 +6,6 @@ namespace BannerOfBones.CardGame
         Guard,
         ShredPlayerBlock,
         SapPlayerEnergy,
+        ApplyBurning,
     }
 }

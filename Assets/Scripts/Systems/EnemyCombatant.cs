@@ -108,6 +108,10 @@ namespace BannerOfBones.CardGame
                 case EEnemyIntentType.SapPlayerEnergy:
                     player?.ApplyNextTurnDieLoss(triggeredAmount * repeatCount);
                     return 0;
+
+                case EEnemyIntentType.ApplyBurning:
+                    player?.ApplyBurning();
+                    return 0;
             }
 
             return 0;
@@ -147,6 +151,9 @@ namespace BannerOfBones.CardGame
                     fallback = usesPlayerDiceTrigger
                         ? $"{CurrentIntent.intentName}: lose {dieText} next turn."
                         : $"{CurrentIntent.intentName}: lose {dieText} next turn.";
+                    break;
+                case EEnemyIntentType.ApplyBurning:
+                    fallback = $"{CurrentIntent.intentName}: apply Burning. ({CombatManager.BurningDamagePerRound} damage/round; removed by a die showing 1.)";
                     break;
                 default:
                     fallback = CurrentIntent.intentName;

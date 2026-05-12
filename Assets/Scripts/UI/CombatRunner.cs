@@ -1046,7 +1046,8 @@ namespace BannerOfBones.CardGame
 
             _playerHpText.text = $"HP      {p.CurrentHealth} / {p.MaxHealth}";
             _playerEnergyText.text = $"Energy  {p.Energy.CurrentEnergy} / {p.Energy.MaxEnergy}";
-            _playerBlockText.text = $"Block   {p.Block}";
+            string burningLabel = p.IsBurning ? "  🔥 BURNING" : string.Empty;
+            _playerBlockText.text = $"Block   {p.Block}{burningLabel}";
             string playerHandLabel = BuildDiceHandLabel(p.Dice.CurrentRoll);
             _playerDiceText.text = string.IsNullOrEmpty(playerHandLabel)
                 ? "Player Dice"
